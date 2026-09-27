@@ -1,0 +1,26 @@
+# Python Cache & Bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+
+# Testing & Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Virtual Environments
+venv/
+.venv/
+env/
+ENV/
+
+# System and IDE
+.DS_Store
+*.swp
+*.swo
+.vscode/
+.idea/
+
+# Large runtime logs
+*.log

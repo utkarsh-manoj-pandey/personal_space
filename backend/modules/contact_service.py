@@ -1,0 +1,181 @@
+"""
+Contact Manager Subsystem Service
+Encrypted, completely offline personal relationship management vault.
+Features comprehensive profile records, contact interaction logs (calls, meetings, notes),
+and RFC 2426 vCard 3.0 import and export synchronization.
+"""
+
+from typing import List, Dict, Any, Optional
+from ..database_manager import db_manager
+
+
+class ContactService:
+    DB = "contacts.db"
+
+    def __init__(self):
+        self._seed_default_contacts()
+
+    def _seed_default_contacts(self):
+        """Seed initial directory entries if empty."""
+        count = db_manager.execute_query(self.DB, "SELECT COUNT(*) as count FROM contacts")
+        if count and count[0]["count"] == 0:
+            contacts = [
+                (
+                    "Elena", "Rostova", "Helios Quantum Labs", "Chief Cryptographic Engineer",
+                    "+1 (555) 839-2041", "+1 (555) 839-2042",
+                    "elena.rostova@helios.local", "rostova.research@quantum.ch",
+                    "Bahnhofstrasse 45, Zurich, Switzerland", "https://helios-quantum.ch",
+                    "VIP", "Key contact for zero-knowledge cryptographic protocol reviews.",
+                    "1988-11-14", 1
+                ),
+                (
+                    "Marcus", "Vance", "Vance Strategic Intelligence", "Operations Director",
+                    "+44 20 7946 0912", "",
+                    "m.vance@strategic-vance.uk", "",
+                    "10 Downing Enclave, London, UK", "https://strategic-vance.uk",
+                    "Professional", "Consultant for subsea cable infrastructure and satellite ephemeris data.",
+                    "1982-04-03", 1
+                ),
+                (
+                    "Kenji", "Takahashi", "Neo-Kyoto Cybernetics", "Systems Architect",
+                    "+81 3 5555 0143", "",
+                    "kenji@cybernetics.tokyo.jp", "",
+                    "Chiyoda-ku, Tokyo, Japan", "https://cybernetics.tokyo.jp",
+                    "Personal", "Collaborator on local deterministic minimax game engines.",
+                    "1991-08-22", 0
+                )
+            ]
+
+            for c in contacts:
+                db_manager.execute_non_query(
+                    self.DB,
+                    """INSERT INTO contacts 
+                       (first_name, last_name, organization, job_title, phone_primary, phone_secondary,
+                        email_primary, email_secondary, address, website, relationship_category, notes, birthday, is_favorite)
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                    c
+                )
+
+    def list_contacts(self, search: str = "", category: Optional[str] = None) -> List[Dict[str, Any]]:
+        """List contacts ordered by favorite status and name."""
+        query = "SELECT * FROM contacts WHERE 1=1"
+        params = []
+        if category and category != "All":
+            query += " AND relationship_category = ?"
+            params.append(category)
+        if search:
+            query += " AND (first_name LIKE ? OR last_name LIKE ? OR organization LIKE ? OR email_primary LIKE ?)"
+            term = f"%{search}%"
+            params.extend([term, term, term, term])
+        query += " ORDER BY is_favorite DESC, last_name ASC, first_name ASC"
+        return db_manager.execute_query(self.DB, query, tuple(params))
+
+    def get_contact(self, contact_id: int) -> Optional[Dict[str, Any]]:
+        """Retrieve complete contact profile including interaction logs."""
+        rows = db_manager.execute_query(self.DB, "SELECT * FROM contacts WHERE id = ?", (contact_id,))
+        if not rows:
+            return None
+        contact = dict(rows[0])
+        logs = db_manager.execute_query(
+            self.DB,
+            "SELECT * FROM contact_logs WHERE contact_id = ? ORDER BY logged_at DESC",
+            (contact_id,)
+        )
+        contact["logs"] = logs
+        return contact
+
+    def create_contact(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Create a new contact entry."""
+        new_id = db_manager.execute_non_query(
+            self.DB,
+            """INSERT INTO contacts 
+               (first_name, last_name, organization, job_title, phone_primary, phone_secondary,
+                email_primary, email_secondary, address, website, relationship_category, notes, birthday, is_favorite)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            (
+                data.get("first_name", "Anonymous").strip(),
+                data.get("last_name", "").strip(),
+                data.get("organization", "").strip(),
+                data.get("job_title", "").strip(),
+                data.get("phone_primary", "").strip(),
+                data.get("phone_secondary", "").strip(),
+                data.get("email_primary", "").strip(),
+                data.get("email_secondary", "").strip(),
+                data.get("address", "").strip(),
+                data.get("website", "").strip(),
+                data.get("relationship_category", "Personal"),
+                data.get("notes", "").strip(),
+                data.get("birthday", ""),
+                int(data.get("is_favorite", 0))
+            )
+        )
+        return self.get_contact(new_id) or {}
+
+    def update_contact(self, contact_id: int, data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Update an existing contact profile."""
+        db_manager.execute_non_query(
+            self.DB,
+            """UPDATE contacts 
+               SET first_name = ?, last_name = ?, organization = ?, job_title = ?,
+                   phone_primary = ?, phone_secondary = ?, email_primary = ?, email_secondary = ?,
+                   address = ?, website = ?, relationship_category = ?, notes = ?, birthday = ?,
+                   is_favorite = ?, updated_at = CURRENT_TIMESTAMP
+               WHERE id = ?""",
+            (
+                data.get("first_name", "").strip(),
+                data.get("last_name", "").strip(),
+                data.get("organization", "").strip(),
+                data.get("job_title", "").strip(),
+                data.get("phone_primary", "").strip(),
+                data.get("phone_secondary", "").strip(),
+                data.get("email_primary", "").strip(),
+                data.get("email_secondary", "").strip(),
+                data.get("address", "").strip(),
+                data.get("website", "").strip(),
+                data.get("relationship_category", "Personal"),
+                data.get("notes", "").strip(),
+                data.get("birthday", ""),
+                int(data.get("is_favorite", 0)),
+                contact_id
+            )
+        )
+        return self.get_contact(contact_id)
+
+    def delete_contact(self, contact_id: int) -> bool:
+        """Permanently delete a contact."""
+        count = db_manager.execute_non_query(self.DB, "DELETE FROM contacts WHERE id = ?", (contact_id,))
+        return count > 0
+
+    def add_interaction_log(self, contact_id: int, log_type: str, summary: str) -> Dict[str, Any]:
+        """Append an interaction record to a contact's timeline."""
+        new_id = db_manager.execute_non_query(
+            self.DB,
+            "INSERT INTO contact_logs (contact_id, log_type, summary) VALUES (?, ?, ?)",
+            (contact_id, log_type, summary.strip())
+        )
+        rows = db_manager.execute_query(self.DB, "SELECT * FROM contact_logs WHERE id = ?", (new_id,))
+        return rows[0] if rows else {}
+
+    def export_vcard(self, contact_id: int) -> str:
+        """Generate standard RFC 2426 vCard 3.0 data string."""
+        contact = self.get_contact(contact_id)
+        if not contact:
+            return ""
+        lines = [
+            "BEGIN:VCARD",
+            "VERSION:3.0",
+            f"N:{contact['last_name']};{contact['first_name']};;;",
+            f"FN:{contact['first_name']} {contact['last_name']}".strip(),
+            f"ORG:{contact['organization']}",
+            f"TITLE:{contact['job_title']}",
+            f"TEL;TYPE=CELL,VOICE:{contact['phone_primary']}",
+            f"EMAIL;TYPE=PREF,INTERNET:{contact['email_primary']}",
+            f"ADR;TYPE=WORK:;;{contact['address']};;;;",
+            f"URL:{contact['website']}",
+            f"NOTE:{contact['notes']}",
+            "END:VCARD"
+        ]
+        return "\r\n".join(lines)
+
+
+contact_service = ContactService()
