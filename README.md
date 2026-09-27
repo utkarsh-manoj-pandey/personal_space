@@ -1,52 +1,123 @@
 # AETHER // PERSONAL COMMAND WORKSTATION
 
-Production-grade, offline-first personal command environment built purely on Python, PySide6, QtWebEngine, and 17 isolated SQLite databases. Engineered with a strictly deterministic, non-AI posture and zero telemetry.
+[![Python Version](https://img.shields.io/badge/Python-3.10%2B-blue?style=flat-square&logo=python&logoColor=white)](https://python.org)
+[![GUI Engine](https://img.shields.io/badge/Framework-PySide6%20Qt6-00f0ff?style=flat-square&logo=qt&logoColor=white)](https://doc.qt.io/qtforpython-6/)
+[![Isolated Databases](https://img.shields.io/badge/Databases-17%20Isolated%20WAL%20Enclaves-10b981?style=flat-square&logo=sqlite&logoColor=white)](https://sqlite.org)
+[![Telemetry Posture](https://img.shields.io/badge/Telemetry-Zero%20%2F%20Non--Cloud-ef4444?style=flat-square)](#)
+[![Deterministic Logic](https://img.shields.io/badge/Logic-Deterministic%20Non--AI-8b5cf6?style=flat-square)](#)
+[![Automated Tests](https://img.shields.io/badge/Tests-19%2F19%20Passing-brightgreen?style=flat-square)](#)
 
-The frontend is executed directly inside the PySide6 WebEngine sandbox using the local file URL protocol (`QUrl.fromLocalFile(...)`), communicating bidirectionally with the Python backend via `QWebChannel`. No local web ports or HTTP servers are run.
+A production-grade, offline-first personal command workstation engineered entirely with Python, PySide6, Chromium QtWebEngine, and 17 isolated SQLite databases in Write-Ahead Logging (WAL) mode. Designed with a strict non-AI, zero-telemetry operational posture.
+
+The user interface executes inside a sandboxed QtWebEngine environment loaded via the native file protocol (`QUrl.fromLocalFile(...)`), communicating bidirectionally with the Python engine through direct inter-process slots (`QWebChannel`). No local HTTP ports, network sockets, or remote tracking servers are utilized.
 
 ---
 
-## 1. System Overview and Philosophy
+## Visual Showcase
 
-Modern desktop productivity tools increasingly rely on mandatory cloud logins, proprietary copilot telemetry, remote subscription licensing, and opaque background data collection. 
+### Situational Reconnaissance & 3D Orbital Earth
+WebGL Three.js wireframe globe featuring a 1,200-particle starfield, live Keplerian orbital tracking of the International Space Station (ISS), real-time USGS seismic feeds, global cyber threat telemetry vectors, and subsea fiber cable status indicators.
 
-Aether is designed with the opposing philosophy:
-- **Absolute Local Sovereignty**: All data remains strictly on the host file system. There are no remote sync servers, no telemetry pings, and no cloud dependencies.
-- **Deterministic, AI-Free Logic**: Every decision tree, scheduling algorithm, mathematical solver, and game engine executes through deterministic algorithms (such as Minimax with Alpha-Beta pruning) rather than stochastic Large Language Models.
+![Situational Reconnaissance & Palantir Command Deck](docs/screenshots/01_world_monitor.png)
+
+---
+
+### Command Planner & Kanban Engine
+Tri-mode operational planner featuring a 4-Stage Kanban workflow (Backlog, In Progress, Review & Audit, Completed), 24-hour daily timeline scheduler, and an Eisenhower Priority Matrix (Urgent vs Important).
+
+![Command Planner and Kanban Workflow](docs/screenshots/05_task_planner.png)
+
+---
+
+### Pure Python Minimax Chess Engine
+Deterministic chess solver built without third-party engines. Features depth-configured Minimax search with Alpha-Beta pruning, dynamic legal move indicator reticles, live capture ledgers, and turn telemetry.
+
+![Pure Python Chess Engine with Legal Move Reticles](docs/screenshots/04_chess_game_engine.png)
+
+---
+
+### Markdown Studio & Real-Time Split Preview
+Multi-mode note-taking studio with live side-by-side markdown rendering, formatting toolbar, document search, tag taxonomy, and real-time word, character, and estimated reading time telemetry.
+
+![Notepad and Markdown Studio](docs/screenshots/03_notepad_markdown.png)
+
+---
+
+### Safe AST Mathematical & Programmer Engine
+Secure calculation engine using Python Abstract Syntax Tree (AST) node visitation to evaluate expressions without unsafe `eval()` calls. Features synchronized 32-bit registers for Hexadecimal, Decimal, Octal, and Binary conversions alongside a complete audit ledger tape.
+
+![Safe AST and Programmer Base Engine](docs/screenshots/06_tactical_calculator.png)
+
+---
+
+### Scientific Meteorology Suite
+Keyless scientific forecast models powered by Open-Meteo, featuring automatic IP-based geocoding, multi-city strategic presets, 24-hour hourly temperature trajectories, and 7-day outlook telemetry.
+
+![Scientific Weather Systems](docs/screenshots/07_weather_systems.png)
+
+---
+
+### Maps & Turn-by-Turn Navigation Engine
+Interactive OpenStreetMap vector rendering with CartoDB Dark Matter tiles, keyless Nominatim geocoding address search, and Open Source Routing Machine (OSRM) turn-by-turn routing with distance and travel time.
+
+![OpenStreetMap and OSRM Navigation](docs/screenshots/02_maps_navigation.png)
+
+---
+
+### Music Player & Procedural Soundscapes
+Dual-harmonic binaural ambient synthesizer built with Python's standard `wave` and `math` libraries, paired with a dual-mode Web Audio API visualizer (Multi-band Spectrum Bars and Oscilloscope Waveform).
+
+![Procedural Audio Synthesizer and Visualizer](docs/screenshots/09_music_soundscapes.png)
+
+---
+
+### Personal Calendar & Schedule Ledger
+Full-featured calendar management system supporting event categories, recurring cadences (daily, weekly, monthly), priority indicators, event ledger search, and RFC 5545 iCalendar (`.ics`) export.
+
+![Personal Calendar and Schedule Ledger](docs/screenshots/08_personal_calendar.png)
+
+---
+
+## 1. System Philosophy
+
+Modern desktop workstations increasingly rely on mandatory cloud accounts, third-party copilot telemetry, remote subscription licensing, and opaque background analytics. Aether is engineered on the counter-principle of absolute digital sovereignty:
+
+- **Host-Local Sovereignty**: All state, notes, schedules, and configurations remain strictly on host storage. There are no remote telemetry pings, background trackers, or cloud sync requirements.
+- **Deterministic Non-AI Algorithms**: Every scheduler, search engine, math parser, and game engine executes deterministic algorithms (e.g. Minimax with Alpha-Beta pruning, AST grammar evaluation) rather than stochastic LLM calls.
 - **Subsystem Database Isolation**: Rather than a monolithic database where corruption risks the entire suite, each of the 17 core subsystems maintains its own isolated SQLite database in Write-Ahead Logging (WAL) mode.
-- **Sandboxed Local Execution**: The frontend application is a unified, cyber-tactical interface rendered via Chromium within PySide6's QtWebEngineView, communicating directly with native Python through IPC slots rather than exposed network sockets.
+- **Portless Sandboxed Execution**: The frontend application is rendered directly via Chromium in PySide6's QtWebEngineView, communicating with Python through local IPC slots (`QWebChannel`) rather than exposed network sockets.
 
 ---
 
 ## 2. Persistence Architecture: 17 Isolated Subsystems
 
-All databases reside in the `./data` directory. Each database enforces foreign keys (`PRAGMA foreign_keys = ON;`), enables Write-Ahead Logging (`PRAGMA journal_mode = WAL;`), and uses normal synchronous writes (`PRAGMA synchronous = NORMAL;`) for high concurrent read/write throughput.
+All databases reside in the `./data` directory. Each database enforces foreign keys (`PRAGMA foreign_keys = ON;`), enables Write-Ahead Logging (`PRAGMA journal_mode = WAL;`), and uses normal synchronous writes (`PRAGMA synchronous = NORMAL;`) for resilient concurrent throughput.
 
-| # | Subsystem | Database Target | Schema and Capabilities |
+| # | Subsystem | Database Target | Core Capabilities |
 |---|---|---|---|
-| 1 | Personal Calendar | `data/calendar.db` | Event scheduling, recurring intervals (daily, weekly, monthly), priority levels, category color tagging, and RFC 5545 iCalendar (`.ics`) export/import. |
-| 2 | Privacy Web Browser | `data/browser.db` | Anti-fingerprinting profiles, User-Agent rotation (Tor Browser hardened, Linux Firefox ESR, macOS Safari), zero-tracking search engine routing (DuckDuckGo, Brave, Startpage, SearXNG, Qwant), and local bookmark storage. |
-| 3 | Notepad & Markdown Studio | `data/notepad.db` | Real-time word count, character count, estimated reading time, tag taxonomies, pinned documents, live rendered preview, and multi-format text export. |
-| 4 | Music Player & Soundscapes | `data/music.db` | Dual-harmonic binaural ambient audio synthesizer (built with Python's standard `wave` and `math` libraries), WebAudio frequency oscilloscope visualizer, MP3/WAV/FLAC/OGG library indexing. |
-| 5 | Video Cinema Player | `data/video.db` | Frame-accurate timestamp bookmarking, playback rate scaling (0.25x to 2.0x), aspect ratio control, local MP4/WebM/MKV playback engine. |
-| 6 | Document Viewer | `data/documents.db` | Universal reader for PDF (text extraction via `pypdf`), Markdown, Plain Text, JSON, CSV, and Source Code with line enumeration and marginal annotations. |
-| 7 | Internet Radio Streams | `data/radio.db` | High-definition curated global streaming matrix (SomaFM, Nightwave Plaza, BBC World Service, KUSC Classical, Swiss Jazz, Cyberpunk Industrial), stream health checker, custom station adder. |
-| 8 | Weather Systems | `data/weather.db` | Keyless Open-Meteo scientific forecast models, IP-based auto-geolocation, 24-hour hourly trajectory, 7-day forecast cards, and offline SQLite telemetry caching. |
-| 9 | News Aggregator | `data/news.db` | Multi-source RSS/Atom parser (Geopolitics, Technology, Cybersecurity, Space Exploration), distraction-free reader mode, unread/bookmark tracking, offline cache. |
-| 10 | Tactical Calculator | `data/calculator.db` | Safe Abstract Syntax Tree (AST) expression evaluation (preventing arbitrary code execution), Scientific trigonometry/logarithms, and synchronized Programmer base registers (Hex, Dec, Oct, Bin). |
-| 11 | Image Catalog & Lab | `data/images.db` | Image metadata extraction (dimensions, format, color space via `Pillow`), non-destructive real-time CSS filters (brightness, contrast, saturation, hue), 90-degree lossless rotation. |
-| 12 | World Clocks & Timers | `data/clocks.db` | Synchronized global strategic timezones (UTC, New York, London, Zurich, Dubai, Tokyo, Sydney, Singapore), millisecond stopwatch with split lap ledger, Pomodoro focus sprints. |
-| 13 | Maps & Navigation | `data/maps.db` | 100% Free OpenStreetMap vector tiles, CartoDB Dark Matter styling, Nominatim keyless geocoding, OSRM turn-by-turn routing with distance and travel time. |
-| 14 | World Monitor Dashboard | `data/world_monitor.db` | Palantir-inspired tactical situational dashboard: Three.js 3D Earth wireframe globe, live USGS earthquake feeds, International Space Station (ISS) orbital track, cyber threat vectors, and subsea fiber corridors. |
-| 15 | Task & Schedule Planner | `data/planner.db` | 4-Stage Kanban workflow (Backlog, InProgress, Review, Completed), Eisenhower Matrix quadrants (Urgent vs Important), and 24-hour daily hourly timeblock maker. |
+| 1 | Personal Calendar | `data/calendar.db` | Event scheduling, recurring cadences, category color tagging, and RFC 5545 iCalendar (`.ics`) export/import. |
+| 2 | Privacy Web Browser | `data/browser.db` | Anti-fingerprinting profiles, User-Agent rotation, zero-tracking search routing (DuckDuckGo, Brave, Startpage, SearXNG, Qwant), and bookmark storage. |
+| 3 | Notepad & Markdown Studio | `data/notepad.db` | Real-time word count, character count, estimated reading time, tag taxonomies, pinned documents, and live split preview. |
+| 4 | Music & Soundscapes | `data/music.db` | Dual-harmonic binaural ambient audio synthesizer (built with Python `wave` and `math`), WebAudio frequency visualizer, and local media library. |
+| 5 | Video Cinema Player | `data/video.db` | Frame-accurate timestamp bookmarking, playback rate scaling (0.25x to 2.0x), and local MP4/WebM/MKV playback engine. |
+| 6 | Document Viewer | `data/documents.db` | Universal reader for PDF (text extraction via `pypdf`), Markdown, Plain Text, JSON, CSV, and Source Code with line enumeration. |
+| 7 | Internet Radio Streams | `data/radio.db` | Curated global streaming matrix (SomaFM, Nightwave Plaza, BBC World Service, KUSC Classical, Swiss Jazz), stream health checker, custom station adder. |
+| 8 | Weather Systems | `data/weather.db` | Scientific Open-Meteo models, 24-hour hourly trajectory, 7-day forecast cards, and offline SQLite telemetry caching. |
+| 9 | News Aggregator | `data/news.db` | Multi-source RSS/Atom parser (Geopolitics, Technology, Cybersecurity, Space Exploration), distraction-free reader mode, unread/bookmark tracking. |
+| 10 | Tactical Calculator | `data/calculator.db` | Safe Abstract Syntax Tree (AST) expression parser, scientific trigonometry, and synchronized Programmer base registers (Hex, Dec, Oct, Bin). |
+| 11 | Image Catalog & Lab | `data/images.db` | Metadata extraction (dimensions, format, color space via `Pillow`), non-destructive real-time CSS filters, and 90-degree lossless rotation. |
+| 12 | World Clocks & Timers | `data/clocks.db` | Synchronized global strategic timezones (UTC, New York, London, Zurich, Dubai, Tokyo, Sydney, Singapore), split lap stopwatch, Pomodoro sprints. |
+| 13 | Maps & Navigation | `data/maps.db` | OpenStreetMap vector tiles, CartoDB Dark Matter styling, Nominatim keyless geocoding, OSRM turn-by-turn routing with distance and travel time. |
+| 14 | World Monitor Dashboard | `data/world_monitor.db` | Three.js 3D Earth wireframe globe, live USGS earthquake feeds, International Space Station (ISS) orbital track, cyber threat vectors, and subsea fiber corridors. |
+| 15 | Task & Schedule Planner | `data/planner.db` | 4-Stage Kanban workflow (Backlog, In Progress, Review, Completed), Eisenhower Matrix quadrants, and 24-hour daily hourly timeblock maker. |
 | 16 | Contact Vault | `data/contacts.db` | Comprehensive address book, relationship categorizations, communication interaction logs (calls, meetings, notes), and RFC 2426 vCard 3.0 export. |
-| 17 | Python Game Suite | `data/games.db` | Algorithmic game engines built purely with Python: Chess with Minimax search and Alpha-Beta pruning, Connect 4 gravity solver with heuristic weighting, Retro Space Defender, and Neural Minesweeper. |
+| 17 | Python Game Suite | `data/games.db` | Algorithmic game engines built purely with Python: Chess with Minimax search and Alpha-Beta pruning, Connect 4 gravity solver, Space Arcade, and Minesweeper. |
 
 ---
 
 ## 3. Technology Stack
 
-- **Backend**: Python 3.10+
+- **Application Backend**: Python 3.10+
   - `PySide6`: Desktop application framework, window chrome, and system integration.
   - `PySide6.QtWebEngineWidgets`: Chromium-based local runtime container.
   - `PySide6.QtWebChannel`: High-speed IPC bridge binding Python methods to JavaScript.
@@ -55,8 +126,8 @@ All databases reside in the `./data` directory. Each database enforces foreign k
   - `pypdf`: Local PDF text and structural parsing.
   - `Pillow`: Image decoding and EXIF metadata extraction.
   - `wave` & `struct`: Algorithmic procedural audio synthesis.
-- **Frontend**:
-  - `Vanilla HTML5` & `Vanilla JavaScript (ES6+)`: Application logic, state management, and tab routing.
+- **Frontend Architecture**:
+  - `HTML5` & `Vanilla JavaScript (ES6+)`: Application logic, state management, and tab routing.
   - `Tailwind CSS`: Cyber-tactical obsidian UI framework.
   - `Three.js`: 3D WebGL Keplerian orbital mechanics and wireframe Earth globe.
   - `Leaflet.js`: Interactive mapping and OpenStreetMap rendering.
@@ -70,8 +141,12 @@ All databases reside in the `./data` directory. Each database enforces foreign k
 personal_space/
 ├── app.py                      # Main PySide6 Qt application launcher
 ├── requirements.txt            # Python dependencies
-├── README.md                   # System documentation
+├── README.md                   # System documentation and visual showcase
 ├── .gitignore                  # Git exclusions for cache and runtime files
+├── docs/                       # Project documentation and visual assets
+│   └── screenshots/            # High-resolution application captures
+├── scripts/                    # Automation and pipeline scripts
+│   └── capture_screenshots.py  # Automated UI screenshot capture pipeline
 ├── data/                       # 17 Isolated Subsystem SQLite Databases & Media
 │   ├── calendar.db
 │   ├── browser.db
@@ -94,52 +169,25 @@ personal_space/
 │   ├── documents/              # Stored local documentation
 │   └── images/                 # Stored tactical wallpaper graphics
 ├── backend/
-│   ├── __init__.py
 │   ├── database_manager.py     # SQLite manager for the 17 isolated databases
 │   ├── bridge.py               # QWebChannel RPC bridge exposing Python slots
-│   └── modules/
-│       ├── calendar_service.py
-│       ├── browser_service.py
-│       ├── notepad_service.py
-│       ├── music_service.py
-│       ├── video_service.py
-│       ├── document_service.py
-│       ├── radio_service.py
-│       ├── weather_service.py
-│       ├── news_service.py
-│       ├── calculator_service.py
-│       ├── image_service.py
-│       ├── clock_service.py
-│       ├── maps_service.py
-│       ├── world_monitor_service.py
-│       ├── planner_service.py
-│       ├── contact_service.py
-│       ├── game_service.py
-│       └── system_service.py
+│   └── modules/                # Subsystem business logic engines
 ├── frontend/
-│   ├── index.html              # Unified futuristic single-page application
-│   └── vendor/                 # Offline local libraries (Zero CDN reliance)
-│       ├── qwebchannel.js
-│       ├── tailwind.js
-│       ├── three.min.js
-│       ├── leaflet.js
-│       └── leaflet.css
+│   └── index.html              # Unified cyber-tactical interface
 └── tests/
-    └── test_subsystems.py      # Automated test suite covering all 17 subsystems
+    └── test_subsystems.py      # Automated test suite for all 17 subsystems
 ```
 
 ---
 
-## 5. Installation & Setup
+## 5. Quickstart & Installation
 
 ### Prerequisites
+- Linux, macOS, or Windows
+- Python 3.10 or higher
+- Git
 
-Ensure you have Python 3.10 or newer installed:
-```bash
-python3 --version
-```
-
-### Installation
+### Installation Steps
 
 1. Clone the repository:
    ```bash
@@ -147,29 +195,25 @@ python3 --version
    cd personal_space
    ```
 
-2. Install the required Python packages:
+2. Create and activate a virtual environment:
+   ```bash
+   python3 -m venv venv
+   source venv/bin/activate
+   ```
+
+3. Install production dependencies:
    ```bash
    pip install -r requirements.txt
    ```
 
----
-
-## 6. Running the Application
-
-Launch the desktop workstation:
-```bash
-python3 app.py
-```
-
-### System Hotkeys
-- `Ctrl + K`: Open Universal Command Palette to search across all subsystems.
-- `F11`: Toggle between windowed and borderless fullscreen display.
-- `Ctrl + R`: Reload the active workstation interface.
-- `Ctrl + Q`: Cleanly terminate the application and close all database connections.
+4. Launch the application:
+   ```bash
+   python3 app.py
+   ```
 
 ---
 
-## 7. Verification and Testing
+## 6. Automated Verification & Testing
 
 A comprehensive automated test suite validates database integrity, RPC slot serialization, and service logic across all 17 subsystems:
 
@@ -179,12 +223,12 @@ PYTHONPATH=. pytest tests/test_subsystems.py -v
 
 Expected output:
 ```text
-============================= 19 passed in 14.09s ==============================
+============================== 19 passed in 9.82s ==============================
 ```
 
 ---
 
-## 8. Continuous Git Update Workflow
+## 7. Continuous Git Update Workflow
 
 To update your workstation, commit your work, and synchronize changes with GitHub:
 
@@ -193,7 +237,7 @@ To update your workstation, commit your work, and synchronize changes with GitHu
    git status
    ```
 
-2. Stage all modifications:
+2. Stage all modifications (code, docs, and assets):
    ```bash
    git add .
    ```
@@ -210,7 +254,7 @@ To update your workstation, commit your work, and synchronize changes with GitHu
 
 ---
 
-## 9. Security & Privacy Guarantees
+## 8. Security & Privacy Guarantees
 
 - **Zero Cloud Leakage**: No telemetry, analytics, or behavioral cookies are embedded.
 - **Local AST Evaluation**: The calculator avoids unsafe `eval()` calls by using Python's `ast.NodeVisitor` with an explicit whitelist of mathematical operations.

@@ -1576,7 +1576,12 @@
       }
 
       // Subsystem lazy initializers
-      if (tabId === 'maps') setTimeout(initLeafletMap, 100);
+      if (tabId === 'maps') {
+        setTimeout(() => {
+          initLeafletMap();
+          if (leafletMapInstance) leafletMapInstance.invalidateSize();
+        }, 150);
+      }
       if (tabId === 'world_monitor') refreshWorldMonitor();
       if (tabId === 'calendar') loadCalendar();
       if (tabId === 'notepad') loadNotesList();
