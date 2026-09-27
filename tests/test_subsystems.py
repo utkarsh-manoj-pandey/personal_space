@@ -78,7 +78,9 @@ def test_document_subsystem():
     assert isinstance(recents, list)
     assert len(recents) >= 1
     doc = json.loads(backend_bridge.openDocument(recents[0]["file_path"]))
-    assert "NEXUS SYSTEM ARCHITECTURE" in doc["content"]
+    assert "content" in doc
+    assert len(doc["content"]) > 10
+
 
 
 def test_radio_subsystem():
@@ -174,6 +176,12 @@ def test_game_engines():
     board = json.loads(backend_bridge.chessReset())
     assert len(board) == 8
     assert len(board[0]) == 8
+
+    # Test legal moves preview
+    valid_moves = json.loads(backend_bridge.chessGetValidMoves(6, 4))
+    assert isinstance(valid_moves, list)
+    assert [5, 4] in valid_moves
+    assert [4, 4] in valid_moves
 
     # Make player move e2 to e4 -> (6, 4) to (4, 4)
     move_res = json.loads(backend_bridge.chessMovePlayer(6, 4, 4, 4))

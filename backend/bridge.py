@@ -408,6 +408,10 @@ class BackendBridge(QObject):
     def chessReset(self) -> str:
         return self._safe_json(game_service.chess_reset())
 
+    @Slot(int, int, result=str)
+    def chessGetValidMoves(self, r: int, c: int) -> str:
+        return self._safe_json(game_service.chess_get_valid_moves(r, c))
+
     @Slot(int, int, int, int, result=str)
     def chessMovePlayer(self, sr: int, sc: int, er: int, ec: int) -> str:
         res = game_service.chess_move_player((sr, sc), (er, ec))

@@ -393,6 +393,16 @@ class GameService:
         self.chess.reset()
         return self.chess.get_board_state()
 
+    def chess_get_valid_moves(self, r: int, c: int) -> List[Tuple[int, int]]:
+        """Get all legal target squares for a selected piece."""
+        if not (0 <= r < 8 and 0 <= c < 8):
+            return []
+        piece = self.chess.board[r][c]
+        if piece == '.' or not self.chess.is_white(piece):
+            return []
+        moves = self.chess.generate_legal_moves('w')
+        return [end for (start, end) in moves if start == (r, c)]
+
     def chess_move_player(self, start: Tuple[int, int], end: Tuple[int, int]) -> Dict[str, Any]:
         """Execute human player move."""
         sr, sc = start

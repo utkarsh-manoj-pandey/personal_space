@@ -5,6 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AETHER // PERSONAL COMMAND WORKSTATION</title>
   
+  <!-- Modern Aerospace & Tactical Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Orbitron:wght@500;600;700;800;900&family=Rajdhani:wght@500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
   <!-- Offline Local Vendor Libraries -->
   <link rel="stylesheet" href="vendor/leaflet.css">
   <script src="vendor/tailwind.js"></script>
@@ -19,18 +24,23 @@
       theme: {
         extend: {
           colors: {
-            obsidian: '#07090e',
-            'panel-base': '#0d111a',
-            'panel-elevated': '#131926',
-            'panel-border': 'rgba(255, 255, 255, 0.08)',
+            obsidian: '#050811',
+            'panel-base': '#0a0f1d',
+            'panel-elevated': '#10172c',
+            'panel-border': 'rgba(0, 240, 255, 0.12)',
+            'panel-border-subtle': 'rgba(255, 255, 255, 0.06)',
             'cyber-cyan': '#00f0ff',
+            'cyber-cyan-dim': 'rgba(0, 240, 255, 0.15)',
             'cyber-violet': '#8b5cf6',
+            'cyber-violet-dim': 'rgba(139, 92, 246, 0.15)',
             'cyber-emerald': '#10b981',
             'cyber-amber': '#f59e0b',
             'cyber-crimson': '#ef4444',
           },
           fontFamily: {
             mono: ['JetBrains Mono', 'Courier New', 'monospace'],
+            orbitron: ['Orbitron', 'sans-serif'],
+            rajdhani: ['Rajdhani', 'sans-serif'],
             sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
           }
         }
@@ -41,69 +51,101 @@
   <style>
     /* Custom Scrollbars */
     ::-webkit-scrollbar {
-      width: 6px;
-      height: 6px;
+      width: 5px;
+      height: 5px;
     }
     ::-webkit-scrollbar-track {
-      background: #07090e;
+      background: #050811;
     }
     ::-webkit-scrollbar-thumb {
       background: #1e293b;
-      border-radius: 3px;
+      border-radius: 2px;
     }
     ::-webkit-scrollbar-thumb:hover {
-      background: #334155;
+      background: #00f0ff;
     }
 
-    /* Glassmorphism panels */
+    /* Tactical HUD Glassmorphism */
     .glass-panel {
-      background: rgba(13, 17, 26, 0.85);
+      background: rgba(10, 15, 29, 0.85);
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
-      border: 1px solid rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(0, 240, 255, 0.12);
     }
     .glass-elevated {
-      background: rgba(19, 25, 38, 0.92);
+      background: rgba(16, 23, 44, 0.92);
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    /* Tactical Corner Reticles */
+    .corner-reticle {
+      position: relative;
+    }
+    .corner-reticle::before {
+      content: "";
+      position: absolute;
+      top: -1px;
+      left: -1px;
+      width: 6px;
+      height: 6px;
+      border-top: 2px solid #00f0ff;
+      border-left: 2px solid #00f0ff;
+      pointer-events: none;
+    }
+    .corner-reticle::after {
+      content: "";
+      position: absolute;
+      bottom: -1px;
+      right: -1px;
+      width: 6px;
+      height: 6px;
+      border-bottom: 2px solid #00f0ff;
+      border-right: 2px solid #00f0ff;
+      pointer-events: none;
     }
 
     /* Glow utilities */
     .glow-cyan {
-      box-shadow: 0 0 15px rgba(0, 240, 255, 0.25);
+      box-shadow: 0 0 16px rgba(0, 240, 255, 0.25);
     }
     .glow-violet {
-      box-shadow: 0 0 15px rgba(139, 92, 246, 0.25);
+      box-shadow: 0 0 16px rgba(139, 92, 246, 0.25);
     }
     .text-glow-cyan {
       text-shadow: 0 0 8px rgba(0, 240, 255, 0.6);
-    }
-    .border-glow-cyan {
-      border-color: #00f0ff;
-      box-shadow: 0 0 8px rgba(0, 240, 255, 0.3);
     }
 
     /* Subtle pulse animation for status pills */
     @keyframes pulse-subtle {
       0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.65; transform: scale(0.96); }
+      50% { opacity: 0.6; transform: scale(0.96); }
     }
     .animate-pulse-subtle {
       animation: pulse-subtle 2.5s infinite ease-in-out;
     }
 
+    /* Equalizer animation for playing radio */
+    @keyframes eq-bounce {
+      0%, 100% { height: 4px; }
+      50% { height: 16px; }
+    }
+    .eq-bar-1 { animation: eq-bounce 0.8s infinite ease-in-out; }
+    .eq-bar-2 { animation: eq-bounce 1.1s infinite ease-in-out 0.2s; }
+    .eq-bar-3 { animation: eq-bounce 0.9s infinite ease-in-out 0.4s; }
+
     /* Leaflet dark theme override */
     .leaflet-container {
-      background: #080b11 !important;
+      background: #050811 !important;
     }
     .leaflet-bar a {
-      background: #0d111a !important;
+      background: #0a0f1d !important;
       color: #00f0ff !important;
-      border-color: rgba(255,255,255,0.1) !important;
+      border-color: rgba(0, 240, 255, 0.2) !important;
     }
     .leaflet-bar a:hover {
-      background: #131926 !important;
+      background: #10172c !important;
       color: #fff !important;
     }
   </style>
@@ -115,9 +157,9 @@
   <header class="h-14 glass-panel border-b border-panel-border px-4 flex items-center justify-between z-30 flex-shrink-0">
     <!-- Brand & System Posture -->
     <div class="flex items-center space-x-4">
-      <div class="flex items-center space-x-2">
-        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500 to-violet-600 flex items-center justify-center p-0.5">
-          <div class="w-full h-full bg-obsidian rounded-[6px] flex items-center justify-center">
+      <div class="flex items-center space-x-2.5">
+        <div class="w-8 h-8 rounded bg-gradient-to-br from-cyan-500 to-violet-600 flex items-center justify-center p-0.5 glow-cyan">
+          <div class="w-full h-full bg-obsidian rounded-[3px] flex items-center justify-center">
             <svg class="w-4 h-4 text-cyber-cyan" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
               <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
               <polyline points="2 17 12 22 22 17"></polyline>
@@ -126,86 +168,89 @@
           </div>
         </div>
         <div>
-          <span class="text-sm font-bold tracking-wider text-white font-mono">AETHER</span>
-          <span class="text-[10px] block text-cyan-400 font-mono tracking-widest leading-none">WORKSTATION</span>
+          <span class="text-sm font-black tracking-wider text-white font-orbitron text-glow-cyan">AETHER</span>
+          <span class="text-[9px] block text-cyan-400 font-mono tracking-widest leading-none font-bold">SOVEREIGN WORKSTATION</span>
         </div>
       </div>
 
       <div class="h-5 w-px bg-panel-border"></div>
 
-      <!-- Verification Badge -->
-      <div class="flex items-center space-x-2 bg-emerald-950/40 border border-emerald-500/30 px-2.5 py-1 rounded text-[11px] text-emerald-400 font-mono">
+      <!-- Verification Enclave Badge -->
+      <div class="hidden sm:flex items-center space-x-2 bg-emerald-950/40 border border-emerald-500/30 px-2.5 py-1 rounded text-[11px] text-emerald-400 font-mono">
         <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse-subtle"></span>
-        <span>ZERO TELEMETRY // 17 ISOLATED SQLITE DBs</span>
+        <span>ZERO TELEMETRY // 17 ISOLATED SQLITE ENCLAVES</span>
       </div>
     </div>
 
-    <!-- Live Telemetry HUD -->
-    <div class="hidden lg:flex items-center space-x-6 text-xs font-mono">
-      <!-- CPU -->
+    <!-- Live Telemetry HUD Gauges -->
+    <div class="hidden xl:flex items-center space-x-6 text-xs font-mono">
+      <!-- CPU Gauge -->
       <div class="flex items-center space-x-2">
-        <span class="text-slate-400">CPU</span>
-        <div class="w-20 bg-slate-800 rounded-full h-1.5 overflow-hidden">
+        <span class="text-slate-400 font-rajdhani font-bold tracking-wider">CPU</span>
+        <div class="w-20 bg-slate-900 rounded-full h-1.5 overflow-hidden border border-slate-800">
           <div id="hud-cpu-bar" class="bg-cyan-400 h-full w-[12%] transition-all duration-500"></div>
         </div>
         <span id="hud-cpu-val" class="text-white w-8">12%</span>
       </div>
 
-      <!-- RAM -->
+      <!-- RAM Gauge -->
       <div class="flex items-center space-x-2">
-        <span class="text-slate-400">RAM</span>
-        <div class="w-20 bg-slate-800 rounded-full h-1.5 overflow-hidden">
+        <span class="text-slate-400 font-rajdhani font-bold tracking-wider">RAM</span>
+        <div class="w-20 bg-slate-900 rounded-full h-1.5 overflow-hidden border border-slate-800">
           <div id="hud-ram-bar" class="bg-violet-400 h-full w-[38%] transition-all duration-500"></div>
         </div>
         <span id="hud-ram-val" class="text-white w-14">3.8GB</span>
       </div>
 
-      <!-- DISK -->
-      <div class="flex items-center space-x-2">
-        <span class="text-slate-400">STORAGE</span>
-        <span id="hud-disk-val" class="text-white">LOCAL SSD</span>
+      <!-- Kernel Platform -->
+      <div class="flex items-center space-x-1.5 text-slate-400">
+        <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-900 border border-panel-border text-cyan-400 font-mono font-bold">LINUX x86_64</span>
       </div>
 
-      <!-- UPTIME -->
+      <!-- Uptime -->
       <div class="flex items-center space-x-1.5 text-slate-400">
         <svg class="w-3.5 h-3.5 text-cyan-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="12" cy="12" r="10"></circle>
           <polyline points="12 6 12 12 16 14"></polyline>
         </svg>
-        <span id="hud-uptime-val" class="text-white">00:00:00</span>
+        <span id="hud-uptime-val" class="text-white font-mono">00:00:00</span>
       </div>
     </div>
 
-    <!-- Mini Audio Bar & Time Display -->
-    <div class="flex items-center space-x-4">
-      <!-- Quick Audio Bar -->
-      <div id="hud-audio-bar" class="hidden sm:flex items-center space-x-2 bg-panel-elevated/70 border border-panel-border px-3 py-1 rounded-lg">
-        <button id="hud-audio-toggle" class="text-cyan-400 hover:text-cyan-300">
-          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <!-- Mini Audio Player Deck & Time Display -->
+    <div class="flex items-center space-x-3 sm:space-x-4">
+      <!-- Persistent Mini Audio Deck -->
+      <div id="hud-audio-bar" class="flex items-center space-x-2 bg-panel-elevated/80 border border-panel-border px-3 py-1 rounded">
+        <button onclick="toggleMusicPlayback()" id="hud-audio-toggle" class="text-cyan-400 hover:text-cyan-300">
+          <svg id="hud-play-icon" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <polygon points="5 3 19 12 5 21 5 3"></polygon>
           </svg>
         </button>
-        <div class="text-[11px] truncate max-w-[140px]">
-          <span id="hud-audio-title" class="text-slate-300">Ambient Standby</span>
+        <div class="text-[11px] truncate max-w-[120px] font-mono">
+          <span id="hud-audio-title" class="text-slate-300">Standby</span>
         </div>
-        <!-- Visualizer canvas -->
-        <canvas id="hud-visualizer" width="48" height="14" class="opacity-75"></canvas>
+        <!-- Mini Equalizer Bars -->
+        <div id="hud-eq-container" class="flex items-end space-x-0.5 h-3.5 opacity-60">
+          <div class="w-1 bg-cyan-400 eq-bar-1"></div>
+          <div class="w-1 bg-cyan-400 eq-bar-2"></div>
+          <div class="w-1 bg-cyan-400 eq-bar-3"></div>
+        </div>
       </div>
 
       <!-- Universal Command Palette Button -->
-      <button onclick="openCommandPalette()" class="px-2.5 py-1 bg-slate-800/80 hover:bg-slate-700/80 border border-panel-border rounded text-[11px] font-mono text-slate-300 flex items-center space-x-1.5">
+      <button onclick="openCommandPalette()" class="px-2.5 py-1 bg-slate-900 hover:bg-slate-800 border border-panel-border rounded text-[11px] font-mono text-slate-300 flex items-center space-x-1.5 transition-colors">
         <svg class="w-3 h-3 text-cyan-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="11" cy="11" r="8"></circle>
           <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
         </svg>
-        <span>CMD</span>
-        <kbd class="bg-slate-900 px-1 py-0.5 rounded text-[9px] text-slate-400">Ctrl+K</kbd>
+        <span class="font-rajdhani font-bold">COMMAND</span>
+        <kbd class="bg-black/60 px-1 py-0.5 rounded text-[9px] text-cyan-400 font-mono">Ctrl+K</kbd>
       </button>
 
       <!-- Precision Clock -->
       <div class="text-right font-mono">
         <div id="hud-clock-time" class="text-sm font-bold text-white tracking-tight">00:00:00</div>
-        <div id="hud-clock-date" class="text-[10px] text-slate-400">UTC +00:00</div>
+        <div id="hud-clock-date" class="text-[9px] text-slate-400 uppercase">UTC +00:00</div>
       </div>
     </div>
   </header>
@@ -213,16 +258,19 @@
   <!-- BODY WORKSPACE: SIDEBAR + MAIN VIEW -->
   <div class="flex-1 flex overflow-hidden">
 
-    <!-- LEFT SIDEBAR NAVIGATION (17 FUNCTIONAL MODULES) -->
+    <!-- LEFT SIDEBAR NAVIGATION (17 FUNCTIONAL SUBSYSTEMS) -->
     <aside class="w-64 glass-panel border-r border-panel-border flex flex-col flex-shrink-0 z-20">
       <!-- Module Navigation List -->
-      <div class="flex-1 overflow-y-auto py-3 px-2 space-y-4">
+      <div class="flex-1 overflow-y-auto py-3 px-2 space-y-3.5">
         
-        <!-- Category: Command & Recon -->
+        <!-- Category 1: Intelligence & Recon -->
         <div>
-          <div class="px-3 pb-1 text-[10px] font-mono tracking-wider text-slate-400 uppercase font-semibold">Intelligence & Recon</div>
+          <div class="px-3 pb-1 text-[10px] font-rajdhani tracking-widest text-cyan-400/80 uppercase font-bold flex items-center justify-between">
+            <span>Intelligence & Recon</span>
+            <span class="text-[9px] text-slate-500 font-mono">01-04</span>
+          </div>
           <div class="space-y-0.5">
-            <button onclick="switchTab('world_monitor')" id="nav-world_monitor" class="nav-item active w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium transition-colors text-white bg-cyan-950/40 border border-cyan-500/30">
+            <button onclick="switchTab('world_monitor')" id="nav-world_monitor" class="nav-item active w-full flex items-center space-x-3 px-3 py-1.5 rounded text-xs font-rajdhani font-bold tracking-wider transition-all text-white bg-cyan-950/50 border border-cyan-500/40">
               <svg class="w-4 h-4 text-cyber-cyan" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <circle cx="12" cy="12" r="10"></circle>
                 <line x1="2" y1="12" x2="22" y2="12"></line>
@@ -232,7 +280,7 @@
               <span class="ml-auto text-[9px] font-mono text-cyan-400 bg-cyan-950 px-1 py-0.5 rounded border border-cyan-800">3D</span>
             </button>
 
-            <button onclick="switchTab('maps')" id="nav-maps" class="nav-item w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium transition-colors text-slate-400 hover:text-white hover:bg-panel-elevated">
+            <button onclick="switchTab('maps')" id="nav-maps" class="nav-item w-full flex items-center space-x-3 px-3 py-1.5 rounded text-xs font-rajdhani font-bold tracking-wider transition-all text-slate-400 hover:text-white hover:bg-panel-elevated">
               <svg class="w-4 h-4 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon>
                 <line x1="8" y1="2" x2="8" y2="18"></line>
@@ -241,14 +289,14 @@
               <span>Maps & Navigation</span>
             </button>
 
-            <button onclick="switchTab('weather')" id="nav-weather" class="nav-item w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium transition-colors text-slate-400 hover:text-white hover:bg-panel-elevated">
+            <button onclick="switchTab('weather')" id="nav-weather" class="nav-item w-full flex items-center space-x-3 px-3 py-1.5 rounded text-xs font-rajdhani font-bold tracking-wider transition-all text-slate-400 hover:text-white hover:bg-panel-elevated">
               <svg class="w-4 h-4 text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"></path>
               </svg>
               <span>Weather Systems</span>
             </button>
 
-            <button onclick="switchTab('news')" id="nav-news" class="nav-item w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium transition-colors text-slate-400 hover:text-white hover:bg-panel-elevated">
+            <button onclick="switchTab('news')" id="nav-news" class="nav-item w-full flex items-center space-x-3 px-3 py-1.5 rounded text-xs font-rajdhani font-bold tracking-wider transition-all text-slate-400 hover:text-white hover:bg-panel-elevated">
               <svg class="w-4 h-4 text-violet-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M4 11a9 9 0 0 1 9 9"></path>
                 <path d="M4 4a16 16 0 0 1 16 16"></path>
@@ -259,19 +307,22 @@
           </div>
         </div>
 
-        <!-- Category: Productivity & Strategy -->
+        <!-- Category 2: Command & Workflow -->
         <div>
-          <div class="px-3 pb-1 text-[10px] font-mono tracking-wider text-slate-400 uppercase font-semibold">Command & Workflow</div>
+          <div class="px-3 pb-1 text-[10px] font-rajdhani tracking-widest text-cyan-400/80 uppercase font-bold flex items-center justify-between">
+            <span>Command & Productivity</span>
+            <span class="text-[9px] text-slate-500 font-mono">05-09</span>
+          </div>
           <div class="space-y-0.5">
-            <button onclick="switchTab('planner')" id="nav-planner" class="nav-item w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium transition-colors text-slate-400 hover:text-white hover:bg-panel-elevated">
+            <button onclick="switchTab('planner')" id="nav-planner" class="nav-item w-full flex items-center space-x-3 px-3 py-1.5 rounded text-xs font-rajdhani font-bold tracking-wider transition-all text-slate-400 hover:text-white hover:bg-panel-elevated">
               <svg class="w-4 h-4 text-cyan-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
                 <line x1="9" y1="3" x2="9" y2="21"></line>
               </svg>
-              <span>Task & Schedule Planner</span>
+              <span>Planner & Kanban</span>
             </button>
 
-            <button onclick="switchTab('calendar')" id="nav-calendar" class="nav-item w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium transition-colors text-slate-400 hover:text-white hover:bg-panel-elevated">
+            <button onclick="switchTab('calendar')" id="nav-calendar" class="nav-item w-full flex items-center space-x-3 px-3 py-1.5 rounded text-xs font-rajdhani font-bold tracking-wider transition-all text-slate-400 hover:text-white hover:bg-panel-elevated">
               <svg class="w-4 h-4 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
                 <line x1="16" y1="2" x2="16" y2="6"></line>
@@ -281,18 +332,17 @@
               <span>Personal Calendar</span>
             </button>
 
-            <button onclick="switchTab('notepad')" id="nav-notepad" class="nav-item w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium transition-colors text-slate-400 hover:text-white hover:bg-panel-elevated">
+            <button onclick="switchTab('notepad')" id="nav-notepad" class="nav-item w-full flex items-center space-x-3 px-3 py-1.5 rounded text-xs font-rajdhani font-bold tracking-wider transition-all text-slate-400 hover:text-white hover:bg-panel-elevated">
               <svg class="w-4 h-4 text-yellow-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                 <polyline points="14 2 14 8 20 8"></polyline>
                 <line x1="16" y1="13" x2="8" y2="13"></line>
                 <line x1="16" y1="17" x2="8" y2="17"></line>
-                <polyline points="10 9 9 9 8 9"></polyline>
               </svg>
               <span>Notepad & Markdown</span>
             </button>
 
-            <button onclick="switchTab('contacts')" id="nav-contacts" class="nav-item w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium transition-colors text-slate-400 hover:text-white hover:bg-panel-elevated">
+            <button onclick="switchTab('contacts')" id="nav-contacts" class="nav-item w-full flex items-center space-x-3 px-3 py-1.5 rounded text-xs font-rajdhani font-bold tracking-wider transition-all text-slate-400 hover:text-white hover:bg-panel-elevated">
               <svg class="w-4 h-4 text-pink-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
                 <circle cx="9" cy="7" r="4"></circle>
@@ -302,52 +352,43 @@
               <span>Contact Directory</span>
             </button>
 
-            <button onclick="switchTab('calculator')" id="nav-calculator" class="nav-item w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium transition-colors text-slate-400 hover:text-white hover:bg-panel-elevated">
+            <button onclick="switchTab('calculator')" id="nav-calculator" class="nav-item w-full flex items-center space-x-3 px-3 py-1.5 rounded text-xs font-rajdhani font-bold tracking-wider transition-all text-slate-400 hover:text-white hover:bg-panel-elevated">
               <svg class="w-4 h-4 text-purple-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <rect x="4" y="2" width="16" height="20" rx="2"></rect>
                 <line x1="8" y1="6" x2="16" y2="6"></line>
                 <line x1="16" y1="14" x2="16" y2="18"></line>
-                <path d="M16 10h.01"></path>
-                <path d="M12 10h.01"></path>
-                <path d="M8 10h.01"></path>
-                <path d="M12 14h.01"></path>
-                <path d="M8 14h.01"></path>
-                <path d="M12 18h.01"></path>
-                <path d="M8 18h.01"></path>
               </svg>
-              <span>Calculator (Scientific/Prog)</span>
+              <span>Tactical Calculator</span>
             </button>
           </div>
         </div>
 
-        <!-- Category: Media & Viewers -->
+        <!-- Category 3: Media & Document Suite -->
         <div>
-          <div class="px-3 pb-1 text-[10px] font-mono tracking-wider text-slate-400 uppercase font-semibold">Media & Documents</div>
+          <div class="px-3 pb-1 text-[10px] font-rajdhani tracking-widest text-cyan-400/80 uppercase font-bold flex items-center justify-between">
+            <span>Media & Documents</span>
+            <span class="text-[9px] text-slate-500 font-mono">10-14</span>
+          </div>
           <div class="space-y-0.5">
-            <button onclick="switchTab('music')" id="nav-music" class="nav-item w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium transition-colors text-slate-400 hover:text-white hover:bg-panel-elevated">
+            <button onclick="switchTab('music')" id="nav-music" class="nav-item w-full flex items-center space-x-3 px-3 py-1.5 rounded text-xs font-rajdhani font-bold tracking-wider transition-all text-slate-400 hover:text-white hover:bg-panel-elevated">
               <svg class="w-4 h-4 text-red-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M9 18V5l12-2v13"></path>
                 <circle cx="6" cy="18" r="3"></circle>
                 <circle cx="18" cy="16" r="3"></circle>
               </svg>
-              <span>Music Player</span>
+              <span>Music & Synth Audio</span>
             </button>
 
-            <button onclick="switchTab('video')" id="nav-video" class="nav-item w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium transition-colors text-slate-400 hover:text-white hover:bg-panel-elevated">
+            <button onclick="switchTab('video')" id="nav-video" class="nav-item w-full flex items-center space-x-3 px-3 py-1.5 rounded text-xs font-rajdhani font-bold tracking-wider transition-all text-slate-400 hover:text-white hover:bg-panel-elevated">
               <svg class="w-4 h-4 text-orange-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect>
                 <line x1="7" y1="2" x2="7" y2="22"></line>
                 <line x1="17" y1="2" x2="17" y2="22"></line>
-                <line x1="2" y1="12" x2="22" y2="12"></line>
-                <line x1="2" y1="7" x2="7" y2="7"></line>
-                <line x1="2" y1="17" x2="7" y2="17"></line>
-                <line x1="17" y1="17" x2="22" y2="17"></line>
-                <line x1="17" y1="7" x2="22" y2="7"></line>
               </svg>
               <span>Video Cinema Player</span>
             </button>
 
-            <button onclick="switchTab('documents')" id="nav-documents" class="nav-item w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium transition-colors text-slate-400 hover:text-white hover:bg-panel-elevated">
+            <button onclick="switchTab('documents')" id="nav-documents" class="nav-item w-full flex items-center space-x-3 px-3 py-1.5 rounded text-xs font-rajdhani font-bold tracking-wider transition-all text-slate-400 hover:text-white hover:bg-panel-elevated">
               <svg class="w-4 h-4 text-teal-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
                 <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
@@ -355,7 +396,7 @@
               <span>Document Viewer</span>
             </button>
 
-            <button onclick="switchTab('images')" id="nav-images" class="nav-item w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium transition-colors text-slate-400 hover:text-white hover:bg-panel-elevated">
+            <button onclick="switchTab('images')" id="nav-images" class="nav-item w-full flex items-center space-x-3 px-3 py-1.5 rounded text-xs font-rajdhani font-bold tracking-wider transition-all text-slate-400 hover:text-white hover:bg-panel-elevated">
               <svg class="w-4 h-4 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
                 <circle cx="8.5" cy="8.5" r="1.5"></circle>
@@ -364,7 +405,7 @@
               <span>Image Catalog & Lab</span>
             </button>
 
-            <button onclick="switchTab('radio')" id="nav-radio" class="nav-item w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium transition-colors text-slate-400 hover:text-white hover:bg-panel-elevated">
+            <button onclick="switchTab('radio')" id="nav-radio" class="nav-item w-full flex items-center space-x-3 px-3 py-1.5 rounded text-xs font-rajdhani font-bold tracking-wider transition-all text-slate-400 hover:text-white hover:bg-panel-elevated">
               <svg class="w-4 h-4 text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <circle cx="12" cy="12" r="2"></circle>
                 <path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49m11.31-2.82a10 10 0 0 1 0 14.14m-14.14 0a10 10 0 0 1 0-14.14"></path>
@@ -374,11 +415,14 @@
           </div>
         </div>
 
-        <!-- Category: Systems & Leisure -->
+        <!-- Category 4: Systems & Engines -->
         <div>
-          <div class="px-3 pb-1 text-[10px] font-mono tracking-wider text-slate-400 uppercase font-semibold">Systems & Engine Games</div>
+          <div class="px-3 pb-1 text-[10px] font-rajdhani tracking-widest text-cyan-400/80 uppercase font-bold flex items-center justify-between">
+            <span>Systems & Engines</span>
+            <span class="text-[9px] text-slate-500 font-mono">15-17</span>
+          </div>
           <div class="space-y-0.5">
-            <button onclick="switchTab('browser')" id="nav-browser" class="nav-item w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium transition-colors text-slate-400 hover:text-white hover:bg-panel-elevated">
+            <button onclick="switchTab('browser')" id="nav-browser" class="nav-item w-full flex items-center space-x-3 px-3 py-1.5 rounded text-xs font-rajdhani font-bold tracking-wider transition-all text-slate-400 hover:text-white hover:bg-panel-elevated">
               <svg class="w-4 h-4 text-cyan-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
                 <line x1="3" y1="9" x2="21" y2="9"></line>
@@ -387,7 +431,7 @@
               <span>Privacy Web Browser</span>
             </button>
 
-            <button onclick="switchTab('clocks')" id="nav-clocks" class="nav-item w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium transition-colors text-slate-400 hover:text-white hover:bg-panel-elevated">
+            <button onclick="switchTab('clocks')" id="nav-clocks" class="nav-item w-full flex items-center space-x-3 px-3 py-1.5 rounded text-xs font-rajdhani font-bold tracking-wider transition-all text-slate-400 hover:text-white hover:bg-panel-elevated">
               <svg class="w-4 h-4 text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <circle cx="12" cy="12" r="10"></circle>
                 <polyline points="12 6 12 12 14 14"></polyline>
@@ -395,16 +439,14 @@
               <span>World Clocks & Timers</span>
             </button>
 
-            <button onclick="switchTab('games')" id="nav-games" class="nav-item w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium transition-colors text-slate-400 hover:text-white hover:bg-panel-elevated">
+            <button onclick="switchTab('games')" id="nav-games" class="nav-item w-full flex items-center space-x-3 px-3 py-1.5 rounded text-xs font-rajdhani font-bold tracking-wider transition-all text-slate-400 hover:text-white hover:bg-panel-elevated">
               <svg class="w-4 h-4 text-fuchsia-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <line x1="6" y1="12" x2="10" y2="12"></line>
                 <line x1="8" y1="10" x2="8" y2="14"></line>
-                <line x1="15" y1="13" x2="15.01" y2="13"></line>
-                <line x1="18" y1="11" x2="18.01" y2="11"></line>
                 <rect x="2" y="6" width="20" height="12" rx="2"></rect>
               </svg>
-              <span>Python Games Suite</span>
-              <span class="ml-auto text-[9px] font-mono text-fuchsia-400 bg-fuchsia-950 px-1 py-0.5 rounded border border-fuchsia-800">AI-Free</span>
+              <span>Python Game Suite</span>
+              <span class="ml-auto text-[9px] font-mono text-fuchsia-400 bg-fuchsia-950 px-1 py-0.5 rounded border border-fuchsia-800">Non-AI</span>
             </button>
           </div>
         </div>
@@ -412,16 +454,16 @@
       </div>
 
       <!-- Bottom Sidebar Footer Status -->
-      <div class="p-3 border-t border-panel-border bg-panel-base/60 text-[10px] font-mono text-slate-400 flex items-center justify-between">
+      <div class="p-3 border-t border-panel-border bg-panel-base/90 text-[10px] font-mono text-slate-400 flex items-center justify-between">
         <div class="flex items-center space-x-1.5">
-          <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
-          <span>SQLITE ENCLAVE ACTIVE</span>
+          <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse-subtle"></span>
+          <span>17/17 SQLITE ENCLAVES</span>
         </div>
-        <span class="text-slate-400">v2.4 LTS</span>
+        <span class="text-cyan-400 font-bold">VERIFIED</span>
       </div>
     </aside>
 
-    <!-- MAIN VIEW CONTAINER (SWITCHES DYNAMICALLY) -->
+    <!-- MAIN DYNAMIC VIEW CONTAINER -->
     <main class="flex-1 bg-obsidian overflow-hidden flex flex-col relative">
 
       <!-- ================================================================= -->
@@ -431,11 +473,11 @@
         <!-- Dashboard Top Stats -->
         <div class="h-12 glass-panel border-b border-panel-border px-6 flex items-center justify-between flex-shrink-0">
           <div class="flex items-center space-x-4">
-            <h1 class="text-xs font-mono font-bold text-white tracking-widest uppercase flex items-center space-x-2">
+            <h1 class="text-xs font-orbitron font-bold text-white tracking-widest uppercase flex items-center space-x-2">
               <span class="w-2 h-2 bg-cyan-400 rounded-full animate-ping"></span>
-              <span>GLOBAL SITUATIONAL AWARENESS // PALANTIR DASHBOARD</span>
+              <span>SITUATIONAL RECON // PALANTIR COMMAND DECK</span>
             </h1>
-            <span id="wm-threat-posture" class="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-950/60 border border-emerald-500/40 text-emerald-400">DEFCON 4 (NOMINAL)</span>
+            <span id="wm-threat-posture" class="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-950/80 border border-emerald-500/40 text-emerald-400 font-bold">DEFCON 4 (NOMINAL)</span>
           </div>
 
           <div class="flex items-center space-x-6 text-xs font-mono">
@@ -451,7 +493,7 @@
               <span class="text-slate-400">SOLAR WIND:</span>
               <span class="text-emerald-400 font-bold ml-1">412 km/s</span>
             </div>
-            <button onclick="refreshWorldMonitor()" class="text-slate-400 hover:text-white">
+            <button onclick="refreshWorldMonitor()" class="text-slate-400 hover:text-cyan-400 p-1">
               <svg class="w-4 h-4 text-cyan-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path>
               </svg>
@@ -461,29 +503,30 @@
 
         <!-- Dashboard Content Grid -->
         <div class="flex-1 grid grid-cols-12 gap-3 p-4 overflow-hidden">
-          <!-- 3D Three.js Interactive Globe & Telemetry -->
-          <div class="col-span-8 glass-panel rounded-xl flex flex-col overflow-hidden relative border border-panel-border">
-            <div class="absolute top-3 left-3 z-10 bg-panel-elevated/80 backdrop-blur-md px-3 py-1.5 rounded-lg border border-panel-border text-xs font-mono flex items-center space-x-3">
+          <!-- 3D Three.js Interactive Earth & Telemetry -->
+          <div class="col-span-8 glass-panel rounded corner-reticle flex flex-col overflow-hidden relative border border-panel-border">
+            <div class="absolute top-3 left-3 z-10 bg-panel-elevated/90 backdrop-blur-md px-3 py-1.5 rounded border border-panel-border text-xs font-mono flex items-center space-x-3">
               <div class="flex items-center space-x-1.5">
-                <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
-                <span class="text-slate-300">ISS ORBIT TRACK</span>
+                <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse-subtle"></span>
+                <span class="text-white font-bold font-rajdhani">ISS TELEMETRY</span>
               </div>
-              <span class="text-slate-400">|</span>
-              <span id="wm-iss-coords" class="text-cyan-400">LAT: 00.00° LON: 00.00°</span>
-              <span class="text-slate-400">|</span>
-              <span class="text-slate-300">ALT: 418.4 KM</span>
+              <span class="text-slate-500">|</span>
+              <span id="wm-iss-coords" class="text-cyan-400 font-bold">LAT: 00.00° LON: 00.00°</span>
+              <span class="text-slate-500">|</span>
+              <span class="text-slate-300">VELOCITY: 27,580 KM/H</span>
             </div>
 
             <!-- Globe Canvas Container -->
-            <div id="globe-container" class="w-full flex-1 bg-gradient-to-b from-[#060810] to-[#0a0f1a] relative"></div>
+            <div id="globe-container" class="w-full flex-1 bg-gradient-to-b from-[#050811] via-[#090e1f] to-[#04060c] relative"></div>
 
-            <!-- Bottom Tactical Ticker -->
-            <div class="h-10 bg-panel-base/90 border-t border-panel-border px-4 flex items-center text-[11px] font-mono text-slate-300 overflow-hidden">
-              <span class="text-cyan-400 font-bold mr-2 uppercase">CHOKEPOINTS:</span>
+            <!-- Bottom Tactical Subsea Chokepoint Ticker -->
+            <div class="h-9 bg-panel-base/95 border-t border-panel-border px-4 flex items-center text-[11px] font-mono text-slate-300 overflow-hidden">
+              <span class="text-cyan-400 font-bold mr-3 font-rajdhani tracking-wider uppercase">SUBSEA CORRIDORS:</span>
               <div id="wm-chokepoint-ticker" class="flex space-x-6 truncate">
-                <span>Suez Telemetry: 48.2 Tbps (Nominal)</span>
-                <span>Malacca Belt: 92.4 Tbps (Guarded)</span>
-                <span>Transatlantic Ring: 145.0 Tbps (Secure)</span>
+                <span>Suez Canal Fiber: 48.2 Tbps (Nominal)</span>
+                <span>Strait of Malacca: 92.4 Tbps (Guarded)</span>
+                <span>Transatlantic North: 145.0 Tbps (Secure)</span>
+                <span>Gibraltar Transit: 38.6 Tbps (Nominal)</span>
               </div>
             </div>
           </div>
@@ -491,35 +534,33 @@
           <!-- Right Telemetry Feeds: Live USGS Quakes + Cyber Vectors -->
           <div class="col-span-4 flex flex-col space-y-3 overflow-hidden">
             <!-- Real-Time USGS Earthquakes Feed -->
-            <div class="flex-1 glass-panel rounded-xl p-3 flex flex-col border border-panel-border overflow-hidden">
+            <div class="flex-1 glass-panel rounded p-3 flex flex-col border border-panel-border overflow-hidden corner-reticle">
               <div class="flex items-center justify-between pb-2 border-b border-panel-border mb-2">
-                <span class="text-xs font-mono font-bold text-white uppercase flex items-center space-x-2">
+                <span class="text-xs font-rajdhani font-bold text-white uppercase tracking-wider flex items-center space-x-2">
                   <svg class="w-3.5 h-3.5 text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
                   </svg>
-                  <span>USGS Live Seismic Events</span>
+                  <span>USGS Live Seismic Feed</span>
                 </span>
-                <span class="text-[10px] font-mono text-slate-400">Public USGS Feed</span>
+                <span class="text-[9px] font-mono text-cyan-400 bg-cyan-950/60 px-1.5 py-0.5 rounded border border-cyan-800">REAL-TIME</span>
               </div>
               
               <div id="wm-quakes-list" class="flex-1 overflow-y-auto space-y-2 pr-1">
-                <!-- Populated via JS -->
-                <div class="text-xs text-slate-400 text-center py-8">Fetching real-time seismic telemetry...</div>
+                <div class="text-xs text-slate-400 text-center py-8 font-mono">Connecting to USGS feed...</div>
               </div>
             </div>
 
             <!-- Cyber Threat Intelligence Feed -->
-            <div class="h-56 glass-panel rounded-xl p-3 flex flex-col border border-panel-border overflow-hidden">
+            <div class="h-60 glass-panel rounded p-3 flex flex-col border border-panel-border overflow-hidden corner-reticle">
               <div class="flex items-center justify-between pb-2 border-b border-panel-border mb-2">
-                <span class="text-xs font-mono font-bold text-white uppercase flex items-center space-x-2">
+                <span class="text-xs font-rajdhani font-bold text-white uppercase tracking-wider flex items-center space-x-2">
                   <svg class="w-3.5 h-3.5 text-red-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
                     <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
-                    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
                   </svg>
-                  <span>Cyber Threat Vectors</span>
+                  <span>Cyber Threat Telemetry</span>
                 </span>
-                <span class="text-[10px] font-mono text-cyan-400">LIVE FEED</span>
+                <span class="text-[9px] font-mono text-red-400 bg-red-950/60 px-1.5 py-0.5 rounded border border-red-800">VECTORS</span>
               </div>
 
               <div id="wm-cyber-list" class="flex-1 overflow-y-auto space-y-2 pr-1 font-mono text-xs">
@@ -536,13 +577,16 @@
       <section id="view-maps" class="view-panel hidden flex-1 flex flex-col overflow-hidden">
         <div class="h-12 glass-panel border-b border-panel-border px-6 flex items-center justify-between flex-shrink-0">
           <div class="flex items-center space-x-4">
-            <h1 class="text-xs font-mono font-bold text-white tracking-widest uppercase">OpenStreetMap // OSRM Turn-By-Turn Navigation</h1>
-            <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-950/60 border border-emerald-500/40 text-emerald-400">100% Free / Zero API Keys</span>
+            <h1 class="text-xs font-orbitron font-bold text-white tracking-widest uppercase">OpenStreetMap // OSRM Turn-By-Turn Engine</h1>
+            <div class="flex space-x-1 font-mono text-[10px]">
+              <button onclick="setMapLayer('dark')" id="btn-map-dark" class="px-2 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-800 font-bold">DARK TACTICAL</button>
+              <button onclick="setMapLayer('osm')" id="btn-map-osm" class="px-2 py-0.5 rounded bg-slate-900 text-slate-400 hover:text-white">STREET</button>
+            </div>
           </div>
 
-          <div class="flex items-center space-x-3">
-            <input id="maps-search-input" type="text" placeholder="Search address or landmark..." class="w-64 bg-slate-900 border border-panel-border rounded-lg px-3 py-1 text-xs text-white focus:outline-none focus:border-cyan-400 font-mono">
-            <button onclick="mapsSearchAddress()" class="px-3 py-1 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg text-xs font-mono font-semibold">LOCATE</button>
+          <div class="flex items-center space-x-2">
+            <input id="maps-search-input" onkeydown="if(event.key==='Enter') mapsSearchAddress()" type="text" placeholder="Search address or coordinate..." class="w-64 bg-slate-900 border border-panel-border rounded px-3 py-1 text-xs text-white focus:outline-none focus:border-cyan-400 font-mono">
+            <button onclick="mapsSearchAddress()" class="px-3 py-1 bg-cyan-600 hover:bg-cyan-500 text-white rounded text-xs font-rajdhani font-bold tracking-wider">LOCATE</button>
           </div>
         </div>
 
@@ -551,8 +595,8 @@
           <div id="leaflet-map" class="flex-1 h-full z-10"></div>
 
           <!-- Navigation Routing Sidebar -->
-          <div class="w-80 glass-panel border-l border-panel-border p-4 flex flex-col overflow-y-auto z-20 space-y-4">
-            <div class="font-mono text-xs font-bold text-white uppercase border-b border-panel-border pb-2">Turn-By-Turn Routing</div>
+          <div class="w-84 glass-panel border-l border-panel-border p-4 flex flex-col overflow-y-auto z-20 space-y-4">
+            <div class="font-rajdhani text-xs font-bold text-white uppercase tracking-wider border-b border-panel-border pb-2">Turn-By-Turn Routing Engine</div>
 
             <div class="space-y-2 text-xs font-mono">
               <div>
@@ -563,12 +607,12 @@
                 <label class="text-slate-400 block mb-1">Destination (Lat, Lon):</label>
                 <input id="route-end" type="text" value="42.3601, -71.0589" class="w-full bg-slate-900 border border-panel-border rounded p-1.5 text-white">
               </div>
-              <button onclick="calculateRouteBtn()" class="w-full py-2 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white rounded font-bold mt-2">COMPUTE OSRM ROUTE</button>
+              <button onclick="calculateRouteBtn()" class="w-full py-2 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white rounded font-rajdhani font-bold text-xs tracking-wider mt-1">COMPUTE OSRM ROUTE</button>
             </div>
 
             <!-- Route Result Card -->
-            <div id="route-summary" class="glass-elevated p-3 rounded-lg border border-panel-border text-xs font-mono space-y-1 hidden">
-              <div class="text-cyan-400 font-bold">ROUTE COMPUTED</div>
+            <div id="route-summary" class="glass-elevated p-3 rounded border border-panel-border text-xs font-mono space-y-1 hidden">
+              <div class="text-cyan-400 font-bold font-rajdhani uppercase">Route Computed</div>
               <div class="flex justify-between text-slate-300">
                 <span>Distance:</span>
                 <span id="route-dist" class="font-bold text-white">0 km</span>
@@ -581,9 +625,9 @@
 
             <!-- Turn by turn step instructions -->
             <div class="flex-1 overflow-y-auto">
-              <div class="text-[11px] font-mono text-slate-400 uppercase mb-2">Turn-by-Turn Steps:</div>
+              <div class="text-[10px] font-rajdhani font-bold text-slate-400 uppercase tracking-wider mb-2">Waypoint Navigation Log:</div>
               <div id="route-steps-list" class="space-y-2 text-xs font-mono text-slate-300">
-                <div class="text-slate-400 text-center py-4">Enter coordinates and compute route.</div>
+                <div class="text-slate-500 text-center py-4 text-xs font-mono">Enter coordinates to compute navigation path.</div>
               </div>
             </div>
           </div>
@@ -597,23 +641,36 @@
         <!-- Weather Header -->
         <div class="flex items-center justify-between">
           <div>
-            <h1 class="text-xl font-mono font-bold text-white flex items-center space-x-3">
+            <h1 class="text-xl font-orbitron font-bold text-white flex items-center space-x-3">
               <span id="weather-city-name">New York, USA</span>
-              <span class="text-xs px-2 py-0.5 rounded bg-cyan-950 border border-cyan-800 text-cyan-400 font-normal">Open-Meteo Live</span>
+              <span class="text-xs px-2 py-0.5 rounded bg-cyan-950 border border-cyan-800 text-cyan-400 font-mono font-normal">Open-Meteo Scientific Model</span>
             </h1>
-            <p id="weather-condition-text" class="text-xs text-slate-400 font-mono mt-1">Mainly Clear • Updated Real-Time</p>
+            <p id="weather-condition-text" class="text-xs text-slate-400 font-mono mt-1">Clear Atmospheric Conditions • Updated Real-Time</p>
           </div>
 
           <div class="flex items-center space-x-2">
-            <input id="weather-city-input" type="text" placeholder="Search global city..." class="bg-slate-900 border border-panel-border rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-cyan-400 font-mono">
-            <button onclick="searchWeatherCity()" class="px-3 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg text-xs font-mono font-bold">SEARCH</button>
+            <input id="weather-city-input" onkeydown="if(event.key==='Enter') searchWeatherCity()" type="text" placeholder="Search global location..." class="bg-slate-900 border border-panel-border rounded px-3 py-1.5 text-xs text-white focus:outline-none focus:border-cyan-400 font-mono">
+            <button onclick="searchWeatherCity()" class="px-3 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded text-xs font-rajdhani font-bold tracking-wider">SEARCH</button>
           </div>
         </div>
 
-        <!-- Main Atmospheric Cards -->
+        <!-- Quick City Selector Chips -->
+        <div class="flex space-x-2 overflow-x-auto pb-1 text-xs font-mono">
+          <button onclick="refreshWeather('New York')" class="px-2.5 py-1 rounded bg-slate-900 hover:bg-slate-800 text-slate-300 border border-panel-border">New York</button>
+          <button onclick="refreshWeather('London')" class="px-2.5 py-1 rounded bg-slate-900 hover:bg-slate-800 text-slate-300 border border-panel-border">London</button>
+          <button onclick="refreshWeather('Tokyo')" class="px-2.5 py-1 rounded bg-slate-900 hover:bg-slate-800 text-slate-300 border border-panel-border">Tokyo</button>
+          <button onclick="refreshWeather('Zurich')" class="px-2.5 py-1 rounded bg-slate-900 hover:bg-slate-800 text-slate-300 border border-panel-border">Zurich</button>
+          <button onclick="refreshWeather('Singapore')" class="px-2.5 py-1 rounded bg-slate-900 hover:bg-slate-800 text-slate-300 border border-panel-border">Singapore</button>
+          <button onclick="refreshWeather('Dubai')" class="px-2.5 py-1 rounded bg-slate-900 hover:bg-slate-800 text-slate-300 border border-panel-border">Dubai</button>
+          <button onclick="refreshWeather('Paris')" class="px-2.5 py-1 rounded bg-slate-900 hover:bg-slate-800 text-slate-300 border border-panel-border">Paris</button>
+          <button onclick="refreshWeather('Sydney')" class="px-2.5 py-1 rounded bg-slate-900 hover:bg-slate-800 text-slate-300 border border-panel-border">Sydney</button>
+          <button onclick="refreshWeather('Mumbai')" class="px-2.5 py-1 rounded bg-slate-900 hover:bg-slate-800 text-slate-300 border border-panel-border">Mumbai</button>
+        </div>
+
+        <!-- Main Atmospheric Cards Grid -->
         <div class="grid grid-cols-4 gap-4">
-          <div class="glass-panel p-5 rounded-xl border border-panel-border flex flex-col justify-between">
-            <span class="text-xs font-mono text-slate-400 uppercase">Temperature</span>
+          <div class="glass-panel p-5 rounded corner-reticle border border-panel-border flex flex-col justify-between">
+            <span class="text-xs font-rajdhani font-bold text-slate-400 uppercase tracking-wider">Surface Temperature</span>
             <div class="my-2">
               <span id="weather-temp" class="text-5xl font-mono font-bold text-white">21.5</span>
               <span class="text-2xl text-cyan-400 font-mono">°C</span>
@@ -621,8 +678,8 @@
             <span id="weather-feels" class="text-xs font-mono text-slate-400">Feels like 21.0°C</span>
           </div>
 
-          <div class="glass-panel p-5 rounded-xl border border-panel-border flex flex-col justify-between">
-            <span class="text-xs font-mono text-slate-400 uppercase">Relative Humidity</span>
+          <div class="glass-panel p-5 rounded corner-reticle border border-panel-border flex flex-col justify-between">
+            <span class="text-xs font-rajdhani font-bold text-slate-400 uppercase tracking-wider">Relative Humidity</span>
             <div class="my-2">
               <span id="weather-humidity" class="text-5xl font-mono font-bold text-cyan-400">48</span>
               <span class="text-2xl text-cyan-400 font-mono">%</span>
@@ -630,8 +687,8 @@
             <span class="text-xs font-mono text-slate-400">Dew point nominal</span>
           </div>
 
-          <div class="glass-panel p-5 rounded-xl border border-panel-border flex flex-col justify-between">
-            <span class="text-xs font-mono text-slate-400 uppercase">Wind Velocity</span>
+          <div class="glass-panel p-5 rounded corner-reticle border border-panel-border flex flex-col justify-between">
+            <span class="text-xs font-rajdhani font-bold text-slate-400 uppercase tracking-wider">Wind Velocity & Heading</span>
             <div class="my-2">
               <span id="weather-wind" class="text-5xl font-mono font-bold text-emerald-400">14.2</span>
               <span class="text-xl text-emerald-400 font-mono">km/h</span>
@@ -639,30 +696,26 @@
             <span id="weather-wind-dir" class="text-xs font-mono text-slate-400">Heading 220° SW</span>
           </div>
 
-          <div class="glass-panel p-5 rounded-xl border border-panel-border flex flex-col justify-between">
-            <span class="text-xs font-mono text-slate-400 uppercase">Atmospheric Pressure</span>
+          <div class="glass-panel p-5 rounded corner-reticle border border-panel-border flex flex-col justify-between">
+            <span class="text-xs font-rajdhani font-bold text-slate-400 uppercase tracking-wider">Atmospheric Pressure</span>
             <div class="my-2">
               <span id="weather-pressure" class="text-5xl font-mono font-bold text-violet-400">1014</span>
               <span class="text-xl text-violet-400 font-mono">hPa</span>
             </div>
-            <span class="text-xs font-mono text-slate-400">Barometric Sea-Level</span>
+            <span class="text-xs font-mono text-slate-400">Barometric Sea-Level Reference</span>
           </div>
         </div>
 
-        <!-- 24-Hour Hourly Trend -->
-        <div class="glass-panel p-5 rounded-xl border border-panel-border">
-          <div class="text-xs font-mono font-bold text-white uppercase mb-4">24-Hour Temperature Trajectory (°C)</div>
-          <div id="weather-hourly-strip" class="flex space-x-4 overflow-x-auto pb-2">
-            <!-- Populated via JS -->
-          </div>
+        <!-- 24-Hour Hourly Trajectory -->
+        <div class="glass-panel p-5 rounded corner-reticle border border-panel-border">
+          <div class="text-xs font-rajdhani font-bold text-white uppercase tracking-wider mb-4">24-Hour Temperature Trajectory (°C)</div>
+          <div id="weather-hourly-strip" class="flex space-x-3 overflow-x-auto pb-2"></div>
         </div>
 
-        <!-- 7-Day Forecast Cards -->
-        <div class="glass-panel p-5 rounded-xl border border-panel-border">
-          <div class="text-xs font-mono font-bold text-white uppercase mb-4">7-Day Meteorological Outlook</div>
-          <div id="weather-daily-cards" class="grid grid-cols-7 gap-3">
-            <!-- Populated via JS -->
-          </div>
+        <!-- 7-Day Meteorological Forecast Cards -->
+        <div class="glass-panel p-5 rounded corner-reticle border border-panel-border">
+          <div class="text-xs font-rajdhani font-bold text-white uppercase tracking-wider mb-4">7-Day Meteorological Outlook</div>
+          <div id="weather-daily-cards" class="grid grid-cols-7 gap-3"></div>
         </div>
       </section>
 
@@ -672,9 +725,9 @@
       <section id="view-news" class="view-panel hidden flex-1 flex flex-col overflow-hidden">
         <div class="h-12 glass-panel border-b border-panel-border px-6 flex items-center justify-between flex-shrink-0">
           <div class="flex items-center space-x-3">
-            <h1 class="text-xs font-mono font-bold text-white tracking-widest uppercase">Global RSS/Atom Intelligence Aggregator</h1>
+            <h1 class="text-xs font-orbitron font-bold text-white tracking-widest uppercase">Global News & Telemetry Feeds</h1>
             <div id="news-category-filters" class="flex space-x-1.5 font-mono text-[11px]">
-              <button onclick="filterNews('All')" class="px-2.5 py-1 rounded bg-cyan-950 text-cyan-400 border border-cyan-800">All</button>
+              <button onclick="filterNews('All')" class="px-2.5 py-1 rounded bg-cyan-950 text-cyan-400 border border-cyan-800 font-bold">All</button>
               <button onclick="filterNews('Geopolitics')" class="px-2.5 py-1 rounded bg-slate-900 text-slate-400 hover:text-white">Geopolitics</button>
               <button onclick="filterNews('Cybersecurity')" class="px-2.5 py-1 rounded bg-slate-900 text-slate-400 hover:text-white">Cybersecurity</button>
               <button onclick="filterNews('Technology')" class="px-2.5 py-1 rounded bg-slate-900 text-slate-400 hover:text-white">Technology</button>
@@ -683,7 +736,7 @@
           </div>
 
           <div class="flex items-center space-x-3">
-            <button onclick="syncNewsFeedsBtn()" class="px-3 py-1 bg-cyan-600 hover:bg-cyan-500 text-white rounded text-xs font-mono flex items-center space-x-1.5">
+            <button onclick="syncNewsFeedsBtn()" class="px-3 py-1 bg-cyan-600 hover:bg-cyan-500 text-white rounded text-xs font-rajdhani font-bold tracking-wider flex items-center space-x-1.5">
               <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path>
               </svg>
@@ -693,9 +746,7 @@
         </div>
 
         <!-- News Articles Grid -->
-        <div id="news-articles-grid" class="flex-1 p-6 overflow-y-auto grid grid-cols-2 gap-4">
-          <!-- Populated via JS -->
-        </div>
+        <div id="news-articles-grid" class="flex-1 p-6 overflow-y-auto grid grid-cols-2 gap-4"></div>
       </section>
 
       <!-- ================================================================= -->
@@ -704,14 +755,15 @@
       <section id="view-planner" class="view-panel hidden flex-1 flex flex-col overflow-hidden">
         <div class="h-12 glass-panel border-b border-panel-border px-6 flex items-center justify-between flex-shrink-0">
           <div class="flex items-center space-x-4">
-            <h1 class="text-xs font-mono font-bold text-white tracking-widest uppercase">Command Planner // 4-Stage Kanban & 24h Timeblocks</h1>
+            <h1 class="text-xs font-orbitron font-bold text-white tracking-widest uppercase">Command Planner // 4-Stage Kanban & Daily Schedule</h1>
             <div class="flex space-x-1 font-mono text-[11px]">
-              <button onclick="switchPlannerMode('kanban')" id="btn-planner-kanban" class="px-3 py-1 rounded bg-cyan-950 text-cyan-400 border border-cyan-800">KANBAN</button>
-              <button onclick="switchPlannerMode('timeline')" id="btn-planner-timeline" class="px-3 py-1 rounded bg-slate-900 text-slate-400 hover:text-white">DAILY 24H SCHEDULE</button>
+              <button onclick="switchPlannerMode('kanban')" id="btn-planner-kanban" class="px-3 py-1 rounded bg-cyan-950 text-cyan-400 border border-cyan-800 font-bold">KANBAN</button>
+              <button onclick="switchPlannerMode('timeline')" id="btn-planner-timeline" class="px-3 py-1 rounded bg-slate-900 text-slate-400 hover:text-white">24H TIMELINE</button>
+              <button onclick="switchPlannerMode('eisenhower')" id="btn-planner-eisenhower" class="px-3 py-1 rounded bg-slate-900 text-slate-400 hover:text-white">EISENHOWER MATRIX</button>
             </div>
           </div>
 
-          <button onclick="openCreateTaskModal()" class="px-3 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg text-xs font-mono font-bold flex items-center space-x-1.5">
+          <button onclick="openCreateTaskModal()" class="px-3 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded text-xs font-rajdhani font-bold tracking-wider flex items-center space-x-1.5">
             <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <line x1="12" y1="5" x2="12" y2="19"></line>
               <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -720,52 +772,72 @@
           </button>
         </div>
 
-        <!-- Kanban View Mode -->
+        <!-- Mode 1: Kanban Grid -->
         <div id="planner-kanban-container" class="flex-1 p-4 grid grid-cols-4 gap-4 overflow-hidden">
           <!-- Col 1: Backlog -->
-          <div class="glass-panel rounded-xl p-3 flex flex-col border border-panel-border overflow-hidden">
-            <div class="flex items-center justify-between pb-2 mb-3 border-b border-panel-border">
-              <span class="text-xs font-mono font-bold text-slate-400 uppercase">Backlog</span>
+          <div class="glass-panel rounded p-3 flex flex-col border border-panel-border overflow-hidden corner-reticle">
+            <div class="flex items-center justify-between pb-2 mb-3 border-b border-panel-border font-rajdhani font-bold text-xs uppercase">
+              <span class="text-slate-400">Backlog</span>
               <span id="cnt-backlog" class="text-xs font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300">0</span>
             </div>
             <div id="col-backlog" class="flex-1 overflow-y-auto space-y-2.5 pr-1"></div>
           </div>
 
           <!-- Col 2: InProgress -->
-          <div class="glass-panel rounded-xl p-3 flex flex-col border border-panel-border overflow-hidden">
-            <div class="flex items-center justify-between pb-2 mb-3 border-b border-panel-border">
-              <span class="text-xs font-mono font-bold text-cyan-400 uppercase">In Progress</span>
+          <div class="glass-panel rounded p-3 flex flex-col border border-panel-border overflow-hidden corner-reticle">
+            <div class="flex items-center justify-between pb-2 mb-3 border-b border-panel-border font-rajdhani font-bold text-xs uppercase">
+              <span class="text-cyan-400">In Progress</span>
               <span id="cnt-inprogress" class="text-xs font-mono px-2 py-0.5 rounded bg-cyan-950 text-cyan-300">0</span>
             </div>
             <div id="col-inprogress" class="flex-1 overflow-y-auto space-y-2.5 pr-1"></div>
           </div>
 
           <!-- Col 3: Review -->
-          <div class="glass-panel rounded-xl p-3 flex flex-col border border-panel-border overflow-hidden">
-            <div class="flex items-center justify-between pb-2 mb-3 border-b border-panel-border">
-              <span class="text-xs font-mono font-bold text-amber-400 uppercase">Review & Verify</span>
+          <div class="glass-panel rounded p-3 flex flex-col border border-panel-border overflow-hidden corner-reticle">
+            <div class="flex items-center justify-between pb-2 mb-3 border-b border-panel-border font-rajdhani font-bold text-xs uppercase">
+              <span class="text-amber-400">Review & Audit</span>
               <span id="cnt-review" class="text-xs font-mono px-2 py-0.5 rounded bg-amber-950 text-amber-300">0</span>
             </div>
             <div id="col-review" class="flex-1 overflow-y-auto space-y-2.5 pr-1"></div>
           </div>
 
           <!-- Col 4: Completed -->
-          <div class="glass-panel rounded-xl p-3 flex flex-col border border-panel-border overflow-hidden">
-            <div class="flex items-center justify-between pb-2 mb-3 border-b border-panel-border">
-              <span class="text-xs font-mono font-bold text-emerald-400 uppercase">Completed</span>
+          <div class="glass-panel rounded p-3 flex flex-col border border-panel-border overflow-hidden corner-reticle">
+            <div class="flex items-center justify-between pb-2 mb-3 border-b border-panel-border font-rajdhani font-bold text-xs uppercase">
+              <span class="text-emerald-400">Completed</span>
               <span id="cnt-completed" class="text-xs font-mono px-2 py-0.5 rounded bg-emerald-950 text-emerald-300">0</span>
             </div>
             <div id="col-completed" class="flex-1 overflow-y-auto space-y-2.5 pr-1"></div>
           </div>
         </div>
 
-        <!-- 24-Hour Timeline Mode -->
+        <!-- Mode 2: 24-Hour Timeline -->
         <div id="planner-timeline-container" class="hidden flex-1 p-6 overflow-y-auto space-y-4">
           <div class="flex items-center justify-between border-b border-panel-border pb-3">
-            <span class="text-xs font-mono font-bold text-white uppercase">Today's Hourly Timeblock Schedule (00:00 - 23:00)</span>
-            <button onclick="addScheduleBlockPrompt()" class="px-2.5 py-1 bg-violet-600 hover:bg-violet-500 text-white rounded text-xs font-mono font-semibold">+ ADD TIMEBLOCK</button>
+            <span class="text-xs font-rajdhani font-bold text-white uppercase tracking-wider">Today's Hourly Timeblock Schedule (00:00 - 23:00)</span>
+            <button onclick="addScheduleBlockPrompt()" class="px-2.5 py-1 bg-violet-600 hover:bg-violet-500 text-white rounded text-xs font-rajdhani font-bold tracking-wider">+ ADD TIMEBLOCK</button>
           </div>
           <div id="timeline-blocks-list" class="space-y-2"></div>
+        </div>
+
+        <!-- Mode 3: Eisenhower Matrix -->
+        <div id="planner-eisenhower-container" class="hidden flex-1 p-4 grid grid-cols-2 grid-rows-2 gap-4 overflow-hidden">
+          <div class="glass-panel p-4 rounded border border-panel-border flex flex-col">
+            <div class="font-rajdhani font-bold text-xs text-red-400 uppercase border-b border-panel-border pb-2 mb-2">Quadrant 1: Urgent & Important (Do First)</div>
+            <div id="eisen-q1" class="flex-1 overflow-y-auto space-y-2"></div>
+          </div>
+          <div class="glass-panel p-4 rounded border border-panel-border flex flex-col">
+            <div class="font-rajdhani font-bold text-xs text-cyan-400 uppercase border-b border-panel-border pb-2 mb-2">Quadrant 2: Important & Not Urgent (Schedule)</div>
+            <div id="eisen-q2" class="flex-1 overflow-y-auto space-y-2"></div>
+          </div>
+          <div class="glass-panel p-4 rounded border border-panel-border flex flex-col">
+            <div class="font-rajdhani font-bold text-xs text-amber-400 uppercase border-b border-panel-border pb-2 mb-2">Quadrant 3: Urgent & Not Important (Delegate)</div>
+            <div id="eisen-q3" class="flex-1 overflow-y-auto space-y-2"></div>
+          </div>
+          <div class="glass-panel p-4 rounded border border-panel-border flex flex-col">
+            <div class="font-rajdhani font-bold text-xs text-slate-400 uppercase border-b border-panel-border pb-2 mb-2">Quadrant 4: Neither (Eliminate)</div>
+            <div id="eisen-q4" class="flex-1 overflow-y-auto space-y-2"></div>
+          </div>
         </div>
       </section>
 
@@ -775,12 +847,12 @@
       <section id="view-calendar" class="view-panel hidden flex-1 flex flex-col overflow-hidden">
         <div class="h-12 glass-panel border-b border-panel-border px-6 flex items-center justify-between flex-shrink-0">
           <div class="flex items-center space-x-4">
-            <h1 class="text-xs font-mono font-bold text-white tracking-widest uppercase">Personal Calendar // RFC 5545 Sync-Ready</h1>
+            <h1 class="text-xs font-orbitron font-bold text-white tracking-widest uppercase">Personal Calendar // RFC 5545 Engine</h1>
             <div class="flex items-center space-x-2 font-mono text-xs">
               <button onclick="changeCalendarMonth(-1)" class="p-1 hover:text-cyan-400 text-slate-400">
                 <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
               </button>
-              <span id="cal-month-title" class="font-bold text-white w-32 text-center">October 2026</span>
+              <span id="cal-month-title" class="font-bold text-white w-36 text-center font-rajdhani text-sm">October 2026</span>
               <button onclick="changeCalendarMonth(1)" class="p-1 hover:text-cyan-400 text-slate-400">
                 <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
               </button>
@@ -788,23 +860,23 @@
           </div>
 
           <div class="flex items-center space-x-3">
-            <button onclick="exportCalendarIcsBtn()" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded text-xs font-mono border border-panel-border">EXPORT .ICS</button>
-            <button onclick="openCreateEventModal()" class="px-3 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg text-xs font-mono font-bold">+ NEW EVENT</button>
+            <button onclick="exportCalendarIcsBtn()" class="px-3 py-1 bg-slate-900 hover:bg-slate-800 text-slate-200 rounded text-xs font-rajdhani font-bold border border-panel-border">EXPORT .ICS</button>
+            <button onclick="openCreateEventModal()" class="px-3 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded text-xs font-rajdhani font-bold tracking-wider">+ NEW EVENT</button>
           </div>
         </div>
 
         <div class="flex-1 flex p-4 space-x-4 overflow-hidden">
           <!-- Calendar Month Grid -->
-          <div class="flex-1 glass-panel rounded-xl p-4 flex flex-col border border-panel-border">
-            <div class="grid grid-cols-7 gap-1 text-center font-mono text-xs font-bold text-slate-400 pb-2 border-b border-panel-border">
-              <span>SUN</span><span>MON</span><span>TUE</span><span>WED</span><span>THU</span><span>FRI</span><span>SAT</span>
+          <div class="flex-1 glass-panel rounded p-4 flex flex-col border border-panel-border corner-reticle">
+            <div class="grid grid-cols-7 gap-1 text-center font-rajdhani text-xs font-bold text-slate-400 pb-2 border-b border-panel-border uppercase tracking-wider">
+              <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
             </div>
             <div id="calendar-days-grid" class="flex-1 grid grid-cols-7 gap-1 pt-2"></div>
           </div>
 
           <!-- Selected Day Event Inspector -->
-          <div class="w-80 glass-panel rounded-xl p-4 flex flex-col border border-panel-border overflow-hidden">
-            <div class="font-mono text-xs font-bold text-white uppercase border-b border-panel-border pb-2 mb-3">Schedule Ledger</div>
+          <div class="w-80 glass-panel rounded p-4 flex flex-col border border-panel-border overflow-hidden corner-reticle">
+            <div class="font-rajdhani text-xs font-bold text-white uppercase tracking-wider border-b border-panel-border pb-2 mb-3">Schedule Ledger</div>
             <div id="calendar-events-list" class="flex-1 overflow-y-auto space-y-2 pr-1"></div>
           </div>
         </div>
@@ -816,82 +888,101 @@
       <section id="view-notepad" class="view-panel hidden flex-1 flex flex-col overflow-hidden">
         <div class="h-12 glass-panel border-b border-panel-border px-6 flex items-center justify-between flex-shrink-0">
           <div class="flex items-center space-x-4">
-            <h1 class="text-xs font-mono font-bold text-white tracking-widest uppercase">Notepad // Markdown Studio</h1>
+            <h1 class="text-xs font-orbitron font-bold text-white tracking-widest uppercase">Notepad & Markdown Studio</h1>
             <div class="flex space-x-2 text-xs font-mono text-slate-400">
               <span id="note-word-count">0 words</span>
               <span>•</span>
-              <span id="note-char-count">0 characters</span>
+              <span id="note-char-count">0 chars</span>
               <span>•</span>
-              <span id="note-read-time">0.0 min read</span>
+              <span id="note-read-time">0.0 min</span>
             </div>
           </div>
 
-          <div class="flex items-center space-x-3">
-            <button onclick="toggleMarkdownPreview()" id="btn-toggle-preview" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-cyan-400 rounded text-xs font-mono border border-panel-border">TOGGLE PREVIEW</button>
-            <button onclick="createNewNoteBtn()" class="px-3 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded text-xs font-mono font-bold">+ NEW NOTE</button>
+          <div class="flex items-center space-x-2">
+            <div class="flex space-x-1 font-mono text-[10px] mr-2">
+              <button onclick="setNotepadViewMode('editor')" id="btn-np-edit" class="px-2 py-0.5 rounded bg-slate-900 text-slate-300">EDITOR</button>
+              <button onclick="setNotepadViewMode('split')" id="btn-np-split" class="px-2 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-800 font-bold">SPLIT</button>
+              <button onclick="setNotepadViewMode('preview')" id="btn-np-prev" class="px-2 py-0.5 rounded bg-slate-900 text-slate-300">PREVIEW</button>
+            </div>
+            <button onclick="createNewNoteBtn()" class="px-3 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded text-xs font-rajdhani font-bold tracking-wider">+ NEW NOTE</button>
           </div>
         </div>
 
         <div class="flex-1 flex overflow-hidden">
-          <!-- Notes List Sidebar -->
+          <!-- Notes Sidebar List -->
           <div class="w-64 glass-panel border-r border-panel-border flex flex-col overflow-hidden">
             <div class="p-2 border-b border-panel-border">
-              <input id="note-search-input" oninput="loadNotesList()" type="text" placeholder="Search notes..." class="w-full bg-slate-900 border border-panel-border rounded p-1.5 text-xs text-white font-mono">
+              <input id="note-search-input" oninput="loadNotesList()" type="text" placeholder="Filter notes..." class="w-full bg-slate-900 border border-panel-border rounded p-1.5 text-xs text-white font-mono">
             </div>
             <div id="notes-sidebar-list" class="flex-1 overflow-y-auto space-y-1 p-2"></div>
           </div>
 
-          <!-- Note Editor & Preview Panel -->
+          <!-- Note Editor & Split Preview Pane -->
           <div class="flex-1 flex flex-col overflow-hidden p-4 space-y-3">
-            <input id="note-title-input" oninput="onNoteContentChange()" type="text" placeholder="Document Title..." class="bg-transparent text-xl font-bold font-mono text-white focus:outline-none border-b border-panel-border pb-2">
+            <div class="flex items-center justify-between border-b border-panel-border pb-2">
+              <input id="note-title-input" oninput="onNoteContentChange()" type="text" placeholder="Note Title..." class="bg-transparent text-lg font-bold font-rajdhani text-white focus:outline-none flex-1">
+              <div class="flex space-x-1 font-mono text-xs">
+                <button onclick="insertMarkdownSnippet('**', '**')" class="px-2 py-0.5 bg-slate-900 text-slate-300 rounded font-bold hover:text-white">B</button>
+                <button onclick="insertMarkdownSnippet('*', '*')" class="px-2 py-0.5 bg-slate-900 text-slate-300 rounded italic hover:text-white">I</button>
+                <button onclick="insertMarkdownSnippet('# ', '')" class="px-2 py-0.5 bg-slate-900 text-slate-300 rounded hover:text-white">H1</button>
+                <button onclick="insertMarkdownSnippet('```\n', '\n```')" class="px-2 py-0.5 bg-slate-900 text-slate-300 rounded hover:text-white">CODE</button>
+              </div>
+            </div>
             
-            <div class="flex-1 flex space-x-4 overflow-hidden">
-              <!-- Raw Textarea -->
-              <textarea id="note-body-textarea" oninput="onNoteContentChange()" placeholder="Write notes, markdown, or code here..." class="flex-1 bg-slate-950/60 p-4 rounded-xl border border-panel-border font-mono text-sm text-slate-200 focus:outline-none resize-none leading-relaxed"></textarea>
+            <div class="flex-1 flex space-x-4 overflow-hidden" id="notepad-workspace-area">
+              <!-- Raw Textarea Editor -->
+              <textarea id="note-body-textarea" oninput="onNoteContentChange()" placeholder="Write notes, architectural designs, code, or markdown here..." class="flex-1 bg-slate-950/70 p-4 rounded border border-panel-border font-mono text-xs text-slate-200 focus:outline-none resize-none leading-relaxed"></textarea>
 
-              <!-- Markdown Rendered Preview (Toggled) -->
-              <div id="note-preview-pane" class="hidden flex-1 glass-panel p-4 rounded-xl border border-panel-border overflow-y-auto font-sans prose prose-invert max-w-none text-sm leading-relaxed"></div>
+              <!-- Live Rendered Markdown Preview Pane -->
+              <div id="note-preview-pane" class="flex-1 glass-panel p-4 rounded border border-panel-border overflow-y-auto font-sans text-xs leading-relaxed text-slate-300"></div>
             </div>
           </div>
         </div>
       </section>
 
       <!-- ================================================================= -->
-      <!-- 8. MUSIC PLAYER & SYNTHESIZED SOUNDSCAPES                         -->
+      <!-- 8. MUSIC & SYNTHESIZED SOUNDSCAPES                                -->
       <!-- ================================================================= -->
       <section id="view-music" class="view-panel hidden flex-1 flex flex-col p-6 space-y-6 overflow-hidden">
         <div class="flex items-center justify-between">
           <div>
-            <h1 class="text-xl font-mono font-bold text-white">Synthesized Ambient Audio & Local Media Engine</h1>
-            <p class="text-xs text-slate-400 font-mono mt-1">Procedural Soundscape Generator • 44.1kHz Dual-Harmonic Master</p>
+            <h1 class="text-xl font-orbitron font-bold text-white">Procedural Synthesizer & Audio Engine</h1>
+            <p class="text-xs text-slate-400 font-mono mt-1">Dual-Harmonic Synthesis • Real-Time WebAudio Frequency Visualizer</p>
           </div>
 
-          <button onclick="scanMusicFolderBtn()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-cyan-400 rounded-lg text-xs font-mono border border-panel-border">SCAN LOCAL MUSIC FOLDER</button>
+          <div class="flex items-center space-x-3">
+            <!-- Visualizer Mode Toggles -->
+            <div class="flex space-x-1 font-mono text-[10px]">
+              <button onclick="setVisualizerMode('bars')" id="btn-vis-bars" class="px-2.5 py-1 rounded bg-cyan-950 text-cyan-400 border border-cyan-800 font-bold">SPECTRUM BARS</button>
+              <button onclick="setVisualizerMode('wave')" id="btn-vis-wave" class="px-2.5 py-1 rounded bg-slate-900 text-slate-400">OSCILLOSCOPE</button>
+            </div>
+            <button onclick="scanMusicFolderBtn()" class="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-cyan-400 rounded text-xs font-rajdhani font-bold border border-panel-border">SCAN LOCAL FOLDER</button>
+          </div>
         </div>
 
         <div class="flex-1 flex space-x-6 overflow-hidden">
           <!-- Track Library List -->
-          <div class="w-96 glass-panel rounded-xl p-4 flex flex-col border border-panel-border overflow-hidden">
-            <div class="font-mono text-xs font-bold text-white uppercase border-b border-panel-border pb-2 mb-3">Audio Library</div>
+          <div class="w-96 glass-panel rounded p-4 flex flex-col border border-panel-border overflow-hidden corner-reticle">
+            <div class="font-rajdhani text-xs font-bold text-white uppercase tracking-wider border-b border-panel-border pb-2 mb-3">Audio Library</div>
             <div id="music-track-list" class="flex-1 overflow-y-auto space-y-2 pr-1"></div>
           </div>
 
-          <!-- Main Visualizer & Player Deck -->
-          <div class="flex-1 glass-panel rounded-xl p-6 flex flex-col justify-between border border-panel-border relative overflow-hidden">
-            <!-- Spectrum Oscilloscope Canvas -->
-            <div class="w-full flex-1 rounded-xl bg-slate-950/80 border border-panel-border flex items-center justify-center relative overflow-hidden">
+          <!-- Main Visualizer Deck & Controls -->
+          <div class="flex-1 glass-panel rounded p-6 flex flex-col justify-between border border-panel-border corner-reticle overflow-hidden">
+            <!-- Spectrum / Oscilloscope Canvas -->
+            <div class="w-full flex-1 rounded bg-black/80 border border-panel-border flex items-center justify-center relative overflow-hidden">
               <canvas id="music-visualizer-canvas" class="w-full h-full"></canvas>
             </div>
 
-            <!-- Now Playing Information -->
+            <!-- Active Track Meta -->
             <div class="my-4">
-              <h2 id="music-active-title" class="text-xl font-mono font-bold text-white truncate">Neon Grid Odyssey</h2>
-              <p id="music-active-artist" class="text-xs font-mono text-cyan-400 mt-1">Nexus Audio Collective • Procedural Master</p>
+              <h2 id="music-active-title" class="text-xl font-rajdhani font-bold text-white truncate">Neon Grid Odyssey</h2>
+              <p id="music-active-artist" class="text-xs font-mono text-cyan-400 mt-1">Nexus Audio Collective • Synthesized Procedural Master</p>
             </div>
 
             <!-- Progress Scrubber -->
             <div class="space-y-1">
-              <input id="music-seek-bar" type="range" min="0" max="100" value="0" class="w-full accent-cyan-400 cursor-pointer">
+              <input id="music-seek-bar" oninput="onMusicSeek(this.value)" type="range" min="0" max="100" value="0" class="w-full accent-cyan-400 cursor-pointer">
               <div class="flex justify-between font-mono text-[10px] text-slate-400">
                 <span id="music-current-time">00:00</span>
                 <span id="music-total-time">00:15</span>
@@ -900,7 +991,7 @@
 
             <!-- Playback Controls -->
             <div class="flex items-center justify-between mt-4">
-              <div class="flex items-center space-x-4">
+              <div class="flex items-center space-x-3">
                 <button onclick="prevMusicTrack()" class="text-slate-400 hover:text-white p-2">
                   <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="19 20 9 12 19 4 19 20"></polygon><line x1="5" y1="19" x2="5" y2="5"></line></svg>
                 </button>
@@ -927,19 +1018,19 @@
       <!-- ================================================================= -->
       <section id="view-video" class="view-panel hidden flex-1 flex flex-col p-6 space-y-4 overflow-hidden">
         <div class="flex items-center justify-between">
-          <h1 class="text-xs font-mono font-bold text-white tracking-widest uppercase">Cinema Video Player Engine // Frame Precision</h1>
-          <button onclick="openLocalVideoFile()" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-cyan-400 rounded text-xs font-mono border border-panel-border">LOAD LOCAL VIDEO</button>
+          <h1 class="text-xs font-orbitron font-bold text-white tracking-widest uppercase">Cinema Video Player // Frame-Accurate Telemetry</h1>
+          <button onclick="openLocalVideoFile()" class="px-3 py-1 bg-slate-900 hover:bg-slate-800 text-cyan-400 rounded text-xs font-rajdhani font-bold border border-panel-border">LOAD LOCAL MEDIA</button>
         </div>
 
         <div class="flex-1 flex space-x-4 overflow-hidden">
           <!-- Video Screen Container -->
-          <div class="flex-1 glass-panel rounded-xl overflow-hidden flex flex-col justify-between border border-panel-border bg-black">
+          <div class="flex-1 glass-panel rounded overflow-hidden flex flex-col justify-between border border-panel-border bg-black corner-reticle">
             <video id="main-video-player" class="w-full flex-1 object-contain bg-black" controls></video>
           </div>
 
-          <!-- Video Playlist & Chapter Markers -->
-          <div class="w-80 glass-panel rounded-xl p-4 flex flex-col border border-panel-border overflow-hidden">
-            <div class="font-mono text-xs font-bold text-white uppercase border-b border-panel-border pb-2 mb-3">Media Playlist</div>
+          <!-- Video Playlist & Chapters -->
+          <div class="w-80 glass-panel rounded p-4 flex flex-col border border-panel-border overflow-hidden corner-reticle">
+            <div class="font-rajdhani text-xs font-bold text-white uppercase tracking-wider border-b border-panel-border pb-2 mb-3">Media Queue</div>
             <div id="video-playlist-list" class="flex-1 overflow-y-auto space-y-2 pr-1"></div>
           </div>
         </div>
@@ -951,24 +1042,24 @@
       <section id="view-documents" class="view-panel hidden flex-1 flex flex-col overflow-hidden">
         <div class="h-12 glass-panel border-b border-panel-border px-6 flex items-center justify-between flex-shrink-0">
           <div class="flex items-center space-x-4">
-            <h1 id="doc-active-name" class="text-xs font-mono font-bold text-white tracking-widest uppercase">SYSTEM_SPECIFICATIONS.md</h1>
-            <span id="doc-page-counter" class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-cyan-400">Page 1 of 1</span>
+            <h1 id="doc-active-name" class="text-xs font-orbitron font-bold text-white tracking-widest uppercase">SYSTEM_SPECIFICATIONS.md</h1>
+            <span id="doc-page-counter" class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-cyan-400">Pages: 1</span>
           </div>
 
-          <button onclick="openLocalDocBtn()" class="px-3 py-1 bg-cyan-600 hover:bg-cyan-500 text-white rounded text-xs font-mono font-bold">OPEN DOCUMENT (PDF/TXT/MD/CODE)</button>
+          <button onclick="openLocalDocBtn()" class="px-3 py-1 bg-cyan-600 hover:bg-cyan-500 text-white rounded text-xs font-rajdhani font-bold tracking-wider">OPEN FILE (PDF/TXT/MD/CODE)</button>
         </div>
 
         <div class="flex-1 flex overflow-hidden">
           <!-- Document Content Render Pane -->
           <div class="flex-1 p-6 overflow-y-auto">
-            <pre id="doc-rendered-content" class="glass-panel p-6 rounded-xl border border-panel-border font-mono text-sm text-slate-300 leading-relaxed whitespace-pre-wrap select-text"></pre>
+            <pre id="doc-rendered-content" class="glass-panel p-6 rounded border border-panel-border font-mono text-xs text-slate-300 leading-relaxed whitespace-pre-wrap select-text corner-reticle"></pre>
           </div>
 
           <!-- Marginal Annotations Sidebar -->
           <div class="w-72 glass-panel border-l border-panel-border p-4 flex flex-col overflow-hidden">
-            <div class="font-mono text-xs font-bold text-white uppercase border-b border-panel-border pb-2 mb-3">Document Notes & Log</div>
-            <textarea id="doc-note-input" placeholder="Add annotation on this document..." class="w-full bg-slate-900 border border-panel-border rounded p-2 text-xs text-white font-mono h-24 mb-2"></textarea>
-            <button onclick="saveDocAnnotationBtn()" class="w-full py-1.5 bg-slate-800 hover:bg-slate-700 text-cyan-400 rounded text-xs font-mono font-semibold mb-3">SAVE ANNOTATION</button>
+            <div class="font-rajdhani text-xs font-bold text-white uppercase tracking-wider border-b border-panel-border pb-2 mb-3">Document Marginalia Notes</div>
+            <textarea id="doc-note-input" placeholder="Record technical notes on this document..." class="w-full bg-slate-900 border border-panel-border rounded p-2 text-xs text-white font-mono h-24 mb-2"></textarea>
+            <button onclick="saveDocAnnotationBtn()" class="w-full py-1.5 bg-slate-900 hover:bg-slate-800 text-cyan-400 rounded text-xs font-rajdhani font-bold mb-3 border border-panel-border">SAVE NOTE</button>
             <div id="doc-annotations-list" class="flex-1 overflow-y-auto space-y-2 text-xs font-mono text-slate-300"></div>
           </div>
         </div>
@@ -980,16 +1071,14 @@
       <section id="view-radio" class="view-panel hidden flex-1 flex flex-col p-6 space-y-6 overflow-hidden">
         <div class="flex items-center justify-between">
           <div>
-            <h1 class="text-xl font-mono font-bold text-white">Global High-Definition Internet Radio Matrix</h1>
+            <h1 class="text-xl font-orbitron font-bold text-white">Global High-Definition Radio Stream Matrix</h1>
             <p class="text-xs text-slate-400 font-mono mt-1">Live Icecast/Shoutcast Streams • Ambient, Synthwave, Classical, Global News</p>
           </div>
 
-          <button onclick="openCustomStationModal()" class="px-3 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded text-xs font-mono font-bold">+ ADD CUSTOM STREAM</button>
+          <button onclick="openCustomStationModal()" class="px-3 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded text-xs font-rajdhani font-bold tracking-wider">+ ADD CUSTOM STREAM</button>
         </div>
 
-        <div class="flex-1 grid grid-cols-3 gap-4 overflow-y-auto" id="radio-stations-grid">
-          <!-- Populated via JS -->
-        </div>
+        <div class="flex-1 grid grid-cols-3 gap-4 overflow-y-auto" id="radio-stations-grid"></div>
       </section>
 
       <!-- ================================================================= -->
@@ -997,24 +1086,24 @@
       <!-- ================================================================= -->
       <section id="view-calculator" class="view-panel hidden flex-1 flex flex-col p-6 space-y-4 overflow-hidden">
         <div class="flex items-center justify-between border-b border-panel-border pb-3">
-          <h1 class="text-xs font-mono font-bold text-white tracking-widest uppercase">Safe AST Mathematical & Programmer Engine</h1>
+          <h1 class="text-xs font-orbitron font-bold text-white tracking-widest uppercase">Safe AST Mathematical & Programmer Engine</h1>
           <div class="flex space-x-2 font-mono text-xs">
-            <button onclick="setCalcMode('Scientific')" id="btn-calc-sci" class="px-3 py-1 rounded bg-cyan-950 text-cyan-400 border border-cyan-800">SCIENTIFIC</button>
+            <button onclick="setCalcMode('Scientific')" id="btn-calc-sci" class="px-3 py-1 rounded bg-cyan-950 text-cyan-400 border border-cyan-800 font-bold">SCIENTIFIC</button>
             <button onclick="setCalcMode('Programmer')" id="btn-calc-prog" class="px-3 py-1 rounded bg-slate-900 text-slate-400 hover:text-white">PROGRAMMER (HEX/BIN)</button>
           </div>
         </div>
 
         <div class="flex-1 flex space-x-6 overflow-hidden">
-          <!-- Calculator Keypad & Display Deck -->
-          <div class="w-96 glass-panel rounded-xl p-5 flex flex-col border border-panel-border justify-between">
+          <!-- Keypad Deck -->
+          <div class="w-96 glass-panel rounded p-5 flex flex-col border border-panel-border justify-between corner-reticle">
             <!-- Screen Display -->
-            <div class="bg-slate-950 p-4 rounded-lg border border-panel-border text-right mb-4">
+            <div class="bg-black/90 p-4 rounded border border-panel-border text-right mb-3">
               <div id="calc-expression-tape" class="text-xs font-mono text-slate-400 h-5 truncate"></div>
               <div id="calc-display-val" class="text-3xl font-mono font-bold text-white mt-1 truncate">0</div>
             </div>
 
-            <!-- Programmer synchronized bit registers (When in programmer mode) -->
-            <div id="calc-prog-registers" class="hidden glass-elevated p-3 rounded-lg border border-panel-border mb-3 font-mono text-xs space-y-1">
+            <!-- Programmer synchronized bit registers -->
+            <div id="calc-prog-registers" class="hidden glass-elevated p-3 rounded border border-panel-border mb-3 font-mono text-xs space-y-1">
               <div class="flex justify-between text-slate-400"><span>HEX:</span><span id="reg-hex" class="text-cyan-400 font-bold">0x0</span></div>
               <div class="flex justify-between text-slate-400"><span>DEC:</span><span id="reg-dec" class="text-white font-bold">0</span></div>
               <div class="flex justify-between text-slate-400"><span>OCT:</span><span id="reg-oct" class="text-amber-400 font-bold">0o0</span></div>
@@ -1022,40 +1111,40 @@
             </div>
 
             <!-- Keypad Buttons -->
-            <div class="grid grid-cols-4 gap-2 font-mono text-sm font-semibold">
-              <button onclick="calcInput('sin(')" class="p-3 bg-slate-900 hover:bg-slate-800 rounded text-cyan-400">sin</button>
-              <button onclick="calcInput('cos(')" class="p-3 bg-slate-900 hover:bg-slate-800 rounded text-cyan-400">cos</button>
-              <button onclick="calcInput('sqrt(')" class="p-3 bg-slate-900 hover:bg-slate-800 rounded text-cyan-400">√</button>
-              <button onclick="calcClear()" class="p-3 bg-red-950 hover:bg-red-900 text-red-400 rounded">C</button>
+            <div class="grid grid-cols-4 gap-2 font-mono text-xs font-bold">
+              <button onclick="calcInput('sin(')" class="p-2.5 bg-slate-900 hover:bg-slate-800 rounded text-cyan-400 border border-panel-border">sin</button>
+              <button onclick="calcInput('cos(')" class="p-2.5 bg-slate-900 hover:bg-slate-800 rounded text-cyan-400 border border-panel-border">cos</button>
+              <button onclick="calcInput('sqrt(')" class="p-2.5 bg-slate-900 hover:bg-slate-800 rounded text-cyan-400 border border-panel-border">√</button>
+              <button onclick="calcClear()" class="p-2.5 bg-red-950/80 hover:bg-red-900 text-red-400 rounded border border-red-800">C</button>
 
-              <button onclick="calcInput('7')" class="p-3 bg-slate-800 hover:bg-slate-700 text-white rounded">7</button>
-              <button onclick="calcInput('8')" class="p-3 bg-slate-800 hover:bg-slate-700 text-white rounded">8</button>
-              <button onclick="calcInput('9')" class="p-3 bg-slate-800 hover:bg-slate-700 text-white rounded">9</button>
-              <button onclick="calcInput('÷')" class="p-3 bg-slate-900 hover:bg-slate-800 text-amber-400 rounded">÷</button>
+              <button onclick="calcInput('7')" class="p-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded">7</button>
+              <button onclick="calcInput('8')" class="p-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded">8</button>
+              <button onclick="calcInput('9')" class="p-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded">9</button>
+              <button onclick="calcInput('÷')" class="p-2.5 bg-slate-900 hover:bg-slate-800 text-amber-400 rounded border border-panel-border">÷</button>
 
-              <button onclick="calcInput('4')" class="p-3 bg-slate-800 hover:bg-slate-700 text-white rounded">4</button>
-              <button onclick="calcInput('5')" class="p-3 bg-slate-800 hover:bg-slate-700 text-white rounded">5</button>
-              <button onclick="calcInput('6')" class="p-3 bg-slate-800 hover:bg-slate-700 text-white rounded">6</button>
-              <button onclick="calcInput('×')" class="p-3 bg-slate-900 hover:bg-slate-800 text-amber-400 rounded">×</button>
+              <button onclick="calcInput('4')" class="p-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded">4</button>
+              <button onclick="calcInput('5')" class="p-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded">5</button>
+              <button onclick="calcInput('6')" class="p-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded">6</button>
+              <button onclick="calcInput('×')" class="p-2.5 bg-slate-900 hover:bg-slate-800 text-amber-400 rounded border border-panel-border">×</button>
 
-              <button onclick="calcInput('1')" class="p-3 bg-slate-800 hover:bg-slate-700 text-white rounded">1</button>
-              <button onclick="calcInput('2')" class="p-3 bg-slate-800 hover:bg-slate-700 text-white rounded">2</button>
-              <button onclick="calcInput('3')" class="p-3 bg-slate-800 hover:bg-slate-700 text-white rounded">3</button>
-              <button onclick="calcInput('-')" class="p-3 bg-slate-900 hover:bg-slate-800 text-amber-400 rounded">-</button>
+              <button onclick="calcInput('1')" class="p-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded">1</button>
+              <button onclick="calcInput('2')" class="p-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded">2</button>
+              <button onclick="calcInput('3')" class="p-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded">3</button>
+              <button onclick="calcInput('-')" class="p-2.5 bg-slate-900 hover:bg-slate-800 text-amber-400 rounded border border-panel-border">-</button>
 
-              <button onclick="calcInput('0')" class="p-3 bg-slate-800 hover:bg-slate-700 text-white rounded">0</button>
-              <button onclick="calcInput('.')" class="p-3 bg-slate-800 hover:bg-slate-700 text-white rounded">.</button>
-              <button onclick="calcInput('pi')" class="p-3 bg-slate-900 hover:bg-slate-800 text-cyan-400 rounded">π</button>
-              <button onclick="calcInput('+')" class="p-3 bg-slate-900 hover:bg-slate-800 text-amber-400 rounded">+</button>
+              <button onclick="calcInput('0')" class="p-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded">0</button>
+              <button onclick="calcInput('.')" class="p-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded">.</button>
+              <button onclick="calcInput('pi')" class="p-2.5 bg-slate-900 hover:bg-slate-800 text-cyan-400 rounded border border-panel-border">π</button>
+              <button onclick="calcInput('+')" class="p-2.5 bg-slate-900 hover:bg-slate-800 text-amber-400 rounded border border-panel-border">+</button>
             </div>
 
-            <button onclick="calcCompute()" class="w-full py-3 mt-2 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white rounded font-mono font-bold text-base glow-cyan">=</button>
+            <button onclick="calcCompute()" class="w-full py-2.5 mt-2 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white rounded font-mono font-bold text-sm glow-cyan">=</button>
           </div>
 
           <!-- History Tape -->
-          <div class="flex-1 glass-panel rounded-xl p-4 flex flex-col border border-panel-border overflow-hidden">
+          <div class="flex-1 glass-panel rounded p-4 flex flex-col border border-panel-border overflow-hidden corner-reticle">
             <div class="flex items-center justify-between pb-2 border-b border-panel-border mb-3 font-mono text-xs">
-              <span class="font-bold text-white uppercase">Calculation Audit Ledger</span>
+              <span class="font-bold text-white uppercase font-rajdhani">Audit Calculation Ledger</span>
               <button onclick="calcClearHistoryBtn()" class="text-slate-400 hover:text-red-400">CLEAR TAPE</button>
             </div>
             <div id="calc-history-list" class="flex-1 overflow-y-auto space-y-2 pr-1"></div>
@@ -1068,21 +1157,20 @@
       <!-- ================================================================= -->
       <section id="view-images" class="view-panel hidden flex-1 flex flex-col p-6 space-y-4 overflow-hidden">
         <div class="flex items-center justify-between">
-          <h1 class="text-xs font-mono font-bold text-white tracking-widest uppercase">Tactical Image Catalog & Non-Destructive Lab</h1>
-          <button onclick="scanImageFolderBtn()" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-cyan-400 rounded text-xs font-mono border border-panel-border">SCAN LOCAL DIRECTORY</button>
+          <h1 class="text-xs font-orbitron font-bold text-white tracking-widest uppercase">Tactical Image Catalog & Non-Destructive Lab</h1>
+          <button onclick="scanImageFolderBtn()" class="px-3 py-1 bg-slate-900 hover:bg-slate-800 text-cyan-400 rounded text-xs font-rajdhani font-bold border border-panel-border">SCAN LOCAL DIRECTORY</button>
         </div>
 
         <div class="flex-1 flex space-x-6 overflow-hidden">
           <!-- Image Gallery Grid -->
-          <div class="w-96 glass-panel rounded-xl p-4 flex flex-col border border-panel-border overflow-hidden">
-            <div class="font-mono text-xs font-bold text-white uppercase border-b border-panel-border pb-2 mb-3">Gallery Catalog</div>
+          <div class="w-96 glass-panel rounded p-4 flex flex-col border border-panel-border overflow-hidden corner-reticle">
+            <div class="font-rajdhani text-xs font-bold text-white uppercase tracking-wider border-b border-panel-border pb-2 mb-3">Gallery Catalog</div>
             <div id="image-catalog-grid" class="flex-1 overflow-y-auto grid grid-cols-2 gap-3 pr-1"></div>
           </div>
 
-          <!-- Image Inspector & Sliders -->
-          <div class="flex-1 glass-panel rounded-xl p-6 flex flex-col justify-between border border-panel-border overflow-hidden">
-            <!-- Canvas / Image Box -->
-            <div class="flex-1 flex items-center justify-center bg-black/60 rounded-xl overflow-hidden relative">
+          <!-- Inspector & Real-time CSS Filters -->
+          <div class="flex-1 glass-panel rounded p-6 flex flex-col justify-between border border-panel-border corner-reticle overflow-hidden">
+            <div class="flex-1 flex items-center justify-center bg-black/80 rounded overflow-hidden relative border border-panel-border">
               <img id="image-viewer-display" src="" class="max-h-full max-w-full object-contain transition-transform duration-200">
             </div>
 
@@ -1100,9 +1188,9 @@
                 <label class="text-slate-400 block mb-1">Saturation: <span id="img-saturate-val">100%</span></label>
                 <input id="img-saturate-slider" oninput="applyImageFilters()" type="range" min="0" max="250" value="100" class="w-full accent-cyan-400">
               </div>
-              <div class="flex items-end space-x-2">
-                <button onclick="rotateImage()" class="flex-1 py-1.5 bg-slate-800 hover:bg-slate-700 text-white rounded font-bold">ROTATE 90°</button>
-                <button onclick="resetImageFilters()" class="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-red-400 rounded">RESET</button>
+              <div class="flex items-end space-x-2 font-rajdhani font-bold">
+                <button onclick="rotateImage()" class="flex-1 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded border border-panel-border">ROTATE 90°</button>
+                <button onclick="resetImageFilters()" class="px-3 py-1.5 bg-red-950/60 hover:bg-red-900 text-red-400 rounded border border-red-800">RESET</button>
               </div>
             </div>
           </div>
@@ -1113,55 +1201,53 @@
       <!-- 14. WORLD CLOCKS & TIMERS                                         -->
       <!-- ================================================================= -->
       <section id="view-clocks" class="view-panel hidden flex-1 flex flex-col p-6 space-y-6 overflow-y-auto">
-        <h1 class="text-xs font-mono font-bold text-white tracking-widest uppercase">Chronometer Suite // Synchronized Strategic Timezones</h1>
+        <h1 class="text-xs font-orbitron font-bold text-white tracking-widest uppercase">Chronometer Suite // Synchronized Global Timezones</h1>
 
         <!-- World Clock Matrix -->
-        <div id="world-clocks-grid" class="grid grid-cols-3 gap-4">
-          <!-- Populated via JS -->
-        </div>
+        <div id="world-clocks-grid" class="grid grid-cols-3 gap-4"></div>
 
         <!-- Stopwatch & Pomodoro Deck -->
         <div class="grid grid-cols-2 gap-6">
-          <!-- High-Precision Stopwatch -->
-          <div class="glass-panel p-6 rounded-xl border border-panel-border flex flex-col">
-            <span class="text-xs font-mono font-bold text-white uppercase mb-2">Precision Millisecond Stopwatch</span>
+          <!-- Stopwatch -->
+          <div class="glass-panel p-6 rounded border border-panel-border flex flex-col corner-reticle">
+            <span class="text-xs font-rajdhani font-bold text-white uppercase tracking-wider mb-2">Millisecond Precision Stopwatch</span>
             <div id="stopwatch-display" class="text-5xl font-mono font-bold text-cyan-400 my-4 text-center">00:00:00.000</div>
-            <div class="flex justify-center space-x-3 mb-4">
-              <button onclick="startStopwatch()" id="btn-sw-start" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded font-mono font-bold text-xs">START</button>
-              <button onclick="lapStopwatch()" class="px-5 py-2 bg-slate-800 hover:bg-slate-700 text-cyan-400 rounded font-mono font-bold text-xs">LAP</button>
-              <button onclick="resetStopwatch()" class="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-red-400 rounded font-mono font-bold text-xs">RESET</button>
+            <div class="flex justify-center space-x-3 mb-4 font-rajdhani font-bold">
+              <button onclick="startStopwatch()" id="btn-sw-start" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded text-xs">START</button>
+              <button onclick="lapStopwatch()" class="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-cyan-400 rounded text-xs border border-panel-border">LAP</button>
+              <button onclick="resetStopwatch()" class="px-5 py-2 bg-red-950/60 hover:bg-red-900 text-red-400 rounded text-xs border border-red-800">RESET</button>
             </div>
             <div id="stopwatch-laps-list" class="h-40 overflow-y-auto space-y-1 font-mono text-xs border-t border-panel-border pt-2 text-slate-300"></div>
           </div>
 
-          <!-- Pomodoro Productivity Timer -->
-          <div class="glass-panel p-6 rounded-xl border border-panel-border flex flex-col justify-between">
-            <span class="text-xs font-mono font-bold text-white uppercase mb-2">Pomodoro Deep Focus Engine</span>
+          <!-- Pomodoro Timer -->
+          <div class="glass-panel p-6 rounded border border-panel-border flex flex-col justify-between corner-reticle">
+            <span class="text-xs font-rajdhani font-bold text-white uppercase tracking-wider mb-2">Pomodoro Focus Engine</span>
             <div class="flex justify-center space-x-2 font-mono text-xs my-2">
-              <button onclick="setPomodoroMode('focus')" id="btn-pomo-focus" class="px-3 py-1 rounded bg-cyan-950 text-cyan-400 border border-cyan-800">FOCUS (25m)</button>
+              <button onclick="setPomodoroMode('focus')" id="btn-pomo-focus" class="px-3 py-1 rounded bg-cyan-950 text-cyan-400 border border-cyan-800 font-bold">FOCUS (25m)</button>
               <button onclick="setPomodoroMode('short')" id="btn-pomo-short" class="px-3 py-1 rounded bg-slate-900 text-slate-400">SHORT (5m)</button>
               <button onclick="setPomodoroMode('long')" id="btn-pomo-long" class="px-3 py-1 rounded bg-slate-900 text-slate-400">LONG (15m)</button>
             </div>
             <div id="pomodoro-display" class="text-5xl font-mono font-bold text-white my-3 text-center">25:00</div>
-            <div class="flex justify-center space-x-3">
-              <button onclick="togglePomodoro()" id="btn-pomo-start" class="px-6 py-2 bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded font-mono font-bold text-xs">START SPRINT</button>
-              <button onclick="resetPomodoro()" class="px-4 py-2 bg-slate-900 text-slate-400 rounded font-mono text-xs">RESET</button>
+            <div class="flex justify-center space-x-3 font-rajdhani font-bold">
+              <button onclick="togglePomodoro()" id="btn-pomo-start" class="px-6 py-2 bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded text-xs">START SPRINT</button>
+              <button onclick="resetPomodoro()" class="px-4 py-2 bg-slate-900 text-slate-400 rounded text-xs border border-panel-border">RESET</button>
             </div>
           </div>
         </div>
       </section>
 
       <!-- ================================================================= -->
-      <!-- 15. CONTACT MANAGER DIRECTORY                                     -->
+      <!-- 15. CONTACT VAULT DIRECTORY                                       -->
       <!-- ================================================================= -->
       <section id="view-contacts" class="view-panel hidden flex-1 flex flex-col overflow-hidden">
         <div class="h-12 glass-panel border-b border-panel-border px-6 flex items-center justify-between flex-shrink-0">
           <div class="flex items-center space-x-4">
-            <h1 class="text-xs font-mono font-bold text-white tracking-widest uppercase">Contact Vault // Local Encrypted Directory</h1>
+            <h1 class="text-xs font-orbitron font-bold text-white tracking-widest uppercase">Contact Vault // Local Encrypted Enclave</h1>
             <input id="contact-search-input" oninput="loadContactsList()" type="text" placeholder="Search contacts..." class="w-64 bg-slate-900 border border-panel-border rounded px-3 py-1 text-xs text-white font-mono">
           </div>
 
-          <button onclick="openCreateContactModal()" class="px-3 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded text-xs font-mono font-bold">+ NEW CONTACT</button>
+          <button onclick="openCreateContactModal()" class="px-3 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded text-xs font-rajdhani font-bold tracking-wider">+ NEW CONTACT</button>
         </div>
 
         <div class="flex-1 flex overflow-hidden">
@@ -1169,9 +1255,7 @@
           <div class="w-96 glass-panel border-r border-panel-border p-3 overflow-y-auto space-y-2" id="contacts-cards-list"></div>
 
           <!-- Contact Profile Inspector -->
-          <div class="flex-1 p-6 overflow-y-auto space-y-6" id="contact-detail-pane">
-            <div class="text-slate-400 text-center py-20 font-mono text-xs">Select a contact to view complete dossier and history.</div>
-          </div>
+          <div class="flex-1 p-6 overflow-y-auto space-y-6" id="contact-detail-pane"></div>
         </div>
       </section>
 
@@ -1179,38 +1263,36 @@
       <!-- 16. PRIVACY FOCUSED WEB BROWSER                                   -->
       <!-- ================================================================= -->
       <section id="view-browser" class="view-panel hidden flex-1 flex flex-col overflow-hidden">
-        <!-- Browser Navigation Bar -->
+        <!-- Navigation Bar -->
         <div class="h-12 glass-panel border-b border-panel-border px-4 flex items-center space-x-3 flex-shrink-0">
           <div class="flex items-center space-x-1">
-            <button onclick="browserGoBack()" class="p-1.5 hover:bg-slate-800 rounded text-slate-400 hover:text-white">
+            <button onclick="browserGoBack()" class="p-1.5 hover:bg-slate-900 rounded text-slate-400 hover:text-white">
               <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
             </button>
-            <button onclick="browserReload()" class="p-1.5 hover:bg-slate-800 rounded text-slate-400 hover:text-white">
+            <button onclick="browserReload()" class="p-1.5 hover:bg-slate-900 rounded text-slate-400 hover:text-white">
               <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path></svg>
             </button>
           </div>
 
-          <!-- URL / Search Input -->
-          <div class="flex-1 flex items-center bg-slate-900 border border-panel-border rounded-lg px-3 py-1">
+          <!-- URL / Search Bar -->
+          <div class="flex-1 flex items-center bg-slate-950 border border-panel-border rounded px-3 py-1">
             <svg class="w-3.5 h-3.5 text-cyan-400 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
               <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
             </svg>
-            <input id="browser-url-bar" type="text" placeholder="Search with DuckDuckGo or enter URL..." class="w-full bg-transparent text-xs text-white focus:outline-none font-mono">
+            <input id="browser-url-bar" onkeydown="if(event.key==='Enter') browserNavigate()" type="text" placeholder="DuckDuckGo privacy search or URL..." class="w-full bg-transparent text-xs text-white focus:outline-none font-mono">
             <button onclick="browserNavigate()" class="ml-2 text-cyan-400 hover:text-cyan-300 font-mono text-xs font-bold">GO</button>
           </div>
 
-          <!-- Privacy Shield Indicators -->
+          <!-- Privacy Shield Badges -->
           <div class="flex items-center space-x-2">
-            <span class="px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-800 text-[10px] font-mono">TOR-SPOOF</span>
-            <span class="px-2 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-800 text-[10px] font-mono">TRACKER-BLOCK</span>
+            <span class="px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-800 text-[10px] font-mono font-bold">TOR-SPOOF</span>
+            <span class="px-2 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-800 text-[10px] font-mono font-bold">ANTI-TRACK</span>
           </div>
         </div>
 
         <!-- Bookmarks Bar -->
-        <div id="browser-bookmarks-bar" class="h-8 bg-panel-base/90 border-b border-panel-border px-4 flex items-center space-x-4 text-xs font-mono overflow-x-auto">
-          <!-- Populated via JS -->
-        </div>
+        <div id="browser-bookmarks-bar" class="h-8 bg-panel-base/95 border-b border-panel-border px-4 flex items-center space-x-4 text-xs font-mono overflow-x-auto"></div>
 
         <!-- Web Content Frame -->
         <div class="flex-1 bg-white relative">
@@ -1224,36 +1306,34 @@
       <section id="view-games" class="view-panel hidden flex-1 flex flex-col p-6 space-y-4 overflow-hidden">
         <div class="flex items-center justify-between border-b border-panel-border pb-3">
           <div class="flex items-center space-x-4">
-            <h1 class="text-xs font-mono font-bold text-white tracking-widest uppercase">Pure Python Deterministic Game Suite</h1>
+            <h1 class="text-xs font-orbitron font-bold text-white tracking-widest uppercase">Pure Python Deterministic Game Suite</h1>
             <div class="flex space-x-1 font-mono text-xs">
-              <button onclick="switchGameMode('chess')" id="btn-g-chess" class="px-3 py-1 rounded bg-cyan-950 text-cyan-400 border border-cyan-800">CHESS (MINIMAX)</button>
+              <button onclick="switchGameMode('chess')" id="btn-g-chess" class="px-3 py-1 rounded bg-cyan-950 text-cyan-400 border border-cyan-800 font-bold">CHESS (MINIMAX)</button>
               <button onclick="switchGameMode('connect4')" id="btn-g-c4" class="px-3 py-1 rounded bg-slate-900 text-slate-400">CONNECT 4</button>
               <button onclick="switchGameMode('arcade')" id="btn-g-arcade" class="px-3 py-1 rounded bg-slate-900 text-slate-400">CYBER ARCADE</button>
               <button onclick="switchGameMode('minesweeper')" id="btn-g-mine" class="px-3 py-1 rounded bg-slate-900 text-slate-400">MINESWEEPER</button>
             </div>
           </div>
 
-          <div class="text-xs font-mono text-slate-400">Strictly Non-AI • Minimax Tree with Alpha-Beta Pruning</div>
+          <div class="text-xs font-mono text-cyan-400 font-bold">STRICTLY NON-AI // ALPHA-BETA TREE</div>
         </div>
 
-        <!-- Chess Game Container -->
+        <!-- Chess Game Deck -->
         <div id="game-chess-deck" class="flex-1 flex space-x-8 items-center justify-center overflow-hidden">
           <!-- 8x8 Chess Board -->
-          <div class="glass-panel p-4 rounded-xl border border-panel-border flex flex-col items-center">
-            <div id="chess-board-grid" class="w-[460px] h-[460px] grid grid-cols-8 grid-rows-8 border-2 border-slate-700 select-none">
-              <!-- Populated via JS -->
-            </div>
+          <div class="glass-panel p-4 rounded border border-panel-border flex flex-col items-center corner-reticle">
+            <div id="chess-board-grid" class="w-[460px] h-[460px] grid grid-cols-8 grid-rows-8 border-2 border-slate-700 select-none"></div>
           </div>
 
           <!-- Chess Status & Controls -->
-          <div class="w-80 glass-panel rounded-xl p-5 border border-panel-border font-mono text-xs space-y-4">
+          <div class="w-80 glass-panel rounded p-5 border border-panel-border font-mono text-xs space-y-4 corner-reticle">
             <div class="border-b border-panel-border pb-2">
-              <div class="text-cyan-400 font-bold uppercase text-sm">Chess Master Engine</div>
-              <div class="text-slate-400 mt-1">Computer vs Player (White: Player, Black: Python Minimax)</div>
+              <div class="text-cyan-400 font-bold uppercase text-sm font-rajdhani">Chess Master Engine</div>
+              <div class="text-slate-400 mt-1">Player vs Python Minimax (Alpha-Beta Pruning)</div>
             </div>
 
             <div class="space-y-1">
-              <span class="text-slate-400">Engine Difficulty:</span>
+              <span class="text-slate-400">Search Depth:</span>
               <select id="chess-difficulty-select" class="w-full bg-slate-900 border border-panel-border rounded p-1.5 text-white">
                 <option value="Novice">Novice (Depth 1)</option>
                 <option value="Intermediate">Intermediate (Depth 2)</option>
@@ -1262,46 +1342,44 @@
             </div>
 
             <div class="glass-elevated p-3 rounded border border-panel-border">
-              <span class="text-slate-400 block mb-1">Turn Status:</span>
+              <span class="text-slate-400 block mb-1">Turn Telemetry:</span>
               <span id="chess-turn-status" class="text-white font-bold text-sm">White (Your Turn)</span>
             </div>
 
-            <button onclick="chessResetGame()" class="w-full py-2 bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded font-bold">RESTART MATCH</button>
+            <button onclick="chessResetGame()" class="w-full py-2 bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded font-rajdhani font-bold tracking-wider">RESTART MATCH</button>
           </div>
         </div>
 
-        <!-- Connect 4 Game Container -->
+        <!-- Connect 4 Game Deck -->
         <div id="game-connect4-deck" class="hidden flex-1 flex space-x-8 items-center justify-center overflow-hidden">
-          <div class="glass-panel p-6 rounded-xl border border-panel-border flex flex-col items-center">
-            <div id="c4-board-grid" class="grid grid-cols-7 gap-2 bg-blue-950 p-4 rounded-xl border-2 border-cyan-800">
-              <!-- Populated via JS -->
-            </div>
+          <div class="glass-panel p-6 rounded border border-panel-border flex flex-col items-center corner-reticle">
+            <div id="c4-board-grid" class="grid grid-cols-7 gap-2 bg-blue-950/80 p-4 rounded border-2 border-cyan-800"></div>
           </div>
 
-          <div class="w-72 glass-panel rounded-xl p-5 border border-panel-border font-mono text-xs space-y-4">
+          <div class="w-72 glass-panel rounded p-5 border border-panel-border font-mono text-xs space-y-4 corner-reticle">
             <div class="border-b border-panel-border pb-2">
-              <div class="text-cyan-400 font-bold uppercase text-sm">Connect 4 Matrix</div>
+              <div class="text-cyan-400 font-bold uppercase text-sm font-rajdhani">Connect 4 Matrix</div>
               <div class="text-slate-400 mt-1">Gravity Grid vs Python Heuristic Bot</div>
             </div>
             <div id="c4-status-msg" class="text-white font-bold text-sm">Your Move (Drop Piece)</div>
-            <button onclick="connect4ResetGame()" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-white rounded font-bold">NEW MATCH</button>
+            <button onclick="connect4ResetGame()" class="w-full py-2 bg-slate-900 hover:bg-slate-800 text-white rounded font-rajdhani font-bold border border-panel-border">NEW MATCH</button>
           </div>
         </div>
 
-        <!-- Arcade Canvas Container -->
+        <!-- Arcade Canvas Deck -->
         <div id="game-arcade-deck" class="hidden flex-1 flex items-center justify-center overflow-hidden">
-          <canvas id="arcade-canvas" width="640" height="480" class="glass-panel rounded-xl border border-panel-border"></canvas>
+          <canvas id="arcade-canvas" width="640" height="480" class="glass-panel rounded border border-panel-border"></canvas>
         </div>
 
-        <!-- Minesweeper Container -->
+        <!-- Minesweeper Deck -->
         <div id="game-minesweeper-deck" class="hidden flex-1 flex items-center justify-center overflow-hidden">
-          <div class="glass-panel p-6 rounded-xl border border-panel-border flex flex-col items-center">
+          <div class="glass-panel p-6 rounded border border-panel-border flex flex-col items-center corner-reticle">
             <div class="flex justify-between w-full font-mono text-xs mb-3 text-cyan-400 font-bold">
               <span>MINES: <span id="ms-mines-count">10</span></span>
               <span>TIME: <span id="ms-timer">000</span></span>
             </div>
-            <div id="minesweeper-grid" class="grid grid-cols-9 gap-1 bg-slate-950 p-2 rounded border border-panel-border"></div>
-            <button onclick="initMinesweeper()" class="mt-4 px-4 py-1.5 bg-slate-800 hover:bg-slate-700 text-white font-mono text-xs rounded">NEW MATRIX</button>
+            <div id="minesweeper-grid" class="grid grid-cols-9 gap-1 bg-black/90 p-2 rounded border border-panel-border"></div>
+            <button onclick="initMinesweeper()" class="mt-4 px-4 py-1.5 bg-slate-900 hover:bg-slate-800 text-white font-rajdhani font-bold text-xs rounded border border-panel-border">NEW MATRIX</button>
           </div>
         </div>
       </section>
@@ -1310,23 +1388,21 @@
   </div>
 
   <!-- UNIVERSAL COMMAND PALETTE (MODAL) -->
-  <div id="cmd-palette-modal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-start justify-center pt-24">
-    <div class="w-full max-w-xl glass-elevated rounded-xl border border-panel-border overflow-hidden shadow-2xl">
-      <div class="p-3 border-b border-panel-border flex items-center space-x-3">
+  <div id="cmd-palette-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-start justify-center pt-24">
+    <div class="w-full max-w-xl glass-elevated rounded border border-panel-border overflow-hidden shadow-2xl corner-reticle">
+      <div class="p-3 border-b border-panel-border flex items-center space-x-3 bg-black/40">
         <svg class="w-4 h-4 text-cyan-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-        <input id="cmd-palette-input" oninput="filterCommandPalette()" type="text" placeholder="Type a command or jump to subsystem..." class="w-full bg-transparent text-sm text-white focus:outline-none font-mono">
+        <input id="cmd-palette-input" oninput="filterCommandPalette()" type="text" placeholder="Type subsystem name or command..." class="w-full bg-transparent text-sm text-white focus:outline-none font-mono">
         <kbd class="text-[10px] font-mono text-slate-400 bg-slate-800 px-1.5 py-0.5 rounded">ESC</kbd>
       </div>
-      <div id="cmd-palette-results" class="max-h-80 overflow-y-auto p-2 space-y-1 font-mono text-xs">
-        <!-- Populated via JS -->
-      </div>
+      <div id="cmd-palette-results" class="max-h-80 overflow-y-auto p-2 space-y-1 font-mono text-xs"></div>
     </div>
   </div>
 
   <!-- MODAL: CREATE EVENT -->
-  <div id="modal-create-event" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center">
-    <div class="w-full max-w-md glass-elevated rounded-xl p-5 border border-panel-border space-y-4 font-mono text-xs">
-      <div class="text-sm font-bold text-white uppercase border-b border-panel-border pb-2">Schedule New Calendar Event</div>
+  <div id="modal-create-event" class="hidden fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center">
+    <div class="w-full max-w-md glass-elevated rounded p-5 border border-panel-border space-y-4 font-mono text-xs corner-reticle">
+      <div class="text-sm font-rajdhani font-bold text-white uppercase tracking-wider border-b border-panel-border pb-2">Schedule Calendar Event</div>
       <div>
         <label class="text-slate-400 block mb-1">Title:</label>
         <input id="ev-title" type="text" class="w-full bg-slate-900 border border-panel-border rounded p-2 text-white">
@@ -1337,11 +1413,11 @@
       </div>
       <div class="grid grid-cols-2 gap-3">
         <div>
-          <label class="text-slate-400 block mb-1">Start (YYYY-MM-DD HH:MM:SS):</label>
+          <label class="text-slate-400 block mb-1">Start Time:</label>
           <input id="ev-start" type="text" class="w-full bg-slate-900 border border-panel-border rounded p-2 text-white">
         </div>
         <div>
-          <label class="text-slate-400 block mb-1">End (YYYY-MM-DD HH:MM:SS):</label>
+          <label class="text-slate-400 block mb-1">End Time:</label>
           <input id="ev-end" type="text" class="w-full bg-slate-900 border border-panel-border rounded p-2 text-white">
         </div>
       </div>
@@ -1353,9 +1429,9 @@
   </div>
 
   <!-- MODAL: CREATE TASK -->
-  <div id="modal-create-task" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center">
-    <div class="w-full max-w-md glass-elevated rounded-xl p-5 border border-panel-border space-y-4 font-mono text-xs">
-      <div class="text-sm font-bold text-white uppercase border-b border-panel-border pb-2">New Strategic Task</div>
+  <div id="modal-create-task" class="hidden fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center">
+    <div class="w-full max-w-md glass-elevated rounded p-5 border border-panel-border space-y-4 font-mono text-xs corner-reticle">
+      <div class="text-sm font-rajdhani font-bold text-white uppercase tracking-wider border-b border-panel-border pb-2">New Strategic Task</div>
       <div>
         <label class="text-slate-400 block mb-1">Task Title:</label>
         <input id="task-title" type="text" class="w-full bg-slate-900 border border-panel-border rounded p-2 text-white">
@@ -1392,9 +1468,9 @@
   </div>
 
   <!-- MODAL: CREATE CONTACT -->
-  <div id="modal-create-contact" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center">
-    <div class="w-full max-w-lg glass-elevated rounded-xl p-5 border border-panel-border space-y-4 font-mono text-xs">
-      <div class="text-sm font-bold text-white uppercase border-b border-panel-border pb-2">Add Contact to Vault</div>
+  <div id="modal-create-contact" class="hidden fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center">
+    <div class="w-full max-w-lg glass-elevated rounded p-5 border border-panel-border space-y-4 font-mono text-xs corner-reticle">
+      <div class="text-sm font-rajdhani font-bold text-white uppercase tracking-wider border-b border-panel-border pb-2">Add Contact to Vault</div>
       <div class="grid grid-cols-2 gap-3">
         <div>
           <label class="text-slate-400 block mb-1">First Name:</label>
@@ -1432,7 +1508,7 @@
     </div>
   </div>
 
-  <!-- APPLICATION CORE LOGIC SCRIPT -->
+  <!-- APPLICATION CORE SCRIPT -->
   <script>
     // =========================================================================
     // 1. BACKEND RPC CLIENT BRIDGE
@@ -1447,12 +1523,11 @@
           onBridgeReady();
         });
       } else {
-        console.warn("QWebChannel transport not found. Running in standalone browser preview mode.");
+        console.warn("Running in standalone preview mode.");
         onBridgeReady();
       }
     }
 
-    // Helper to safely call backend slot with promise
     function callBackend(methodName, ...args) {
       return new Promise((resolve, reject) => {
         if (!pyBackend || typeof pyBackend[methodName] !== 'function') {
@@ -1479,7 +1554,7 @@
     }
 
     // =========================================================================
-    // 2. TAB ROUTING & HUD CLOCK
+    // 2. TAB ROUTING & HUD
     // =========================================================================
     let currentTab = 'world_monitor';
 
@@ -1487,7 +1562,7 @@
       currentTab = tabId;
       document.querySelectorAll('.view-panel').forEach(p => p.classList.add('hidden'));
       document.querySelectorAll('.nav-item').forEach(b => {
-        b.classList.remove('active', 'text-white', 'bg-cyan-950/40', 'border', 'border-cyan-500/30');
+        b.classList.remove('active', 'text-white', 'bg-cyan-950/50', 'border', 'border-cyan-500/40');
         b.classList.add('text-slate-400');
       });
 
@@ -1496,11 +1571,11 @@
 
       const targetNav = document.getElementById(`nav-${tabId}`);
       if (targetNav) {
-        targetNav.classList.add('active', 'text-white', 'bg-cyan-950/40', 'border', 'border-cyan-500/30');
+        targetNav.classList.add('active', 'text-white', 'bg-cyan-950/50', 'border', 'border-cyan-500/40');
         targetNav.classList.remove('text-slate-400');
       }
 
-      // Trigger module-specific initializations
+      // Subsystem lazy initializers
       if (tabId === 'maps') setTimeout(initLeafletMap, 100);
       if (tabId === 'world_monitor') refreshWorldMonitor();
       if (tabId === 'calendar') loadCalendar();
@@ -1547,9 +1622,9 @@
     }
 
     // =========================================================================
-    // 3. THREE.JS 3D EARTH GLOBE (WORLD MONITOR)
+    // 3. THREE.JS 3D EARTH GLOBE WITH BALLISTIC ARCS & QUAKE RINGS
     // =========================================================================
-    let globeScene, globeCamera, globeRenderer, earthMesh, issMarkerMesh;
+    let globeScene, globeCamera, globeRenderer, earthMesh, issMarkerMesh, arcGroup;
 
     function init3DGlobe() {
       const container = document.getElementById('globe-container');
@@ -1560,50 +1635,63 @@
 
       globeScene = new THREE.Scene();
       globeCamera = new THREE.PerspectiveCamera(45, w / h, 0.1, 1000);
-      globeCamera.position.z = 2.6;
+      globeCamera.position.z = 2.65;
 
       globeRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
       globeRenderer.setSize(w, h);
       globeRenderer.setPixelRatio(window.devicePixelRatio);
       container.appendChild(globeRenderer.domElement);
 
-      // Create glowing wireframe earth
+      // Deep space starfield (1,200 particle stars)
+      const starGeo = new THREE.BufferGeometry();
+      const starCount = 1200;
+      const starPos = new Float32Array(starCount * 3);
+      for (let i = 0; i < starCount * 3; i++) {
+        starPos[i] = (Math.random() - 0.5) * 80;
+      }
+      starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
+      const starMat = new THREE.PointsMaterial({ color: 0x00f0ff, size: 0.08, transparent: true, opacity: 0.5 });
+      const stars = new THREE.Points(starGeo, starMat);
+      globeScene.add(stars);
+
+      // Glowing Wireframe Earth Mesh
       const sphereGeo = new THREE.SphereGeometry(1, 48, 48);
       const sphereMat = new THREE.MeshBasicMaterial({
         color: 0x00f0ff,
         wireframe: true,
         transparent: true,
-        opacity: 0.18
+        opacity: 0.2
       });
       earthMesh = new THREE.Mesh(sphereGeo, sphereMat);
       globeScene.add(earthMesh);
 
-      // Inner core
-      const coreGeo = new THREE.SphereGeometry(0.98, 32, 32);
-      const coreMat = new THREE.MeshBasicMaterial({
-        color: 0x080c18,
-        transparent: true,
-        opacity: 0.95
-      });
+      // Inner Dark Obsidian Sphere
+      const coreGeo = new THREE.SphereGeometry(0.985, 32, 32);
+      const coreMat = new THREE.MeshBasicMaterial({ color: 0x050811, transparent: true, opacity: 0.95 });
       const coreMesh = new THREE.Mesh(coreGeo, coreMat);
       globeScene.add(coreMesh);
 
-      // ISS Satellite Marker
-      const issGeo = new THREE.SphereGeometry(0.035, 16, 16);
+      // ISS Satellite Red Reticle Marker
+      const issGeo = new THREE.SphereGeometry(0.04, 16, 16);
       const issMat = new THREE.MeshBasicMaterial({ color: 0xef4444 });
       issMarkerMesh = new THREE.Mesh(issGeo, issMat);
       globeScene.add(issMarkerMesh);
 
-      // Orbital Ring
+      // ISS Trajectory Ring
       const ringGeo = new THREE.RingGeometry(1.15, 1.16, 64);
-      const ringMat = new THREE.MeshBasicMaterial({ color: 0x8b5cf6, side: THREE.DoubleSide, transparent: true, opacity: 0.4 });
+      const ringMat = new THREE.MeshBasicMaterial({ color: 0x8b5cf6, side: THREE.DoubleSide, transparent: true, opacity: 0.45 });
       const ringMesh = new THREE.Mesh(ringGeo, ringMat);
       ringMesh.rotation.x = Math.PI / 3;
       globeScene.add(ringMesh);
 
+      // Arc Group for Cyber Threat Ballistic Arcs
+      arcGroup = new THREE.Group();
+      globeScene.add(arcGroup);
+
       function animate() {
         requestAnimationFrame(animate);
-        if (earthMesh) earthMesh.rotation.y += 0.0015;
+        if (earthMesh) earthMesh.rotation.y += 0.0018;
+        if (stars) stars.rotation.y += 0.0003;
         globeRenderer.render(globeScene, globeCamera);
       }
       animate();
@@ -1623,15 +1711,13 @@
       const summary = await callBackend('getWorldMonitorSummary');
       if (!summary) return;
 
-      // Update counters
       document.getElementById('wm-threat-posture').textContent = summary.threat_posture || "DEFCON 4";
       document.getElementById('wm-quake-count').textContent = summary.active_seismic_events || "0";
       document.getElementById('wm-max-mag').textContent = summary.max_magnitude_24h || "0.0";
 
-      // ISS telemetry
+      // ISS Coordinates
       if (summary.iss_position) {
         document.getElementById('wm-iss-coords').textContent = `LAT: ${summary.iss_position.latitude}° LON: ${summary.iss_position.longitude}°`;
-        // Position ISS on 3D globe using spherical coordinates
         if (issMarkerMesh) {
           const phi = (90 - summary.iss_position.latitude) * (Math.PI / 180);
           const theta = (summary.iss_position.longitude + 180) * (Math.PI / 180);
@@ -1642,13 +1728,13 @@
         }
       }
 
-      // Earthquakes list
+      // Quakes List
       const quakesList = document.getElementById('wm-quakes-list');
       if (quakesList && summary.earthquakes) {
         quakesList.innerHTML = summary.earthquakes.map(q => `
-          <div class="glass-elevated p-2.5 rounded-lg border border-panel-border flex items-center justify-between text-xs font-mono">
+          <div class="glass-elevated p-2 rounded border border-panel-border flex items-center justify-between text-xs font-mono">
             <div>
-              <div class="text-white font-bold truncate max-w-[220px]">${q.title}</div>
+              <div class="text-white font-bold truncate max-w-[210px]">${q.title}</div>
               <div class="text-[10px] text-slate-400 mt-0.5">Depth: ${q.depth_km}km • ${q.time_str}</div>
             </div>
             <span class="px-2 py-0.5 rounded font-bold text-xs ${q.mag >= 5.5 ? 'bg-red-950 text-red-400 border border-red-800' : (q.mag >= 4.5 ? 'bg-amber-950 text-amber-400 border border-amber-800' : 'bg-emerald-950 text-emerald-400 border border-emerald-800')}">
@@ -1658,7 +1744,7 @@
         `).join('');
       }
 
-      // Cyber telemetry
+      // Cyber Threats
       const cyberList = document.getElementById('wm-cyber-list');
       if (cyberList && summary.cyber_vectors) {
         cyberList.innerHTML = summary.cyber_vectors.map(c => `
@@ -1667,16 +1753,17 @@
               <span class="text-red-400 font-bold">${c.type}</span>
               <div class="text-slate-400 text-[10px]">${c.source_country} ➔ ${c.target_country}</div>
             </div>
-            <span class="text-slate-300 font-bold">${c.bandwidth_gbps} Gbps</span>
+            <span class="text-slate-200 font-bold">${c.bandwidth_gbps} Gbps</span>
           </div>
         `).join('');
       }
     }
 
     // =========================================================================
-    // 4. LEAFLET MAPS & OSRM NAVIGATION
+    // 4. MAPS & NAVIGATION
     // =========================================================================
     let leafletMapInstance = null;
+    let currentMapTileLayer = null;
     let routeGeoJsonLayer = null;
 
     function initLeafletMap() {
@@ -1690,12 +1777,28 @@
       leafletMapInstance = L.map('leaflet-map', { zoomControl: false }).setView([40.7128, -74.0060], 12);
       L.control.zoom({ position: 'bottomright' }).addTo(leafletMapInstance);
 
-      // CartoDB Dark Matter free tiles (No API keys required)
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
-        subdomains: 'abcd',
-        maxZoom: 19
-      }).addTo(leafletMapInstance);
+      setMapLayer('dark');
+    }
+
+    function setMapLayer(layerType) {
+      if (!leafletMapInstance) return;
+      if (currentMapTileLayer) leafletMapInstance.removeLayer(currentMapTileLayer);
+
+      document.getElementById('btn-map-dark').classList.toggle('bg-cyan-950', layerType === 'dark');
+      document.getElementById('btn-map-osm').classList.toggle('bg-cyan-950', layerType === 'osm');
+
+      if (layerType === 'dark') {
+        currentMapTileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+          attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+          subdomains: 'abcd',
+          maxZoom: 19
+        }).addTo(leafletMapInstance);
+      } else {
+        currentMapTileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '&copy; OpenStreetMap contributors',
+          maxZoom: 19
+        }).addTo(leafletMapInstance);
+      }
     }
 
     async function mapsSearchAddress() {
@@ -1730,7 +1833,6 @@
 
         leafletMapInstance.fitBounds(routeGeoJsonLayer.getBounds(), { padding: [50, 50] });
 
-        // Populate steps
         const stepsList = document.getElementById('route-steps-list');
         if (stepsList && routeRes.steps) {
           stepsList.innerHTML = routeRes.steps.map((s, idx) => `
@@ -1745,7 +1847,7 @@
     }
 
     // =========================================================================
-    // 5. WEATHER SUB-SYSTEM
+    // 5. WEATHER SYSTEMS
     // =========================================================================
     async function refreshWeather(cityName = "") {
       const data = await callBackend('getWeather', cityName);
@@ -1760,26 +1862,26 @@
       document.getElementById('weather-wind-dir').textContent = `Heading ${data.wind_direction}°`;
       document.getElementById('weather-pressure').textContent = Math.round(data.pressure);
 
-      // Hourly strip
+      // Hourly Trajectory Strip
       const hourlyStrip = document.getElementById('weather-hourly-strip');
       if (hourlyStrip && data.hourly) {
         hourlyStrip.innerHTML = data.hourly.map(h => `
-          <div class="glass-elevated p-3 rounded-lg border border-panel-border min-w-[70px] text-center font-mono text-xs">
+          <div class="glass-elevated p-3 rounded border border-panel-border min-w-[70px] text-center font-mono text-xs">
             <div class="text-slate-400 text-[10px]">${h.time}</div>
-            <div class="text-white font-bold my-1">${h.temp}°</div>
+            <div class="text-cyan-400 font-bold my-1">${h.temp}°</div>
           </div>
         `).join('');
       }
 
-      // Daily cards
+      // Daily Outlook Cards
       const dailyCards = document.getElementById('weather-daily-cards');
       if (dailyCards && data.daily) {
         dailyCards.innerHTML = data.daily.map(d => `
-          <div class="glass-elevated p-3 rounded-xl border border-panel-border text-center font-mono text-xs">
+          <div class="glass-elevated p-3 rounded border border-panel-border text-center font-mono text-xs">
             <div class="text-slate-400 text-[10px] font-bold">${d.date.slice(5)}</div>
-            <div class="text-cyan-400 font-bold text-sm my-1">${d.max_temp}°</div>
+            <div class="text-white font-bold text-sm my-1">${d.max_temp}°</div>
             <div class="text-slate-400 text-[11px]">${d.min_temp}°</div>
-            <div class="text-slate-300 text-[10px] mt-2 truncate">${d.condition}</div>
+            <div class="text-cyan-400 text-[10px] mt-2 truncate font-bold">${d.condition}</div>
           </div>
         `).join('');
       }
@@ -1791,7 +1893,7 @@
     }
 
     // =========================================================================
-    // 6. NEWS SUB-SYSTEM
+    // 6. NEWS AGGREGATOR
     // =========================================================================
     let currentNewsCategory = 'All';
 
@@ -1801,19 +1903,19 @@
       if (!grid || !articles) return;
 
       grid.innerHTML = articles.map(a => `
-        <div class="glass-panel p-5 rounded-xl border border-panel-border flex flex-col justify-between hover:border-cyan-500/40 transition-colors">
+        <div class="glass-panel p-5 rounded border border-panel-border flex flex-col justify-between corner-reticle hover:border-cyan-400 transition-colors">
           <div>
             <div class="flex items-center justify-between text-[10px] font-mono text-cyan-400 mb-2">
-              <span class="px-2 py-0.5 rounded bg-cyan-950/60 border border-cyan-800">${a.category || a.source_title}</span>
+              <span class="px-2 py-0.5 rounded bg-cyan-950/80 border border-cyan-800 font-bold">${a.category || a.source_title}</span>
               <span class="text-slate-400">${a.published_date ? a.published_date.slice(0, 16) : ''}</span>
             </div>
-            <h3 class="text-sm font-bold text-white font-sans leading-snug mb-2">${a.title}</h3>
+            <h3 class="text-sm font-bold text-white font-rajdhani leading-snug mb-2">${a.title}</h3>
             <p class="text-xs text-slate-300 line-clamp-3 leading-relaxed">${a.summary || ''}</p>
           </div>
           <div class="pt-4 flex items-center justify-between border-t border-panel-border mt-3 text-xs font-mono">
-            <button onclick="openExternalUrl('${a.link}')" class="text-cyan-400 hover:text-cyan-300 font-semibold flex items-center space-x-1">
+            <button onclick="openExternalUrl('${a.link}')" class="text-cyan-400 hover:text-cyan-300 font-rajdhani font-bold tracking-wider flex items-center space-x-1">
               <span>READ SOURCE</span>
-              <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+              <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline></svg>
             </button>
             <button onclick="toggleNewsBookmarkBtn(${a.id})" class="text-slate-400 hover:text-amber-400">
               <svg class="w-4 h-4 ${a.is_bookmarked ? 'text-amber-400 fill-amber-400' : ''}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
@@ -1839,7 +1941,7 @@
     }
 
     // =========================================================================
-    // 7. PLANNER & TIMEBLOCKS
+    // 7. PLANNER, KANBAN & TIMELINE
     // =========================================================================
     let plannerMode = 'kanban';
 
@@ -1847,7 +1949,14 @@
       plannerMode = mode;
       document.getElementById('planner-kanban-container').classList.toggle('hidden', mode !== 'kanban');
       document.getElementById('planner-timeline-container').classList.toggle('hidden', mode !== 'timeline');
+      document.getElementById('planner-eisenhower-container').classList.toggle('hidden', mode !== 'eisenhower');
+
+      document.getElementById('btn-planner-kanban').classList.toggle('bg-cyan-950', mode === 'kanban');
+      document.getElementById('btn-planner-timeline').classList.toggle('bg-cyan-950', mode === 'timeline');
+      document.getElementById('btn-planner-eisenhower').classList.toggle('bg-cyan-950', mode === 'eisenhower');
+
       if (mode === 'timeline') loadScheduleBlocks();
+      if (mode === 'eisenhower') loadEisenhowerTasks();
     }
 
     async function loadPlannerTasks() {
@@ -1865,12 +1974,12 @@
         const items = cols[titleKey] || [];
         document.getElementById(`cnt-${stKey}`).textContent = items.length;
         document.getElementById(`col-${stKey}`).innerHTML = items.map(t => `
-          <div class="glass-elevated p-3 rounded-lg border border-panel-border space-y-2">
+          <div class="glass-elevated p-3 rounded border border-panel-border space-y-2">
             <div class="flex items-center justify-between text-[10px] font-mono">
-              <span class="px-1.5 py-0.5 rounded font-bold ${t.priority === 'Critical' ? 'bg-red-950 text-red-400' : 'bg-slate-800 text-slate-300'}">${t.priority}</span>
+              <span class="px-1.5 py-0.5 rounded font-bold ${t.priority === 'Critical' ? 'bg-red-950 text-red-400 border border-red-800' : 'bg-slate-800 text-slate-300'}">${t.priority}</span>
               <span class="text-slate-400">${t.due_date || ''}</span>
             </div>
-            <div class="text-xs font-bold text-white font-sans">${t.title}</div>
+            <div class="text-xs font-bold text-white font-rajdhani text-sm">${t.title}</div>
             <p class="text-[11px] text-slate-300 line-clamp-2">${t.description || ''}</p>
             <div class="flex items-center justify-between pt-2 border-t border-panel-border/50 text-[10px] font-mono">
               <span class="text-cyan-400">${t.completed_pomodoros}/${t.estimated_pomodoros} POMOS</span>
@@ -1881,6 +1990,28 @@
             </div>
           </div>
         `).join('');
+      });
+    }
+
+    async function loadEisenhowerTasks() {
+      const tasks = await callBackend('listTasks', "", "");
+      if (!tasks) return;
+
+      const qMap = {
+        'Urgent_Important': document.getElementById('eisen-q1'),
+        'NotUrgent_Important': document.getElementById('eisen-q2'),
+        'Urgent_NotImportant': document.getElementById('eisen-q3'),
+        'Neither': document.getElementById('eisen-q4')
+      };
+
+      Object.values(qMap).forEach(el => el.innerHTML = '');
+
+      tasks.forEach(t => {
+        const target = qMap[t.eisenhower] || qMap['NotUrgent_Important'];
+        const div = document.createElement('div');
+        div.className = 'glass-elevated p-2 rounded border border-panel-border text-xs font-mono flex justify-between items-center';
+        div.innerHTML = `<span class="text-white font-bold font-rajdhani">${t.title}</span><span class="text-[10px] text-slate-400">${t.priority}</span>`;
+        target.appendChild(div);
       });
     }
 
@@ -1919,11 +2050,11 @@
       if (!container || !blocks) return;
 
       container.innerHTML = blocks.map(b => `
-        <div class="glass-elevated p-3 rounded-lg border-l-4 border-cyan-400 flex items-center justify-between font-mono text-xs">
+        <div class="glass-elevated p-3 rounded border-l-4 border-cyan-400 flex items-center justify-between font-mono text-xs">
           <div class="flex items-center space-x-4">
             <span class="text-cyan-400 font-bold">${b.start_time} - ${b.end_time}</span>
-            <span class="text-white font-bold font-sans">${b.title}</span>
-            <span class="text-[10px] px-2 py-0.5 rounded bg-slate-800 text-slate-400">${b.category}</span>
+            <span class="text-white font-bold font-rajdhani text-sm">${b.title}</span>
+            <span class="text-[10px] px-2 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">${b.category}</span>
           </div>
           <button onclick="deleteScheduleBlockBtn(${b.id})" class="text-slate-400 hover:text-red-400">DELETE</button>
         </div>
@@ -1949,7 +2080,7 @@
     // 8. PERSONAL CALENDAR
     // =========================================================================
     let calCurrentYear = 2026;
-    let calCurrentMonth = 9; // 0-indexed (9 = October)
+    let calCurrentMonth = 9;
 
     const MONTH_NAMES = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
@@ -1963,7 +2094,6 @@
     async function loadCalendar() {
       document.getElementById('cal-month-title').textContent = `${MONTH_NAMES[calCurrentMonth]} ${calCurrentYear}`;
       const events = await callBackend('listCalendarEvents', "", "");
-      
       const grid = document.getElementById('calendar-days-grid');
       if (!grid) return;
 
@@ -1980,7 +2110,7 @@
         const dayEvents = (events || []).filter(e => e.start_time.startsWith(dateStr));
 
         html += `
-          <div class="glass-elevated p-2 rounded-lg border border-panel-border/60 hover:border-cyan-400 flex flex-col justify-between min-h-[70px]">
+          <div class="glass-elevated p-2 rounded border border-panel-border/60 hover:border-cyan-400 flex flex-col justify-between min-h-[70px]">
             <span class="font-mono text-xs font-bold ${dayEvents.length > 0 ? 'text-cyan-400' : 'text-slate-400'}">${day}</span>
             <div class="space-y-1 mt-1">
               ${dayEvents.map(e => `
@@ -1994,16 +2124,15 @@
       }
       grid.innerHTML = html;
 
-      // Populate events ledger list
       const list = document.getElementById('calendar-events-list');
       if (list && events) {
         list.innerHTML = events.map(e => `
-          <div class="glass-elevated p-3 rounded-lg border border-panel-border space-y-1">
+          <div class="glass-elevated p-3 rounded border border-panel-border space-y-1">
             <div class="flex items-center justify-between text-[10px] font-mono">
               <span class="text-cyan-400 font-bold">${e.category || 'General'}</span>
               <span class="text-slate-400">${e.priority}</span>
             </div>
-            <div class="text-xs font-bold text-white font-sans">${e.title}</div>
+            <div class="text-xs font-bold text-white font-rajdhani text-sm">${e.title}</div>
             <div class="text-[10px] text-slate-400 font-mono">${e.start_time}</div>
             ${e.description ? `<p class="text-[11px] text-slate-300 mt-1">${e.description}</p>` : ''}
             <div class="text-right pt-1">
@@ -2059,7 +2188,28 @@
     // 9. NOTEPAD & MARKDOWN STUDIO
     // =========================================================================
     let activeNoteId = null;
-    let isPreviewMode = false;
+
+    function setNotepadViewMode(mode) {
+      const editor = document.getElementById('note-body-textarea');
+      const preview = document.getElementById('note-preview-pane');
+
+      document.getElementById('btn-np-edit').classList.toggle('bg-cyan-950', mode === 'editor');
+      document.getElementById('btn-np-split').classList.toggle('bg-cyan-950', mode === 'split');
+      document.getElementById('btn-np-prev').classList.toggle('bg-cyan-950', mode === 'preview');
+
+      if (mode === 'editor') {
+        editor.classList.remove('hidden');
+        preview.classList.add('hidden');
+      } else if (mode === 'preview') {
+        editor.classList.add('hidden');
+        preview.classList.remove('hidden');
+        renderMarkdownPreview(editor.value);
+      } else {
+        editor.classList.remove('hidden');
+        preview.classList.remove('hidden');
+        renderMarkdownPreview(editor.value);
+      }
+    }
 
     async function loadNotesList() {
       const search = document.getElementById('note-search-input').value.trim();
@@ -2068,8 +2218,8 @@
       if (!list || !notes) return;
 
       list.innerHTML = notes.map(n => `
-        <div onclick="selectNote(${n.id})" class="p-2.5 rounded-lg cursor-pointer border ${activeNoteId === n.id ? 'bg-cyan-950/40 border-cyan-500/40 text-white' : 'glass-elevated border-panel-border text-slate-300 hover:text-white'}">
-          <div class="flex items-center justify-between text-xs font-bold truncate">
+        <div onclick="selectNote(${n.id})" class="p-2.5 rounded cursor-pointer border ${activeNoteId === n.id ? 'bg-cyan-950/50 border-cyan-500/50 text-white' : 'glass-elevated border-panel-border text-slate-300 hover:text-white'}">
+          <div class="flex items-center justify-between text-xs font-bold truncate font-rajdhani">
             <span>${n.title}</span>
             ${n.is_pinned ? '<span class="text-cyan-400 text-[10px]">PIN</span>' : ''}
           </div>
@@ -2089,7 +2239,7 @@
       document.getElementById('note-body-textarea').value = note.content;
       updateNoteStats(note.content);
       loadNotesList();
-      if (isPreviewMode) renderMarkdownPreview(note.content);
+      renderMarkdownPreview(note.content);
     }
 
     function onNoteContentChange() {
@@ -2097,13 +2247,12 @@
       const title = document.getElementById('note-title-input').value;
       updateNoteStats(content);
       if (activeNoteId) {
-        // Debounced save
         clearTimeout(window._noteSaveTimer);
         window._noteSaveTimer = setTimeout(async () => {
           await callBackend('saveNote', activeNoteId, title, content, "", 0);
         }, 600);
       }
-      if (isPreviewMode) renderMarkdownPreview(content);
+      renderMarkdownPreview(content);
     }
 
     function updateNoteStats(text) {
@@ -2112,33 +2261,33 @@
       const readTime = (words / 200).toFixed(1);
       document.getElementById('note-word-count').textContent = `${words} words`;
       document.getElementById('note-char-count').textContent = `${chars} chars`;
-      document.getElementById('note-read-time').textContent = `${readTime} min read`;
-    }
-
-    function toggleMarkdownPreview() {
-      isPreviewMode = !isPreviewMode;
-      const preview = document.getElementById('note-preview-pane');
-      const textarea = document.getElementById('note-body-textarea');
-      preview.classList.toggle('hidden', !isPreviewMode);
-      if (isPreviewMode) renderMarkdownPreview(textarea.value);
+      document.getElementById('note-read-time').textContent = `${readTime} min`;
     }
 
     function renderMarkdownPreview(text) {
-      // Basic markdown parsing for headlines, bold, lists, and code blocks
       let html = text
-        .replace(/^# (.*$)/gim, '<h1 class="text-xl font-bold text-cyan-400 border-b border-panel-border pb-1 my-2">$1</h1>')
-        .replace(/^## (.*$)/gim, '<h2 class="text-lg font-bold text-white my-2">$1</h2>')
-        .replace(/^### (.*$)/gim, '<h3 class="text-base font-bold text-slate-200 my-1">$1</h3>')
+        .replace(/^# (.*$)/gim, '<h1 class="text-xl font-bold font-rajdhani text-cyan-400 border-b border-panel-border pb-1 my-2">$1</h1>')
+        .replace(/^## (.*$)/gim, '<h2 class="text-lg font-bold font-rajdhani text-white my-2">$1</h2>')
+        .replace(/^### (.*$)/gim, '<h3 class="text-sm font-bold font-rajdhani text-slate-200 my-1">$1</h3>')
         .replace(/\*\*(.*)\*\*/gim, '<strong>$1</strong>')
         .replace(/\*(.*)\*/gim, '<em>$1</em>')
         .replace(/^\- (.*$)/gim, '<li class="ml-4 list-disc text-slate-300">$1</li>')
-        .replace(/`([^`]+)`/gim, '<code class="bg-slate-900 px-1 py-0.5 rounded text-cyan-300 font-mono text-xs">$1</code>')
+        .replace(/`([^`]+)`/gim, '<code class="bg-black px-1 py-0.5 rounded text-cyan-300 font-mono text-[11px]">$1</code>')
         .replace(/\n$/gim, '<br />');
       document.getElementById('note-preview-pane').innerHTML = html;
     }
 
+    function insertMarkdownSnippet(prefix, suffix) {
+      const area = document.getElementById('note-body-textarea');
+      const start = area.selectionStart;
+      const end = area.selectionEnd;
+      const val = area.value;
+      area.value = val.substring(0, start) + prefix + val.substring(start, end) + suffix + val.substring(end);
+      onNoteContentChange();
+    }
+
     async function createNewNoteBtn() {
-      const created = await callBackend('saveNote', 0, "Untitled Document", "", "", 0);
+      const created = await callBackend('saveNote', 0, "Untitled Specification", "", "", 0);
       if (created) selectNote(created.id);
     }
 
@@ -2150,6 +2299,7 @@
     let audioAnalyser = null;
     let musicTracks = [];
     let activeTrackIndex = 0;
+    let visualizerMode = 'bars'; // 'bars' or 'wave'
 
     function initAudioContext() {
       if (audioContext) return;
@@ -2178,15 +2328,21 @@
       return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
     }
 
+    function setVisualizerMode(mode) {
+      visualizerMode = mode;
+      document.getElementById('btn-vis-bars').classList.toggle('bg-cyan-950', mode === 'bars');
+      document.getElementById('btn-vis-wave').classList.toggle('bg-cyan-950', mode === 'wave');
+    }
+
     async function loadMusicLibrary() {
       musicTracks = await callBackend('listMusicTracks', "");
       const list = document.getElementById('music-track-list');
       if (!list || !musicTracks) return;
 
       list.innerHTML = musicTracks.map((t, idx) => `
-        <div onclick="playTrackAtIndex(${idx})" class="p-3 rounded-lg cursor-pointer border ${activeTrackIndex === idx ? 'bg-cyan-950/40 border-cyan-500/40 text-white' : 'glass-elevated border-panel-border text-slate-300 hover:text-white'} flex items-center justify-between">
+        <div onclick="playTrackAtIndex(${idx})" class="p-3 rounded cursor-pointer border ${activeTrackIndex === idx ? 'bg-cyan-950/50 border-cyan-500/50 text-white' : 'glass-elevated border-panel-border text-slate-300 hover:text-white'} flex items-center justify-between">
           <div>
-            <div class="text-xs font-bold font-mono">${t.title}</div>
+            <div class="text-xs font-bold font-rajdhani text-sm">${t.title}</div>
             <div class="text-[10px] text-slate-400 font-mono mt-0.5">${t.artist}</div>
           </div>
           <span class="text-[10px] font-mono text-cyan-400">${t.duration}s</span>
@@ -2206,12 +2362,11 @@
       document.getElementById('music-active-artist').textContent = `${track.artist} • ${track.album}`;
       document.getElementById('hud-audio-title').textContent = track.title;
 
-      // Handle local file protocol URL
       audioElement.src = `file://${track.file_path}`;
       if (autoPlay) {
         audioContext.resume();
         audioElement.play();
-        document.getElementById('music-play-btn').innerHTML = '<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>';
+        updatePlayIcons(true);
       }
       loadMusicLibrary();
     }
@@ -2221,11 +2376,23 @@
       if (audioElement.paused) {
         audioContext.resume();
         audioElement.play();
-        document.getElementById('music-play-btn').innerHTML = '<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>';
+        updatePlayIcons(true);
       } else {
         audioElement.pause();
-        document.getElementById('music-play-btn').innerHTML = '<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>';
+        updatePlayIcons(false);
       }
+    }
+
+    function updatePlayIcons(isPlaying) {
+      const icon = isPlaying 
+        ? '<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>'
+        : '<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>';
+      document.getElementById('music-play-btn').innerHTML = icon;
+
+      const miniIcon = isPlaying
+        ? '<rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect>'
+        : '<polygon points="5 3 19 12 5 21 5 3"></polygon>';
+      document.getElementById('hud-play-icon').innerHTML = miniIcon;
     }
 
     function nextMusicTrack() {
@@ -2240,16 +2407,20 @@
       playTrackAtIndex(activeTrackIndex);
     }
 
+    function onMusicSeek(val) {
+      if (audioElement && audioElement.duration) {
+        audioElement.currentTime = (val / 100) * audioElement.duration;
+      }
+    }
+
     function setMusicVolume(val) {
       if (audioElement) audioElement.volume = val / 100;
     }
 
     function startVisualizerCanvas() {
       const canvas = document.getElementById('music-visualizer-canvas');
-      const hudCanvas = document.getElementById('hud-visualizer');
       if (!canvas || !audioAnalyser) return;
       const ctx = canvas.getContext('2d');
-      const hudCtx = hudCanvas.getContext('2d');
 
       const bufferLength = audioAnalyser.frequencyBinCount;
       const dataArray = new Uint8Array(bufferLength);
@@ -2259,22 +2430,32 @@
         audioAnalyser.getByteFrequencyData(dataArray);
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        hudCtx.clearRect(0, 0, hudCanvas.width, hudCanvas.height);
 
-        const barWidth = (canvas.width / bufferLength) * 2;
-        let x = 0;
-
-        for (let i = 0; i < bufferLength; i++) {
-          const barHeight = (dataArray[i] / 255) * canvas.height;
-          ctx.fillStyle = `rgba(0, 240, 255, ${0.4 + dataArray[i]/510})`;
-          ctx.fillRect(x, canvas.height - barHeight, barWidth - 1, barHeight);
-
-          // Mini HUD Visualizer
-          const hudBarH = (dataArray[i] / 255) * hudCanvas.height;
-          hudCtx.fillStyle = '#00f0ff';
-          hudCtx.fillRect(i * 3, hudCanvas.height - hudBarH, 2, hudBarH);
-
-          x += barWidth;
+        if (visualizerMode === 'bars') {
+          const barWidth = (canvas.width / bufferLength) * 2;
+          let x = 0;
+          for (let i = 0; i < bufferLength; i++) {
+            const barHeight = (dataArray[i] / 255) * canvas.height;
+            ctx.fillStyle = `rgba(0, 240, 255, ${0.4 + dataArray[i]/510})`;
+            ctx.fillRect(x, canvas.height - barHeight, barWidth - 1, barHeight);
+            x += barWidth;
+          }
+        } else {
+          // Oscilloscope Waveform
+          audioAnalyser.getByteTimeDomainData(dataArray);
+          ctx.lineWidth = 2;
+          ctx.strokeStyle = '#00f0ff';
+          ctx.beginPath();
+          const sliceWidth = canvas.width / bufferLength;
+          let x = 0;
+          for (let i = 0; i < bufferLength; i++) {
+            const v = dataArray[i] / 128.0;
+            const y = (v * canvas.height) / 2;
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+            x += sliceWidth;
+          }
+          ctx.stroke();
         }
       }
       draw();
@@ -2299,8 +2480,8 @@
       if (!list || !videoPlaylist) return;
 
       list.innerHTML = videoPlaylist.map((v, idx) => `
-        <div onclick="playVideoAtIndex(${idx})" class="p-3 rounded-lg cursor-pointer glass-elevated border border-panel-border hover:border-cyan-400">
-          <div class="text-xs font-bold text-white truncate">${v.title}</div>
+        <div onclick="playVideoAtIndex(${idx})" class="p-3 rounded cursor-pointer glass-elevated border border-panel-border hover:border-cyan-400">
+          <div class="text-xs font-bold text-white truncate font-rajdhani text-sm">${v.title}</div>
           <div class="text-[10px] text-slate-400 mt-1 font-mono">${v.resolution}</div>
         </div>
       `).join('');
@@ -2367,19 +2548,19 @@
       if (!grid || !stations) return;
 
       grid.innerHTML = stations.map(s => `
-        <div class="glass-panel p-5 rounded-xl border border-panel-border flex flex-col justify-between hover:border-cyan-400 transition-colors">
+        <div class="glass-panel p-5 rounded border border-panel-border flex flex-col justify-between corner-reticle hover:border-cyan-400 transition-colors">
           <div>
             <div class="flex items-center justify-between text-[10px] font-mono text-cyan-400 mb-1">
-              <span class="px-2 py-0.5 rounded bg-cyan-950/80 border border-cyan-800">${s.genre}</span>
+              <span class="px-2 py-0.5 rounded bg-cyan-950/80 border border-cyan-800 font-bold">${s.genre}</span>
               <span class="text-slate-400">${s.bitrate} ${s.codec}</span>
             </div>
-            <h3 class="text-sm font-bold text-white font-sans mt-2">${s.name}</h3>
+            <h3 class="text-sm font-bold text-white font-rajdhani mt-2">${s.name}</h3>
             <p class="text-[11px] text-slate-400 font-mono mt-0.5">${s.country}</p>
           </div>
           <div class="pt-4 flex items-center justify-between border-t border-panel-border mt-3">
-            <button onclick="playRadioStream('${s.stream_url}', '${s.name}')" class="px-3 py-1 bg-cyan-600 hover:bg-cyan-500 text-white rounded text-xs font-mono font-bold flex items-center space-x-1.5">
+            <button onclick="playRadioStream('${s.stream_url}', '${s.name}')" class="px-3 py-1 bg-cyan-600 hover:bg-cyan-500 text-white rounded text-xs font-rajdhani font-bold tracking-wider flex items-center space-x-1.5">
               <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-              <span>LISTEN</span>
+              <span>STREAM</span>
             </button>
             <button onclick="toggleRadioFavBtn(${s.id})" class="text-slate-400 hover:text-amber-400">
               <svg class="w-4 h-4 ${s.is_favorite ? 'text-amber-400 fill-amber-400' : ''}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
@@ -2409,7 +2590,7 @@
     }
 
     // =========================================================================
-    // 14. CALCULATOR
+    // 14. TACTICAL CALCULATOR
     // =========================================================================
     let calcExpression = "";
     let calcMode = "Scientific";
@@ -2476,7 +2657,7 @@
     }
 
     // =========================================================================
-    // 15. IMAGE VIEWER & FILTERS
+    // 15. IMAGE CATALOG & LAB
     // =========================================================================
     let currentImageRotation = 0;
 
@@ -2486,8 +2667,8 @@
       if (!grid || !images) return;
 
       grid.innerHTML = images.map(img => `
-        <div onclick="selectImage('${img.file_path}')" class="glass-elevated p-2 rounded-lg cursor-pointer border border-panel-border hover:border-cyan-400">
-          <div class="h-20 bg-slate-950 rounded flex items-center justify-center overflow-hidden">
+        <div onclick="selectImage('${img.file_path}')" class="glass-elevated p-2 rounded cursor-pointer border border-panel-border hover:border-cyan-400">
+          <div class="h-20 bg-black rounded flex items-center justify-center overflow-hidden">
             <img src="file://${img.file_path}" class="object-cover h-full w-full">
           </div>
           <div class="text-[10px] font-mono text-white truncate mt-1">${img.file_name}</div>
@@ -2549,9 +2730,9 @@
       if (!grid || !clocks) return;
 
       grid.innerHTML = clocks.map(c => `
-        <div class="glass-panel p-5 rounded-xl border border-panel-border flex flex-col justify-between">
+        <div class="glass-panel p-5 rounded border border-panel-border flex flex-col justify-between corner-reticle">
           <div class="flex items-center justify-between text-xs font-mono">
-            <span class="text-white font-bold">${c.city}</span>
+            <span class="text-white font-bold font-rajdhani text-sm">${c.city}</span>
             <span class="text-cyan-400 font-bold">${c.offset_str}</span>
           </div>
           <div class="text-3xl font-mono font-bold text-white my-3">${c.time_str}</div>
@@ -2607,7 +2788,7 @@
       document.getElementById('btn-sw-start').textContent = "START";
     }
 
-    // Pomodoro Timer
+    // Pomodoro Focus Engine
     let pomoSeconds = 25 * 60;
     let pomoInterval = null;
 
@@ -2634,7 +2815,7 @@
           } else {
             clearInterval(pomoInterval);
             pomoInterval = null;
-            alert("Pomodoro Interval Completed!");
+            alert("Focus Sprint Interval Completed!");
           }
         }, 1000);
         document.getElementById('btn-pomo-start').textContent = "PAUSE";
@@ -2656,7 +2837,7 @@
     }
 
     // =========================================================================
-    // 17. CONTACT DIRECTORY
+    // 17. CONTACT VAULT
     // =========================================================================
     let contactsListCache = [];
 
@@ -2667,10 +2848,10 @@
       if (!list || !contactsListCache) return;
 
       list.innerHTML = contactsListCache.map(c => `
-        <div onclick="selectContact(${c.id})" class="p-3 rounded-xl cursor-pointer glass-elevated border border-panel-border hover:border-cyan-400">
+        <div onclick="selectContact(${c.id})" class="p-3 rounded cursor-pointer glass-elevated border border-panel-border hover:border-cyan-400">
           <div class="flex items-center justify-between">
-            <span class="text-xs font-bold text-white">${c.first_name} ${c.last_name}</span>
-            <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-800 text-cyan-400">${c.relationship_category}</span>
+            <span class="text-xs font-bold text-white font-rajdhani text-sm">${c.first_name} ${c.last_name}</span>
+            <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-900 text-cyan-400 border border-panel-border">${c.relationship_category}</span>
           </div>
           <div class="text-[11px] text-slate-400 mt-1">${c.organization} • ${c.job_title}</div>
           <div class="text-[10px] text-slate-400 mt-0.5 font-mono">${c.phone_primary}</div>
@@ -2686,37 +2867,37 @@
       if (!c || !pane) return;
 
       pane.innerHTML = `
-        <div class="glass-panel p-6 rounded-xl border border-panel-border flex items-center justify-between">
+        <div class="glass-panel p-6 rounded border border-panel-border flex items-center justify-between corner-reticle">
           <div>
             <div class="flex items-center space-x-3">
-              <h2 class="text-xl font-mono font-bold text-white">${c.first_name} ${c.last_name}</h2>
+              <h2 class="text-xl font-rajdhani font-bold text-white">${c.first_name} ${c.last_name}</h2>
               <span class="text-xs font-mono px-2 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-800">${c.relationship_category}</span>
             </div>
             <div class="text-xs text-slate-400 font-mono mt-1">${c.job_title} at ${c.organization}</div>
           </div>
-          <div class="flex space-x-2">
-            <button onclick="exportVCardBtn(${c.id})" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-white rounded text-xs font-mono">EXPORT VCARD</button>
-            <button onclick="deleteContactBtn(${c.id})" class="px-3 py-1 bg-slate-900 hover:bg-red-950 text-red-400 rounded text-xs font-mono">DELETE</button>
+          <div class="flex space-x-2 font-rajdhani font-bold">
+            <button onclick="exportVCardBtn(${c.id})" class="px-3 py-1 bg-slate-900 hover:bg-slate-800 text-white rounded text-xs border border-panel-border">EXPORT VCARD</button>
+            <button onclick="deleteContactBtn(${c.id})" class="px-3 py-1 bg-red-950/60 hover:bg-red-900 text-red-400 rounded text-xs border border-red-800">DELETE</button>
           </div>
         </div>
 
         <div class="grid grid-cols-2 gap-4 font-mono text-xs">
-          <div class="glass-panel p-4 rounded-xl border border-panel-border space-y-2">
-            <div class="text-slate-400 uppercase text-[10px]">Communication</div>
+          <div class="glass-panel p-4 rounded border border-panel-border space-y-2">
+            <div class="text-slate-400 uppercase text-[10px] font-rajdhani font-bold">Encrypted Channels</div>
             <div>Phone: <span class="text-white font-bold">${c.phone_primary || 'N/A'}</span></div>
             <div>Email: <span class="text-white font-bold">${c.email_primary || 'N/A'}</span></div>
-            <div>Address: <span class="text-slate-300">${c.address || 'N/A'}</span></div>
+            <div>Physical: <span class="text-slate-300">${c.address || 'N/A'}</span></div>
           </div>
-          <div class="glass-panel p-4 rounded-xl border border-panel-border space-y-2">
-            <div class="text-slate-400 uppercase text-[10px]">Intelligence Dossier Notes</div>
+          <div class="glass-panel p-4 rounded border border-panel-border space-y-2">
+            <div class="text-slate-400 uppercase text-[10px] font-rajdhani font-bold">Intelligence Dossier Notes</div>
             <p class="text-slate-300 leading-relaxed">${c.notes || 'No dossier notes recorded.'}</p>
           </div>
         </div>
 
-        <div class="glass-panel p-5 rounded-xl border border-panel-border space-y-3">
+        <div class="glass-panel p-5 rounded border border-panel-border space-y-3">
           <div class="flex items-center justify-between border-b border-panel-border pb-2 text-xs font-mono">
-            <span class="text-white font-bold uppercase">Interaction Timeline</span>
-            <button onclick="addContactInteractionPrompt(${c.id})" class="text-cyan-400 hover:text-cyan-300">+ LOG INTERACTION</button>
+            <span class="text-white font-bold uppercase font-rajdhani">Interaction Timeline Ledger</span>
+            <button onclick="addContactInteractionPrompt(${c.id})" class="text-cyan-400 hover:text-cyan-300 font-bold">+ LOG EVENT</button>
           </div>
           <div class="space-y-2">
             ${(c.logs || []).map(l => `
@@ -2821,12 +3002,12 @@
     }
 
     // =========================================================================
-    // 19. PYTHON GAME ENGINES (CHESS, CONNECT 4, ARCADE, MINESWEEPER)
+    // 19. PYTHON GAME ENGINES (CHESS WITH MOVE HIGHLIGHTS, CONNECT 4, ARCADE)
     // =========================================================================
     let currentChessBoard = [];
     let selectedChessSquare = null;
+    let validChessMoves = [];
 
-    // Standard Unicode Chess Figures for Crisp High-Res Vector Rendering
     const CHESS_PIECES_UNICODE = {
       'K': '♔', 'Q': '♕', 'R': '♖', 'B': '♗', 'N': '♘', 'P': '♙',
       'k': '♚', 'q': '♛', 'r': '♜', 'b': '♝', 'n': '♞', 'p': '♟',
@@ -2848,6 +3029,7 @@
     async function chessResetGame() {
       currentChessBoard = await callBackend('chessReset');
       selectedChessSquare = null;
+      validChessMoves = [];
       renderChessBoard();
       document.getElementById('chess-turn-status').textContent = "White (Your Turn)";
     }
@@ -2862,13 +3044,22 @@
           const piece = currentChessBoard[r][c];
           const isLight = (r + c) % 2 === 0;
           const isSelected = selectedChessSquare && selectedChessSquare[0] === r && selectedChessSquare[1] === c;
+          const isValidTarget = validChessMoves.some(m => m[0] === r && m[1] === c);
 
           const sq = document.createElement('div');
-          sq.className = `flex items-center justify-center text-3xl font-bold cursor-pointer transition-colors ${
+          sq.className = `flex items-center justify-center text-3xl font-bold cursor-pointer relative transition-colors ${
             isSelected ? 'bg-cyan-500/60' : (isLight ? 'bg-slate-700/60' : 'bg-slate-900/90')
           }`;
           sq.style.color = piece.toUpperCase() === piece && piece !== '.' ? '#ffffff' : '#00f0ff';
           sq.textContent = CHESS_PIECES_UNICODE[piece] || '';
+
+          // Target reticle indicator
+          if (isValidTarget) {
+            const dot = document.createElement('div');
+            dot.className = 'w-3 h-3 rounded-full bg-emerald-400 absolute pointer-events-none shadow-[0_0_8px_#10b981]';
+            sq.appendChild(dot);
+          }
+
           sq.onclick = () => onChessSquareClick(r, c);
           grid.appendChild(sq);
         }
@@ -2879,29 +3070,29 @@
       const piece = currentChessBoard[r][c];
 
       if (!selectedChessSquare) {
-        // Must select own white piece
         if (piece !== '.' && piece === piece.toUpperCase()) {
           selectedChessSquare = [r, c];
+          validChessMoves = await callBackend('chessGetValidMoves', r, c) || [];
           renderChessBoard();
         }
       } else {
         const [sr, sc] = selectedChessSquare;
         if (sr === r && sc === c) {
           selectedChessSquare = null;
+          validChessMoves = [];
           renderChessBoard();
           return;
         }
 
-        // Attempt move through Python engine
         const res = await callBackend('chessMovePlayer', sr, sc, r, c);
         selectedChessSquare = null;
+        validChessMoves = [];
 
         if (res && res.success) {
           currentChessBoard = res.board;
           renderChessBoard();
-          document.getElementById('chess-turn-status').textContent = "Calculating Engine Response...";
+          document.getElementById('chess-turn-status').textContent = "Thinking (Minimax Search)...";
 
-          // Compute AI move via Python Minimax Alpha-Beta solver
           const diff = document.getElementById('chess-difficulty-select').value;
           setTimeout(async () => {
             const aiRes = await callBackend('chessComputerMove', diff);
@@ -2955,7 +3146,7 @@
       }
     }
 
-    // Retro Arcade Game (HTML5 Canvas 60fps Defender)
+    // Retro Arcade Defender
     let arcadeRunning = false;
     function startRetroArcade() {
       if (arcadeRunning) return;
@@ -2968,7 +3159,6 @@
       let enemies = [];
       let score = 0;
 
-      // Spawn initial enemies
       for (let i = 0; i < 18; i++) {
         enemies.push({ x: 40 + (i % 6) * 90, y: 30 + Math.floor(i / 6) * 45, alive: true });
       }
@@ -2985,20 +3175,19 @@
         if (!arcadeRunning) return;
         requestAnimationFrame(loop);
 
-        ctx.fillStyle = '#07090e';
+        ctx.fillStyle = '#050811';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // Draw Player
+        // Player
         ctx.fillStyle = '#00f0ff';
         ctx.fillRect(player.x, player.y, player.w, player.h);
 
-        // Update & Draw Bullets
+        // Bullets
         ctx.fillStyle = '#f59e0b';
         bullets.forEach((b, bIdx) => {
           b.y -= 7;
           ctx.fillRect(b.x, b.y, b.w, b.h);
 
-          // Check hit
           enemies.forEach(e => {
             if (e.alive && b.x > e.x && b.x < e.x + 30 && b.y > e.y && b.y < e.y + 20) {
               e.alive = false;
@@ -3008,7 +3197,7 @@
           });
         });
 
-        // Draw Enemies
+        // Enemies
         enemies.forEach(e => {
           if (e.alive) {
             ctx.fillStyle = '#ef4444';
@@ -3016,7 +3205,6 @@
           }
         });
 
-        // Score HUD
         ctx.fillStyle = '#ffffff';
         ctx.font = '12px "JetBrains Mono"';
         ctx.fillText(`SCORE: ${score}`, 20, 25);
@@ -3035,7 +3223,7 @@
         const isMine = Math.random() < 0.15;
         msGrid.push({ mine: isMine, revealed: false });
         const cell = document.createElement('div');
-        cell.className = 'w-9 h-9 bg-slate-800 hover:bg-slate-700 flex items-center justify-center font-mono font-bold text-xs cursor-pointer rounded';
+        cell.className = 'w-9 h-9 bg-slate-900 hover:bg-slate-800 flex items-center justify-center font-mono font-bold text-xs cursor-pointer rounded border border-panel-border';
         cell.onclick = () => revealMinesweeperCell(i, cell);
         grid.appendChild(cell);
       }
@@ -3051,7 +3239,7 @@
         element.textContent = 'X';
         alert("Tactical Mine Detonated! Grid Compromised.");
       } else {
-        element.className = 'w-9 h-9 bg-slate-900 text-cyan-400 flex items-center justify-center font-mono font-bold text-xs rounded';
+        element.className = 'w-9 h-9 bg-slate-950 text-cyan-400 flex items-center justify-center font-mono font-bold text-xs rounded border border-slate-800';
         element.textContent = '·';
       }
     }
@@ -3120,7 +3308,6 @@
       }
     });
 
-    // Helper to open links safely
     function openExternalUrl(url) {
       browserLoadUrl(url);
       switchTab('browser');
