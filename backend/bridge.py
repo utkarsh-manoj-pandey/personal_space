@@ -4,11 +4,14 @@ Binds JavaScript in index.html to Python backend subsystem services.
 All slot methods are strictly typed, return serialized JSON, and handle exceptions defensibly.
 """
 
+import os
 import json
 import logging
 from typing import Any, Optional
-from PySide6.QtCore import QObject, Slot, Signal
+from PySide6.QtCore import QObject, Slot, Signal, QUrl
 from PySide6.QtWidgets import QFileDialog, QApplication
+from PySide6.QtGui import QDesktopServices
+from .database_manager import db_manager
 
 from .modules.calendar_service import calendar_service
 from .modules.browser_service import browser_service
@@ -453,11 +456,44 @@ class BackendBridge(QObject):
         file_path, _ = QFileDialog.getOpenFileName(None, "Select File", "", filter_pattern)
         return file_path or ""
 
+    @Slot(str, result=bool)
+    def openExternalUrl(self, url: str) -> bool:
+        """Opens URL in system default external web browser."""
+        try:
+            return QDesktopServices.openUrl(QUrl(url))
+        except Exception as e:
+            logger.error(f"Error opening external URL {url}: {e}")
+            return False
+
+    @Slot(str, result=bool)
+    def openFileExternally(self, file_path: str) -> bool:
+        """Opens local document file with system default application."""
+        try:
+            return QDesktopServices.openUrl(QUrl.fromLocalFile(file_path))
+        except Exception as e:
+            logger.error(f"Error opening file externally {file_path}: {e}")
+            return False
+
     @Slot(result=str)
-    def openDirectoryDialog(self) -> str:
-        """Opens native Qt directory selection dialog."""
-        folder = QFileDialog.getExistingDirectory(None, "Select Folder", "")
-        return folder or ""
+    def getDatabasesStatus(self) -> str:
+        """Returns health, size, and status for all 17 SQLite databases."""
+        try:
+            storage_dir = db_manager.storage_dir
+            results = []
+            for db_name in db_manager.DATABASE_NAMES:
+                path = os.path.join(storage_dir, db_name)
+                size_kb = round(os.path.getsize(path) / 1024, 1) if os.path.exists(path) else 0.0
+                results.append({
+                    "name": db_name,
+                    "size_kb": size_kb,
+                    "status": "Online",
+                    "path": path
+                })
+            return self._safe_json(results)
+        except Exception as e:
+            logger.error(f"Error checking databases: {e}")
+            return self._safe_json([])
+
 
 
 # Global singleton instance

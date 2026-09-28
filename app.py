@@ -39,14 +39,14 @@ class WorkstationWindow(QMainWindow):
 
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("AETHER // PERSONAL COMMAND WORKSTATION [OFFLINE-VERIFIED]")
+        self.setWindowTitle("Aether Workstation")
         self.resize(1560, 960)
         self.setMinimumSize(1200, 750)
 
         # Set obsidian dark background for native window chrome
         self.setStyleSheet("""
             QMainWindow {
-                background-color: #080b11;
+                background-color: #09090b;
             }
         """)
 
@@ -70,6 +70,9 @@ class WorkstationWindow(QMainWindow):
         settings.setAttribute(QWebEngineSettings.WebAttribute.PlaybackRequiresUserGesture, False)
         settings.setAttribute(QWebEngineSettings.WebAttribute.ScrollAnimatorEnabled, True)
         settings.setAttribute(QWebEngineSettings.WebAttribute.FullScreenSupportEnabled, True)
+        settings.setAttribute(QWebEngineSettings.WebAttribute.PdfViewerEnabled, True)
+        settings.setAttribute(QWebEngineSettings.WebAttribute.PluginsEnabled, True)
+        settings.setAttribute(QWebEngineSettings.WebAttribute.AllowRunningInsecureContent, True)
 
         # Establish QWebChannel communication bridge
         self.channel = QWebChannel(self.browser_view.page())
@@ -120,7 +123,9 @@ def main():
         "--enable-zero-copy",
         "--enable-webgl",
         "--autoplay-policy=no-user-gesture-required",
-        "--disable-background-timer-throttling"
+        "--disable-background-timer-throttling",
+        "--disable-web-security",
+        "--allow-running-insecure-content"
     ]
     os.environ["QTWEBENGINE_CHROMIUM_FLAGS"] = " ".join(flags)
 

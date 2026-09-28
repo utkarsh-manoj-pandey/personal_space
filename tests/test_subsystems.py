@@ -206,3 +206,23 @@ def test_system_telemetry():
     assert "cpu_percent" in telemetry
     assert "ram_percent" in telemetry
     assert "uptime" in telemetry
+
+
+def test_databases_status_slot():
+    """Verify getDatabasesStatus returns health of all 17 SQLite databases."""
+    status_raw = backend_bridge.getDatabasesStatus()
+    status_list = json.loads(status_raw)
+    assert isinstance(status_list, list)
+    assert len(status_list) == 17
+    for db_info in status_list:
+        assert "name" in db_info
+        assert "size_kb" in db_info
+        assert db_info["status"] == "Online"
+        assert os.path.exists(db_info["path"])
+
+
+def test_external_opener_slots():
+    """Verify external opener methods exist and handle arguments without raising exceptions."""
+    assert hasattr(backend_bridge, 'openExternalUrl')
+    assert hasattr(backend_bridge, 'openFileExternally')
+

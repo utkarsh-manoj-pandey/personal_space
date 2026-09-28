@@ -9,6 +9,7 @@ from PySide6.QtWebChannel import QWebChannel
 BASE_DIR = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(BASE_DIR))
 
+from PySide6.QtWebEngineCore import QWebEngineSettings
 from backend.bridge import BackendBridge
 
 def main():
@@ -18,6 +19,15 @@ def main():
     view = QWebEngineView()
     view.resize(1440, 900)
     view.setWindowTitle("Aether Screenshot Capture Pipeline")
+
+    settings = view.settings()
+    settings.setAttribute(QWebEngineSettings.WebAttribute.LocalContentCanAccessFileUrls, True)
+    settings.setAttribute(QWebEngineSettings.WebAttribute.LocalContentCanAccessRemoteUrls, True)
+    settings.setAttribute(QWebEngineSettings.WebAttribute.WebGLEnabled, True)
+    settings.setAttribute(QWebEngineSettings.WebAttribute.JavascriptEnabled, True)
+    settings.setAttribute(QWebEngineSettings.WebAttribute.PdfViewerEnabled, True)
+    settings.setAttribute(QWebEngineSettings.WebAttribute.PluginsEnabled, True)
+    settings.setAttribute(QWebEngineSettings.WebAttribute.AllowRunningInsecureContent, True)
     
     channel = QWebChannel()
     bridge = BackendBridge(view)
@@ -32,15 +42,19 @@ def main():
     out_dir.mkdir(parents=True, exist_ok=True)
     
     tabs_to_capture = [
+        ("home", "00_home_dashboard.png", "", 3000),
         ("world_monitor", "01_world_monitor.png", "", 3500),
-        ("maps", "02_maps_navigation.png", "if(leafletMapInstance){leafletMapInstance.invalidateSize(); calculateRouteBtn();}", 4000),
-        ("notepad", "03_notepad_markdown.png", "", 2000),
-        ("games", "04_chess_game_engine.png", "onChessSquareClick(6, 4);", 2000),
-        ("planner", "05_task_planner.png", "", 2000),
-        ("calculator", "06_tactical_calculator.png", "setCalcMode('Programmer'); calcInput('255'); setTimeout(calcCompute, 200);", 2500),
-        ("weather", "07_weather_systems.png", "", 2500),
-        ("calendar", "08_personal_calendar.png", "", 2000),
-        ("music", "09_music_soundscapes.png", "", 2000),
+        ("maps", "02_maps_navigation.png", "if(leafletMapInstance){leafletMapInstance.invalidateSize(); calculateRouteBtn();}", 3500),
+        ("documents", "03_document_viewer.png", "", 2500),
+        ("browser", "04_privacy_browser.png", "", 2500),
+        ("notepad", "05_notepad_markdown.png", "", 2000),
+        ("games", "06_chess_game_engine.png", "onChessSquareClick(6, 4);", 2000),
+        ("planner", "07_task_planner.png", "", 2000),
+        ("calculator", "08_tactical_calculator.png", "setCalcMode('Programmer'); calcInput('255'); setTimeout(calcCompute, 200);", 2500),
+        ("weather", "09_weather_systems.png", "", 2500),
+        ("calendar", "10_personal_calendar.png", "", 2000),
+        ("music", "11_music_soundscapes.png", "", 2000),
+        ("settings", "12_workspace_settings.png", "", 2500),
     ]
     
     step = 0
