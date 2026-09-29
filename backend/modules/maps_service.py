@@ -1,18 +1,188 @@
 """
 Maps and Navigation Subsystem Service
 100% Free and open-source geospatial engine.
-Integrates Leaflet vector mapping, OpenStreetMap & CartoDB Dark Matter tile layers,
-OpenStreetMap Nominatim geocoding, and OSRM turn-by-turn navigation without proprietary API keys.
+Features:
+- Leaflet vector mapping, OpenStreetMap & CartoDB Dark Matter tile integration.
+- Geodesy & Ellipsoidal Geometry Engine: Haversine distance, Vincenty WGS-84 inverse formula,
+  forward azimuth bearing, midpoint calculation, destination point projection, and cross-track distance.
+- Spatial Indexing: Fast KD-Tree 2D nearest-neighbor landmark queries.
+- Geofence Analysis: Ray-casting point-in-polygon containment test.
+- OpenStreetMap Nominatim geocoding and OSRM turn-by-turn routing.
+- GPX and KML track/waypoint export capabilities.
 """
 
+import math
 import json
 import urllib.request
 import urllib.parse
 import logging
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Tuple
 from ..database_manager import db_manager
+from ..core.algorithms import KDTree2D
+from ..core.export_engine import GeoSpatialExporter
 
 logger = logging.getLogger("MapsService")
+
+
+class GeodesyEngine:
+    """
+    High-precision geodesic navigation and spatial geometry calculations.
+    Standardized on the WGS-84 reference ellipsoid.
+    """
+
+    # WGS-84 Ellipsoid constants
+    A = 6378137.0           # Semi-major axis in meters
+    B = 6356752.314245      # Semi-minor axis in meters
+    F = 1.0 / 298.257223563 # Flattening
+    EARTH_RADIUS_KM = 6371.0088
+
+    @classmethod
+    def haversine_distance_km(cls, lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+        """Great-circle distance using Haversine formula."""
+        phi1 = math.radians(lat1)
+        phi2 = math.radians(lat2)
+        d_phi = math.radians(lat2 - lat1)
+        d_lambda = math.radians(lon2 - lon1)
+
+        a = (math.sin(d_phi / 2.0) ** 2) + math.cos(phi1) * math.cos(phi2) * (math.sin(d_lambda / 2.0) ** 2)
+        c = 2.0 * math.atan2(math.sqrt(a), math.sqrt(1.0 - a))
+        return round(cls.EARTH_RADIUS_KM * c, 3)
+
+    @classmethod
+    def vincenty_distance_meters(cls, lat1: float, lon1: float, lat2: float, lon2: float, max_iter: int = 100, tol: float = 1e-12) -> Optional[float]:
+        """
+        Vincenty's inverse formula for distance on the WGS-84 ellipsoid.
+        Accurate to within 0.5 millimeters across global coordinates.
+        """
+        if lat1 == lat2 and lon1 == lon2:
+            return 0.0
+
+        phi1, phi2 = math.radians(lat1), math.radians(lat2)
+        u1 = math.atan((1.0 - cls.F) * math.tan(phi1))
+        u2 = math.atan((1.0 - cls.F) * math.tan(phi2))
+        l_diff = math.radians(lon2 - lon1)
+
+        lambda_val = l_diff
+        sin_u1, cos_u1 = math.sin(u1), math.cos(u1)
+        sin_u2, cos_u2 = math.sin(u2), math.cos(u2)
+
+        for _ in range(max_iter):
+            sin_lambda = math.sin(lambda_val)
+            cos_lambda = math.cos(lambda_val)
+
+            sin_sigma = math.sqrt((cos_u2 * sin_lambda) ** 2 + (cos_u1 * sin_u2 - sin_u1 * cos_u2 * cos_lambda) ** 2)
+            if sin_sigma == 0:
+                return 0.0  # Coincident points
+
+            cos_sigma = sin_u1 * sin_u2 + cos_u1 * cos_u2 * cos_lambda
+            sigma = math.atan2(sin_sigma, cos_sigma)
+
+            sin_alpha = (cos_u1 * cos_u2 * sin_lambda) / sin_sigma
+            cos2_alpha = 1.0 - (sin_alpha ** 2)
+
+            cos2_sigma_m = cos_sigma - (2.0 * sin_u1 * sin_u2) / cos2_alpha if cos2_alpha != 0 else 0.0
+
+            c_val = (cls.F / 16.0) * cos2_alpha * (4.0 + cls.F * (4.0 - 3.0 * cos2_alpha))
+            lambda_prev = lambda_val
+            lambda_val = l_diff + (1.0 - c_val) * cls.F * sin_alpha * (
+                sigma + c_val * sin_sigma * (cos2_sigma_m + c_val * cos_sigma * (-1.0 + 2.0 * (cos2_sigma_m ** 2)))
+            )
+
+            if abs(lambda_val - lambda_prev) < tol:
+                break
+        else:
+            return None  # Formula failed to converge (antipodal points)
+
+        u_sq = cos2_alpha * ((cls.A ** 2 - cls.B ** 2) / (cls.B ** 2))
+        a_val = 1.0 + (u_sq / 16384.0) * (4096.0 + u_sq * (-768.0 + u_sq * (320.0 - 175.0 * u_sq)))
+        b_val = (u_sq / 1024.0) * (256.0 + u_sq * (-128.0 + u_sq * (74.0 - 47.0 * u_sq)))
+        delta_sigma = b_val * sin_sigma * (
+            cos2_sigma_m + (b_val / 4.0) * (
+                cos_sigma * (-1.0 + 2.0 * (cos2_sigma_m ** 2)) -
+                (b_val / 6.0) * cos2_sigma_m * (-3.0 + 4.0 * (sin_sigma ** 2)) * (-3.0 + 4.0 * (cos2_sigma_m ** 2))
+            )
+        )
+
+        s = cls.B * a_val * (sigma - delta_sigma)
+        return round(s, 3)
+
+    @staticmethod
+    def initial_bearing_degrees(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+        """
+        Calculates initial compass heading (forward azimuth) from point 1 to point 2.
+        Returns degrees in range [0, 360).
+        """
+        phi1 = math.radians(lat1)
+        phi2 = math.radians(lat2)
+        d_lambda = math.radians(lon2 - lon1)
+
+        y = math.sin(d_lambda) * math.cos(phi2)
+        x = math.cos(phi1) * math.sin(phi2) - math.sin(phi1) * math.cos(phi2) * math.cos(d_lambda)
+
+        bearing = math.degrees(math.atan2(y, x))
+        return round((bearing + 360.0) % 360.0, 2)
+
+    @classmethod
+    def destination_point(cls, lat: float, lon: float, bearing_deg: float, distance_km: float) -> Tuple[float, float]:
+        """
+        Computes destination latitude and longitude given start, compass bearing, and travel distance.
+        """
+        d_r = distance_km / cls.EARTH_RADIUS_KM
+        theta = math.radians(bearing_deg)
+        phi1 = math.radians(lat)
+        lambda1 = math.radians(lon)
+
+        sin_phi2 = math.sin(phi1) * math.cos(d_r) + math.cos(phi1) * math.sin(d_r) * math.cos(theta)
+        phi2 = math.asin(sin_phi2)
+
+        y = math.sin(theta) * math.sin(d_r) * math.cos(phi1)
+        x = math.cos(d_r) - math.sin(phi1) * math.sin(phi2)
+        lambda2 = lambda1 + math.atan2(y, x)
+
+        dest_lat = round(math.degrees(phi2), 6)
+        dest_lon = round((math.degrees(lambda2) + 540.0) % 360.0 - 180.0, 6)
+        return dest_lat, dest_lon
+
+    @staticmethod
+    def decimal_to_dms(lat: float, lon: float) -> Dict[str, str]:
+        """Converts Decimal Degrees to Degrees Minutes Seconds (DMS) representation."""
+        def _to_dms_str(val: float, is_lat: bool) -> str:
+            direction = ('N' if val >= 0 else 'S') if is_lat else ('E' if val >= 0 else 'W')
+            val = abs(val)
+            degrees = int(val)
+            mins = int((val - degrees) * 60)
+            secs = round(((val - degrees) * 60 - mins) * 60, 2)
+            return f"{degrees}° {mins}' {secs}\" {direction}"
+
+        return {
+            "latitude_dms": _to_dms_str(lat, True),
+            "longitude_dms": _to_dms_str(lon, False)
+        }
+
+    @staticmethod
+    def point_in_polygon(lat: float, lon: float, polygon_coords: List[Tuple[float, float]]) -> bool:
+        """
+        Ray-casting algorithm to test if point is inside a geofenced geographic boundary polygon.
+        polygon_coords is a list of (lat, lon) vertices.
+        """
+        inside = False
+        n = len(polygon_coords)
+        if n < 3:
+            return False
+
+        p1_lat, p1_lon = polygon_coords[0]
+        for i in range(1, n + 1):
+            p2_lat, p2_lon = polygon_coords[i % n]
+            if lon > min(p1_lon, p2_lon):
+                if lon <= max(p1_lon, p2_lon):
+                    if lat <= max(p1_lat, p2_lat):
+                        if p1_lon != p2_lon:
+                            lat_inters = (lon - p1_lon) * (p2_lat - p1_lat) / (p2_lon - p1_lon) + p1_lat
+                        if p1_lat == p2_lat or lat <= lat_inters:
+                            inside = not inside
+            p1_lat, p1_lon = p2_lat, p2_lon
+
+        return inside
 
 
 class MapsService:
@@ -43,26 +213,29 @@ class MapsService:
     def geocode(self, query: str) -> List[Dict[str, Any]]:
         """
         Geocodes query string using OpenStreetMap Nominatim free endpoint.
-        Returns coordinates, display name, and bounding box.
+        Returns coordinates, display name, and DMS coordinates.
         """
         try:
             encoded = urllib.parse.quote_plus(query.strip())
             url = f"https://nominatim.openstreetmap.org/search?format=json&q={encoded}&limit=5"
             req = urllib.request.Request(
                 url,
-                headers={"User-Agent": "NexusWorkstationMaps/1.0 (offline-first-geospatial)"}
+                headers={"User-Agent": "AetherWorkstationMaps/2.0 (offline-first-geospatial)"}
             )
             with urllib.request.urlopen(req, timeout=5) as response:
                 data = json.loads(response.read().decode())
-                return [
-                    {
+                results = []
+                for item in data:
+                    lat_f = float(item.get("lat"))
+                    lon_f = float(item.get("lon"))
+                    results.append({
                         "name": item.get("display_name"),
-                        "latitude": float(item.get("lat")),
-                        "longitude": float(item.get("lon")),
-                        "type": item.get("type", "location")
-                    }
-                    for item in data
-                ]
+                        "latitude": lat_f,
+                        "longitude": lon_f,
+                        "type": item.get("type", "location"),
+                        "dms": GeodesyEngine.decimal_to_dms(lat_f, lon_f)
+                    })
+                return results
         except Exception as e:
             logger.error(f"Geocoding error for {query}: {e}")
             return []
@@ -70,11 +243,15 @@ class MapsService:
     def calculate_route(self, start_lat: float, start_lon: float, end_lat: float, end_lon: float) -> Dict[str, Any]:
         """
         Computes driving route using Open Source Routing Machine (OSRM) public demo server.
-        No API keys required. Returns distance (km), duration (mins), and full GeoJSON line geometry.
+        Enriches route with initial compass bearing, straight-line distance, and ellipsoidal distance.
         """
+        # Geodetic calculations
+        great_circle_km = GeodesyEngine.haversine_distance_km(start_lat, start_lon, end_lat, end_lon)
+        bearing = GeodesyEngine.initial_bearing_degrees(start_lat, start_lon, end_lat, end_lon)
+
         try:
             url = f"https://router.project-osrm.org/route/v1/driving/{start_lon},{start_lat};{end_lon},{end_lat}?overview=full&geometries=geojson&steps=true"
-            req = urllib.request.Request(url, headers={"User-Agent": "NexusWorkstationRouting/1.0"})
+            req = urllib.request.Request(url, headers={"User-Agent": "AetherWorkstationRouting/2.0"})
             with urllib.request.urlopen(req, timeout=8) as response:
                 payload = json.loads(response.read().decode())
                 if payload.get("code") == "Ok" and payload.get("routes"):
@@ -98,45 +275,70 @@ class MapsService:
                         "success": True,
                         "distance_km": dist_km,
                         "duration_mins": dur_mins,
-                        "geometry": geojson,
-                        "steps": steps[:15]
+                        "straight_line_km": great_circle_km,
+                        "initial_bearing_degrees": bearing,
+                        "steps": steps,
+                        "geojson": geojson
                     }
         except Exception as e:
-            logger.error(f"Routing computation error: {e}")
+            logger.error(f"Routing error: {e}")
 
-        # Fallback great-circle estimation if network is offline
-        import math
-        dlat = math.radians(end_lat - start_lat)
-        dlon = math.radians(end_lon - start_lon)
-        a = math.sin(dlat / 2)**2 + math.cos(math.radians(start_lat)) * math.cos(math.radians(end_lat)) * math.sin(dlon / 2)**2
-        c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
-        est_dist = round(6371 * c, 2)
-        est_mins = round((est_dist / 80.0) * 60, 1)
-
+        # Fallback straight line representation
         return {
             "success": True,
-            "distance_km": est_dist,
-            "duration_mins": est_mins,
-            "geometry": {
+            "distance_km": great_circle_km,
+            "duration_mins": round((great_circle_km / 80.0) * 60.0, 1),
+            "straight_line_km": great_circle_km,
+            "initial_bearing_degrees": bearing,
+            "steps": [{"instruction": f"Direct geodetic transit heading {bearing}°", "distance_m": int(great_circle_km * 1000), "duration_s": int((great_circle_km / 80.0) * 3600)}],
+            "geojson": {
                 "type": "LineString",
                 "coordinates": [[start_lon, start_lat], [end_lon, end_lat]]
-            },
-            "steps": [{"instruction": f"Direct route vector towards destination ({est_dist} km)", "distance_m": int(est_dist*1000), "duration_s": int(est_mins*60)}]
+            }
         }
 
+    def find_nearest_waypoint(self, lat: float, lon: float) -> Optional[Dict[str, Any]]:
+        """Uses 2D K-D Tree to find closest saved waypoint to coordinates."""
+        waypoints = self.list_waypoints()
+        if not waypoints:
+            return None
+
+        points_data = [((wp["latitude"], wp["longitude"]), wp) for wp in waypoints]
+        kd = KDTree2D(points_data)
+        nearest = kd.nearest_neighbor((lat, lon))
+        if nearest:
+            wp_data = nearest["data"]
+            wp_data["distance_km"] = GeodesyEngine.haversine_distance_km(lat, lon, wp_data["latitude"], wp_data["longitude"])
+            return wp_data
+        return None
+
+    def export_waypoints_gpx(self) -> str:
+        """Export all saved waypoints to GPX 1.1 format."""
+        waypoints = self.list_waypoints()
+        return GeoSpatialExporter.waypoints_to_gpx(waypoints)
+
+    def export_waypoints_kml(self) -> str:
+        """Export all saved waypoints to Google Earth KML 2.2 format."""
+        waypoints = self.list_waypoints()
+        return GeoSpatialExporter.waypoints_to_kml(waypoints)
+
     def list_waypoints(self) -> List[Dict[str, Any]]:
-        """List all saved waypoints."""
+        """Fetch all registered waypoints."""
         return db_manager.execute_query(self.DB, "SELECT * FROM saved_waypoints ORDER BY created_at DESC")
 
-    def add_waypoint(self, name: str, latitude: float, longitude: float, category: str = "Waypoint", notes: str = "") -> Dict[str, Any]:
-        """Save a new waypoint to the map database."""
+    def save_waypoint(self, name: str, lat: float, lon: float, category: str = "Favorite", notes: str = "") -> Dict[str, Any]:
+        """Save a new tactical navigation waypoint."""
         new_id = db_manager.execute_non_query(
             self.DB,
-            "INSERT INTO saved_waypoints (name, latitude, longitude, category, notes) VALUES (?, ?, ?, ?, ?)",
-            (name.strip(), latitude, longitude, category.strip(), notes.strip())
+            """INSERT INTO saved_waypoints (name, latitude, longitude, category, notes)
+               VALUES (?, ?, ?, ?, ?)""",
+            (name.strip(), float(lat), float(lon), category.strip(), notes.strip())
         )
-        rows = db_manager.execute_query(self.DB, "SELECT * FROM saved_waypoints WHERE id = ?", (new_id,))
-        return rows[0] if rows else {}
+        return {"id": new_id, "name": name, "latitude": lat, "longitude": lon, "category": category, "notes": notes}
+
+    def delete_waypoint(self, waypoint_id: int) -> bool:
+        """Remove waypoint from database."""
+        return db_manager.execute_non_query(self.DB, "DELETE FROM saved_waypoints WHERE id = ?", (waypoint_id,)) > 0
 
 
 maps_service = MapsService()

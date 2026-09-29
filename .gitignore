@@ -24,3 +24,8 @@ ENV/
 
 # Large runtime logs
 *.log
+
+# Database temporary WAL and backup snapshots
+data/backups/
+*.db-wal
+*.db-shm

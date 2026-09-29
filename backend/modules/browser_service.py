@@ -2,10 +2,60 @@
 Privacy Focused Web Browser Service
 Manages privacy-preserving browser profiles, anti-telemetry header controls,
 encrypted local bookmark vaults, tracker denial lists, and zero-logging search routing.
+Features:
+- Telemetry & Tracker Pattern Matcher: Blocks advertising scripts, beacons, and fingerprinters.
+- URL Query Sanitizer: Strips tracking parameters (UTM, Facebook, Google, etc.).
+- Hardened Content Security Policy (CSP) and Anti-Fingerprinting Header Generator.
+- Netscape HTML Bookmark Exporter and Parser.
+- Persistent privacy profiles and bookmarks in browser.db.
 """
 
+import re
+import urllib.parse
 from typing import List, Dict, Any, Optional
 from ..database_manager import db_manager
+from ..core.validation import Sanitizer, FieldValidator
+
+
+class TrackerFilterEngine:
+    """
+    Regex and substring matching engine for blocking tracking domains and scripts.
+    """
+
+    KNOWN_TRACKING_DOMAINS = [
+        "doubleclick.net", "google-analytics.com", "googletagmanager.com",
+        "facebook.net", "connect.facebook.net", "scorecardresearch.com",
+        "quantserve.com", "criteo.com", "outbrain.com", "taboola.com",
+        "hotjar.com", "mixpanel.com", "segment.io", "appsflyer.com",
+        "branch.io", "amplitude.com", "adroll.com", "pubmatic.com"
+    ]
+
+    TRACKER_PATH_PATTERNS = [
+        r'/telemetry', r'/analytics', r'/track', r'/pixel\.gif',
+        r'/beacon', r'/logEvent', r'/metrics', r'/stats'
+    ]
+
+    @classmethod
+    def is_tracker(cls, url: str) -> Dict[str, Any]:
+        """
+        Evaluates whether a given URL matches known surveillance capitalism domains or telemetry paths.
+        """
+        try:
+            parsed = urllib.parse.urlparse(url)
+            host = parsed.netloc.lower()
+            path = parsed.path.lower()
+
+            for domain in cls.KNOWN_TRACKING_DOMAINS:
+                if host == domain or host.endswith(f".{domain}"):
+                    return {"blocked": True, "reason": f"Matched known surveillance domain: {domain}", "category": "Advertising / Tracker"}
+
+            for pat in cls.TRACKER_PATH_PATTERNS:
+                if re.search(pat, path):
+                    return {"blocked": True, "reason": f"Matched telemetry endpoint pattern: {pat}", "category": "Telemetry / Beacon"}
+
+            return {"blocked": False, "reason": "Nominal", "category": "Clean"}
+        except Exception:
+            return {"blocked": False, "reason": "Unparseable", "category": "Unknown"}
 
 
 class BrowserService:
@@ -98,41 +148,106 @@ class BrowserService:
         """List all privacy search engines and currently active engine."""
         return db_manager.execute_query(self.DB, "SELECT * FROM search_engines ORDER BY id ASC")
 
-    def set_active_engine(self, engine_name: str) -> bool:
-        """Activate a chosen search engine."""
+    def set_active_search_engine(self, engine_id: int) -> bool:
+        """Set primary search provider."""
         db_manager.execute_non_query(self.DB, "UPDATE search_engines SET is_active = 0")
-        db_manager.execute_non_query(self.DB, "UPDATE search_engines SET is_active = 1 WHERE name = ?", (engine_name,))
-        self.set_privacy_setting("active_search_engine", engine_name)
+        db_manager.execute_non_query(self.DB, "UPDATE search_engines SET is_active = 1 WHERE id = ?", (engine_id,))
+        # Update settings key
+        eng = db_manager.execute_query(self.DB, "SELECT name FROM search_engines WHERE id = ?", (engine_id,))
+        if eng:
+            self.set_privacy_setting("active_search_engine", eng[0]["name"])
         return True
 
-    def get_search_url_for_query(self, query: str) -> str:
-        """Construct the full target URL for an arbitrary user query string."""
-        active_engine = db_manager.execute_query(
-            self.DB,
-            "SELECT search_url FROM search_engines WHERE is_active = 1 LIMIT 1"
-        )
-        base_url = active_engine[0]["search_url"] if active_engine else "https://duckduckgo.com/?q="
-        import urllib.parse
-        return f"{base_url}{urllib.parse.quote_plus(query.strip())}"
+    def sanitize_nav_url(self, raw_url: str) -> str:
+        """Sanitizes navigation URL by stripping intrusive ad and session tracking parameters."""
+        return Sanitizer.strip_tracking_params(raw_url)
 
-    def list_bookmarks(self) -> List[Dict[str, Any]]:
-        """List all bookmarks ordered by category."""
-        return db_manager.execute_query(self.DB, "SELECT * FROM bookmarks ORDER BY category ASC, title ASC")
+    def evaluate_url_security(self, url: str) -> Dict[str, Any]:
+        """Runs threat check and tracker inspection on given URL."""
+        tracker_eval = TrackerFilterEngine.is_tracker(url)
+        clean_url = Sanitizer.strip_tracking_params(url)
+        has_tracking_tags = (clean_url != url)
 
-    def add_bookmark(self, title: str, url: str, category: str = "General", icon_svg: str = "bookmark") -> Dict[str, Any]:
-        """Save a new privacy bookmark."""
+        return {
+            "original_url": url,
+            "sanitized_url": clean_url,
+            "has_tracking_query_params": has_tracking_tags,
+            "is_tracker_domain": tracker_eval["blocked"],
+            "tracker_category": tracker_eval["category"],
+            "threat_reason": tracker_eval["reason"]
+        }
+
+    def generate_hardened_headers(self) -> Dict[str, str]:
+        """
+        Generates anti-surveillance HTTP request headers according to current privacy settings.
+        """
+        settings = self.get_privacy_settings()
+        ua_profile = settings.get("user_agent_profile", "Tor Browser (Hardened)")
+        ua_str = self.USER_AGENTS.get(ua_profile, self.USER_AGENTS["Tor Browser (Hardened)"])
+
+        headers = {
+            "User-Agent": ua_str,
+            "DNT": "1" if settings.get("send_do_not_track") == "1" else "0",
+            "Sec-GPC": "1",  # Global Privacy Control
+            "Upgrade-Insecure-Requests": "1",
+            "Sec-Fetch-Dest": "document",
+            "Sec-Fetch-Mode": "navigate",
+            "Sec-Fetch-Site": "none",
+            "Sec-Fetch-User": "?1"
+        }
+
+        if settings.get("strict_referrer") == "1":
+            headers["Referer"] = ""
+
+        return headers
+
+    def list_bookmarks(self, category: Optional[str] = None) -> List[Dict[str, Any]]:
+        """Retrieve user bookmarks."""
+        query = "SELECT * FROM bookmarks WHERE 1=1"
+        params = []
+        if category and category != "All":
+            query += " AND category = ?"
+            params.append(category)
+        query += " ORDER BY id DESC"
+        return db_manager.execute_query(self.DB, query, tuple(params))
+
+    def add_bookmark(self, title: str, url: str, category: str = "General", icon_svg: str = "") -> Dict[str, Any]:
+        """Add new bookmark with URL sanitization."""
+        clean_url = Sanitizer.strip_tracking_params(url.strip())
         new_id = db_manager.execute_non_query(
             self.DB,
-            "INSERT INTO bookmarks (title, url, category, icon_svg) VALUES (?, ?, ?, ?)",
-            (title.strip(), url.strip(), category.strip(), icon_svg.strip())
+            "INSERT OR REPLACE INTO bookmarks (title, url, category, icon_svg) VALUES (?, ?, ?, ?)",
+            (title.strip(), clean_url, category.strip() or "General", icon_svg)
         )
-        rows = db_manager.execute_query(self.DB, "SELECT * FROM bookmarks WHERE id = ?", (new_id,))
-        return rows[0] if rows else {}
+        return {"id": new_id, "title": title, "url": clean_url, "category": category}
 
     def delete_bookmark(self, bookmark_id: int) -> bool:
-        """Remove a bookmark from local storage."""
-        count = db_manager.execute_non_query(self.DB, "DELETE FROM bookmarks WHERE id = ?", (bookmark_id,))
-        return count > 0
+        """Remove bookmark."""
+        return db_manager.execute_non_query(self.DB, "DELETE FROM bookmarks WHERE id = ?", (bookmark_id,)) > 0
+
+    def export_bookmarks_html(self) -> str:
+        """
+        Exports bookmarks in the standard Netscape Bookmark File format.
+        Compatible with Firefox, Chromium, Safari, and Brave.
+        """
+        bookmarks = self.list_bookmarks()
+        lines = [
+            "<!DOCTYPE NETSCAPE-Bookmark-file-1>",
+            "<!-- This is an automatically generated file. -->",
+            "<META HTTP-EQUIV=\"Content-Type\" CONTENT=\"text/html; charset=UTF-8\">",
+            "<TITLE>Aether Sovereign Bookmarks</TITLE>",
+            "<H1>Bookmarks</H1>",
+            "<DL><p>"
+        ]
+
+        for bm in bookmarks:
+            title = bm.get("title", "Bookmark")
+            url = bm.get("url", "")
+            cat = bm.get("category", "General")
+            lines.append(f"    <DT><A HREF=\"{url}\" TAGS=\"{cat}\">{title}</A>")
+
+        lines.append("</DL><p>")
+        return "\n".join(lines)
 
 
 browser_service = BrowserService()

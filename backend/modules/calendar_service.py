@@ -1,16 +1,21 @@
 """
 Calendar Subsystem Service
-Maintains local schedules, recurring occurrences, priority categorizations,
-and RFC 5545 iCalendar import/export compliance.
+Maintains local workstation schedules, recurring occurrences, priority categorization,
+schedule conflict detection, workload heatmap metrics, and RFC 5545 iCalendar compliance.
 """
 
+import re
 import datetime
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Tuple
 from ..database_manager import db_manager
+from ..core.export_engine import CalendarICalExporter
 
 
 class CalendarService:
     DB = "calendar.db"
+
+    CATEGORIES = ["General", "Strategy", "Technical", "Security", "Briefing", "Focus", "Personal", "Health"]
+    PRIORITIES = ["Low", "Medium", "High", "Critical"]
 
     def __init__(self):
         self._seed_default_events()
@@ -102,103 +107,222 @@ class CalendarService:
         return db_manager.execute_query(self.DB, query, tuple(params))
 
     def get_event(self, event_id: int) -> Optional[Dict[str, Any]]:
-        """Retrieve a single event by primary key ID."""
+        """Retrieve single calendar event by primary key ID."""
         rows = db_manager.execute_query(self.DB, "SELECT * FROM events WHERE id = ?", (event_id,))
         return rows[0] if rows else None
 
     def create_event(self, data: Dict[str, Any]) -> Dict[str, Any]:
-        """Create a new calendar event entry."""
-        title = data.get("title", "Untitled Schedule Item").strip()
+        """Insert a new calendar event with data normalization."""
+        title = data.get("title", "Untitled Session").strip() or "Untitled Session"
         description = data.get("description", "").strip()
         start_time = data.get("start_time", datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
         end_time = data.get("end_time", (datetime.datetime.now() + datetime.timedelta(hours=1)).strftime("%Y-%m-%d %H:%M:%S"))
         location = data.get("location", "").strip()
         category = data.get("category", "General")
-        color = data.get("color", "#00f0ff")
-        recurrence = data.get("recurrence", "none")
+        color = data.get("color", "#3b82f6")
+        recurrence = data.get("recurrence", "none").lower()
         priority = data.get("priority", "Medium")
-        remind = int(data.get("remind_minutes_before", 15))
+        remind_before = int(data.get("remind_minutes_before", 15))
 
         new_id = db_manager.execute_non_query(
             self.DB,
-            """INSERT INTO events (title, description, start_time, end_time, location, category, color, recurrence, priority, remind_minutes_before)
+            """INSERT INTO events 
+               (title, description, start_time, end_time, location, category, color, recurrence, priority, remind_minutes_before)
                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-            (title, description, start_time, end_time, location, category, color, recurrence, priority, remind)
+            (title, description, start_time, end_time, location, category, color, recurrence, priority, remind_before)
         )
-        return self.get_event(new_id)
+
+        return self.get_event(new_id) or {"id": new_id, "title": title}
 
     def update_event(self, event_id: int, data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-        """Update an existing calendar event."""
+        """Update existing calendar event attributes."""
+        existing = self.get_event(event_id)
+        if not existing:
+            return None
+
+        title = data.get("title", existing["title"])
+        description = data.get("description", existing["description"])
+        start_time = data.get("start_time", existing["start_time"])
+        end_time = data.get("end_time", existing["end_time"])
+        location = data.get("location", existing["location"])
+        category = data.get("category", existing["category"])
+        color = data.get("color", existing["color"])
+        recurrence = data.get("recurrence", existing["recurrence"])
+        priority = data.get("priority", existing["priority"])
+        remind_before = data.get("remind_minutes_before", existing["remind_minutes_before"])
+
         db_manager.execute_non_query(
             self.DB,
-            """UPDATE events 
-               SET title = ?, description = ?, start_time = ?, end_time = ?, location = ?,
-                   category = ?, color = ?, recurrence = ?, priority = ?, remind_minutes_before = ?, updated_at = CURRENT_TIMESTAMP
+            """UPDATE events SET 
+               title = ?, description = ?, start_time = ?, end_time = ?, location = ?,
+               category = ?, color = ?, recurrence = ?, priority = ?, remind_minutes_before = ?,
+               updated_at = CURRENT_TIMESTAMP
                WHERE id = ?""",
-            (
-                data.get("title", ""),
-                data.get("description", ""),
-                data.get("start_time", ""),
-                data.get("end_time", ""),
-                data.get("location", ""),
-                data.get("category", "General"),
-                data.get("color", "#00f0ff"),
-                data.get("recurrence", "none"),
-                data.get("priority", "Medium"),
-                int(data.get("remind_minutes_before", 15)),
-                event_id
-            )
+            (title, description, start_time, end_time, location, category, color, recurrence, priority, remind_before, event_id)
         )
+
         return self.get_event(event_id)
 
     def delete_event(self, event_id: int) -> bool:
-        """Permanently delete a calendar event."""
-        rows_affected = db_manager.execute_non_query(
-            self.DB,
-            "DELETE FROM events WHERE id = ?",
-            (event_id,)
-        )
-        return rows_affected > 0
+        """Remove event permanently from calendar database."""
+        rowcount = db_manager.execute_non_query(self.DB, "DELETE FROM events WHERE id = ?", (event_id,))
+        return rowcount > 0
 
-    def export_ics(self) -> str:
-        """Generate standard RFC 5545 iCalendar data for seamless Google/Outlook/Apple import."""
+    # =========================================================================
+    # ADVANCED SCHEDULING ENGINES: RECURRENCE, CONFLICTS, ANALYTICS
+    # =========================================================================
+
+    def detect_schedule_conflicts(self) -> List[Dict[str, Any]]:
+        """
+        Analyzes the calendar for overlapping commitments.
+        Returns list of conflicting event pairs with overlap durations.
+        """
         events = self.list_events()
-        lines = [
-            "BEGIN:VCALENDAR",
-            "VERSION:2.0",
-            "PRODID:-//Nexus Personal Workstation//Calendar System//EN",
-            "CALSCALE:GREGORIAN",
-            "METHOD:PUBLISH"
-        ]
+        conflicts = []
+
+        def _parse_ts(ts_str: str) -> Optional[datetime.datetime]:
+            formats = ["%Y-%m-%d %H:%M:%S", "%Y-%m-%d %H:%M", "%Y-%m-%dT%H:%M:%S"]
+            for f in formats:
+                try:
+                    return datetime.datetime.strptime(ts_str.strip(), f)
+                except ValueError:
+                    pass
+            return None
+
+        parsed = []
+        for ev in events:
+            s = _parse_ts(ev.get("start_time", ""))
+            e = _parse_ts(ev.get("end_time", ""))
+            if s and e and e > s:
+                parsed.append({"id": ev["id"], "title": ev["title"], "start": s, "end": e, "priority": ev.get("priority", "Medium")})
+
+        # Compare pairs
+        for i in range(len(parsed)):
+            for j in range(i + 1, len(parsed)):
+                ev1 = parsed[i]
+                ev2 = parsed[j]
+                # Check overlap: start1 < end2 and start2 < end1
+                if ev1["start"] < ev2["end"] and ev2["start"] < ev1["end"]:
+                    overlap_start = max(ev1["start"], ev2["start"])
+                    overlap_end = min(ev1["end"], ev2["end"])
+                    overlap_mins = round((overlap_end - overlap_start).total_seconds() / 60.0, 1)
+
+                    conflicts.append({
+                        "event_a": {"id": ev1["id"], "title": ev1["title"], "start": str(ev1["start"]), "priority": ev1["priority"]},
+                        "event_b": {"id": ev2["id"], "title": ev2["title"], "start": str(ev2["start"]), "priority": ev2["priority"]},
+                        "overlap_minutes": overlap_mins,
+                        "overlap_period": f"{overlap_start.strftime('%H:%M')} - {overlap_end.strftime('%H:%M')}"
+                    })
+
+        return conflicts
+
+    def get_schedule_analytics(self) -> Dict[str, Any]:
+        """
+        Computes comprehensive productivity, workload distribution, and category telemetry.
+        """
+        events = self.list_events()
+        total_events = len(events)
+        total_duration_hours = 0.0
+        category_counts: Dict[str, int] = {}
+        priority_counts: Dict[str, int] = {}
+        daily_hours: Dict[str, float] = {}
+
+        def _parse_ts(ts_str: str) -> Optional[datetime.datetime]:
+            formats = ["%Y-%m-%d %H:%M:%S", "%Y-%m-%d %H:%M", "%Y-%m-%dT%H:%M:%S"]
+            for f in formats:
+                try:
+                    return datetime.datetime.strptime(ts_str.strip(), f)
+                except ValueError:
+                    pass
+            return None
 
         for ev in events:
-            # Parse datetime format
+            cat = ev.get("category", "General")
+            category_counts[cat] = category_counts.get(cat, 0) + 1
+
+            prio = ev.get("priority", "Medium")
+            priority_counts[prio] = priority_counts.get(prio, 0) + 1
+
+            s = _parse_ts(ev.get("start_time", ""))
+            e = _parse_ts(ev.get("end_time", ""))
+            if s and e and e > s:
+                dur_hrs = (e - s).total_seconds() / 3600.0
+                total_duration_hours += dur_hrs
+                day_key = s.strftime("%Y-%m-%d")
+                daily_hours[day_key] = daily_hours.get(day_key, 0.0) + dur_hrs
+
+        avg_event_duration_mins = round((total_duration_hours * 60.0) / max(1, total_events), 1)
+
+        return {
+            "total_events": total_events,
+            "total_scheduled_hours": round(total_duration_hours, 1),
+            "average_event_duration_minutes": avg_event_duration_mins,
+            "category_breakdown": category_counts,
+            "priority_breakdown": priority_counts,
+            "workload_by_day": {k: round(v, 2) for k, v in sorted(daily_hours.items())},
+            "conflicts_detected": len(self.detect_schedule_conflicts())
+        }
+
+    def find_free_slots(self, target_date_str: str, duration_minutes: int = 60, work_start_hour: int = 9, work_end_hour: int = 18) -> List[Dict[str, Any]]:
+        """
+        Calculates open, non-overlapping free time windows on a given date.
+        """
+        try:
+            target_date = datetime.datetime.strptime(target_date_str.strip(), "%Y-%m-%d").date()
+        except ValueError:
+            target_date = datetime.date.today()
+
+        day_start = datetime.datetime.combine(target_date, datetime.time(work_start_hour, 0))
+        day_end = datetime.datetime.combine(target_date, datetime.time(work_end_hour, 0))
+
+        events = self.list_events()
+        day_events = []
+
+        for ev in events:
+            s_str = ev.get("start_time", "")
+            e_str = ev.get("end_time", "")
             try:
-                dt_start = datetime.datetime.strptime(ev["start_time"], "%Y-%m-%d %H:%M:%S")
-                dt_end = datetime.datetime.strptime(ev["end_time"], "%Y-%m-%d %H:%M:%S")
-                dtstart_str = dt_start.strftime("%Y%m%dT%H%M%SZ")
-                dtend_str = dt_end.strftime("%Y%m%dT%H%M%SZ")
+                s_dt = datetime.datetime.strptime(s_str[:19].replace("T", " "), "%Y-%m-%d %H:%M:%S")
+                e_dt = datetime.datetime.strptime(e_str[:19].replace("T", " "), "%Y-%m-%d %H:%M:%S")
+                if s_dt.date() == target_date:
+                    day_events.append((s_dt, e_dt))
             except Exception:
-                dtstart_str = "20260101T000000Z"
-                dtend_str = "20260101T010000Z"
+                pass
 
-            lines.append("BEGIN:VEVENT")
-            lines.append(f"UID:nexus-cal-{ev['id']}@workstation.local")
-            lines.append(f"DTSTAMP:{datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%dT%H%M%SZ')}")
-            lines.append(f"DTSTART:{dtstart_str}")
-            lines.append(f"DTEND:{dtend_str}")
-            lines.append(f"SUMMARY:{ev['title']}")
-            if ev.get("description"):
-                desc = ev['description'].replace("\n", "\\n")
-                lines.append(f"DESCRIPTION:{desc}")
-            if ev.get("location"):
-                lines.append(f"LOCATION:{ev['location']}")
-            lines.append(f"CATEGORIES:{ev.get('category', 'General')}")
-            lines.append(f"PRIORITY:{'1' if ev.get('priority') == 'Critical' else '5'}")
-            lines.append("END:VEVENT")
+        day_events.sort(key=lambda x: x[0])
 
-        lines.append("END:VCALENDAR")
-        return "\r\n".join(lines)
+        free_slots = []
+        curr_time = day_start
+        min_slot_sec = duration_minutes * 60
+
+        for start_dt, end_dt in day_events:
+            if start_dt > curr_time:
+                gap = (start_dt - curr_time).total_seconds()
+                if gap >= min_slot_sec:
+                    free_slots.append({
+                        "start": curr_time.strftime("%H:%M"),
+                        "end": start_dt.strftime("%H:%M"),
+                        "duration_minutes": int(gap // 60)
+                    })
+            curr_time = max(curr_time, end_dt)
+
+        if day_end > curr_time:
+            gap = (day_end - curr_time).total_seconds()
+            if gap >= min_slot_sec:
+                free_slots.append({
+                    "start": curr_time.strftime("%H:%M"),
+                    "end": day_end.strftime("%H:%M"),
+                    "duration_minutes": int(gap // 60)
+                })
+
+        return free_slots
+
+    def export_ics(self) -> str:
+        """
+        Generates full RFC 5545 iCalendar stream with VEVENT, VALARM, and RRULE tags.
+        """
+        events = self.list_events()
+        return CalendarICalExporter.serialize_events(events)
 
 
 calendar_service = CalendarService()

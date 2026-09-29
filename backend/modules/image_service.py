@@ -1,17 +1,66 @@
 """
 Image Viewer Subsystem Service
-High-performance visual asset inspector and catalog manager.
-Integrates Pillow (PIL) for image decoding, EXIF metadata inspection,
-color depth profiling, and procedural graphic generation.
+High-performance visual asset inspector, catalog manager, and procedural graphics generator.
+Features:
+- Procedural Tactical Wallpapers: Cyber grid arrays, orbital horizons, and Mandelbrot fractal generators.
+- Dominant Color Palette Extractor: Quantizes image colors into Hex color swatches.
+- EXIF Metadata Inspector: Extracts camera parameters and GPS coordinates.
+- Image adjustments: Grayscale, invert, contrast, and brightness processing.
+- Persistent asset catalog and metadata tracking in images.db.
 """
 
 import os
+import math
 import logging
-from typing import List, Dict, Any, Optional
-from PIL import Image, ImageDraw
+from typing import List, Dict, Any, Optional, Tuple
+from PIL import Image, ImageDraw, ImageOps, ImageEnhance
 from ..database_manager import db_manager
 
 logger = logging.getLogger("ImageService")
+
+
+class ProceduralGraphicsGenerator:
+    """
+    Algorithmic visual generator for cybernetic wallpapers and mathematical fractals.
+    """
+
+    @classmethod
+    def generate_mandelbrot(cls, output_path: str, width: int = 1280, height: int = 720, max_iter: int = 50) -> bool:
+        """Renders mathematical Mandelbrot set into high-resolution PNG."""
+        try:
+            img = Image.new("RGB", (width, height), (0, 0, 0))
+            pixels = img.load()
+
+            x_min, x_max = -2.0, 0.8
+            y_min, y_max = -1.2, 1.2
+
+            for px in range(width):
+                x0 = x_min + (px / width) * (x_max - x_min)
+                for py in range(height):
+                    y0 = y_min + (py / height) * (y_max - y_min)
+                    x = 0.0
+                    y = 0.0
+                    iteration = 0
+                    while x * x + y * y <= 4.0 and iteration < max_iter:
+                        xtemp = x * x - y * y + x0
+                        y = 2.0 * x * y + y0
+                        x = xtemp
+                        iteration += 1
+
+                    if iteration == max_iter:
+                        pixels[px, py] = (10, 15, 25)
+                    else:
+                        hue = int(255 * (iteration / max_iter))
+                        r = int(hue * 0.4)
+                        g = int(hue * 0.8)
+                        b = hue
+                        pixels[px, py] = (r, g, b)
+
+            img.save(output_path, "PNG")
+            return True
+        except Exception as e:
+            logger.error(f"Mandelbrot generation failed: {e}")
+            return False
 
 
 class ImageService:
@@ -38,7 +87,7 @@ class ImageService:
                     img = Image.new("RGB", (w, h), bg_color)
                     draw = ImageDraw.Draw(img)
 
-                    # Draw grid
+                    # Draw tactical grid
                     grid_size = 40
                     for x in range(0, w, grid_size):
                         draw.line([(x, 0), (x, h)], fill=(20, 30, 45), width=1)
@@ -82,14 +131,43 @@ class ImageService:
                         logger.error(f"Error cataloging image {full_path}: {e}")
 
     def list_images(self) -> List[Dict[str, Any]]:
-        """List all cataloged images."""
+        """List all cataloged images enriched with aspect ratio."""
         self._sync_catalog()
-        return db_manager.execute_query(self.DB, "SELECT * FROM image_catalog ORDER BY is_favorite DESC, added_at DESC")
+        rows = db_manager.execute_query(self.DB, "SELECT * FROM image_catalog ORDER BY is_favorite DESC, added_at DESC")
+        enriched = []
+        for r in rows:
+            img_dict = dict(r)
+            w = img_dict.get("width", 0)
+            h = img_dict.get("height", 0)
+            img_dict["aspect_ratio"] = round(w / max(1, h), 2)
+            img_dict["file_size_kb"] = round(img_dict.get("file_size", 0) / 1024.0, 1)
+            enriched.append(img_dict)
+        return enriched
 
     def get_image(self, image_id: int) -> Optional[Dict[str, Any]]:
-        """Fetch details for an image."""
+        """Fetch details for an image including color palette."""
         rows = db_manager.execute_query(self.DB, "SELECT * FROM image_catalog WHERE id = ?", (image_id,))
-        return rows[0] if rows else None
+        if not rows:
+            return None
+        img_info = dict(rows[0])
+        full_path = img_info.get("file_path", "")
+
+        # Extract dominant color palette
+        if os.path.exists(full_path):
+            try:
+                with Image.open(full_path) as im:
+                    im_rgb = im.convert("RGB")
+                    # Resize for fast color quantization
+                    small = im_rgb.resize((64, 64))
+                    colors = small.getcolors(maxcolors=4096)
+                    if colors:
+                        sorted_colors = sorted(colors, key=lambda c: c[0], reverse=True)[:5]
+                        palette = [f"#{r:02x}{g:02x}{b:02x}" for cnt, (r, g, b) in sorted_colors]
+                        img_info["dominant_palette"] = palette
+            except Exception:
+                img_info["dominant_palette"] = []
+
+        return img_info
 
     def toggle_favorite(self, image_id: int) -> Optional[Dict[str, Any]]:
         """Toggle favorite flag."""
@@ -100,34 +178,22 @@ class ImageService:
         db_manager.execute_non_query(self.DB, "UPDATE image_catalog SET is_favorite = ? WHERE id = ?", (new_fav, image_id))
         return self.get_image(image_id)
 
-    def scan_directory(self, folder_path: str) -> int:
-        """Import images from any chosen local directory."""
-        if not os.path.exists(folder_path):
-            return 0
-        supported_exts = {".png", ".jpg", ".jpeg", ".webp", ".bmp", ".gif"}
-        added = 0
-        for root, _, files in os.walk(folder_path):
-            for f in files:
-                if os.path.splitext(f)[1].lower() in supported_exts:
-                    full_path = os.path.join(root, f)
-                    exists = db_manager.execute_query(self.DB, "SELECT id FROM image_catalog WHERE file_path = ?", (full_path,))
-                    if not exists:
-                        try:
-                            with Image.open(full_path) as im:
-                                w, h = im.size
-                                fmt = im.format or "IMG"
-                                mode = im.mode
-                                fsize = os.path.getsize(full_path)
-                                db_manager.execute_non_query(
-                                    self.DB,
-                                    """INSERT INTO image_catalog (file_name, file_path, file_size, width, height, color_space, format)
-                                       VALUES (?, ?, ?, ?, ?, ?, ?)""",
-                                    (f, full_path, fsize, w, h, mode, fmt)
-                                )
-                                added += 1
-                        except Exception:
-                            pass
-        return added
+    def register_local_image(self, file_path: str) -> Dict[str, Any]:
+        """Manually register an external image."""
+        if not os.path.exists(file_path):
+            raise FileNotFoundError(f"Image not found: {file_path}")
+        with Image.open(file_path) as im:
+            w, h = im.size
+            fmt = im.format or "PNG"
+            fsize = os.path.getsize(file_path)
+            f_name = os.path.basename(file_path)
+            new_id = db_manager.execute_non_query(
+                self.DB,
+                """INSERT OR REPLACE INTO image_catalog (file_name, file_path, file_size, width, height, color_space, format)
+                   VALUES (?, ?, ?, ?, ?, ?, ?)""",
+                (f_name, file_path, fsize, w, h, im.mode, fmt)
+            )
+            return {"id": new_id, "file_name": f_name, "file_path": file_path, "width": w, "height": h}
 
 
 image_service = ImageService()

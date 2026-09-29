@@ -5,7 +5,7 @@
 [![Isolated Databases](https://img.shields.io/badge/Databases-17%20Isolated%20WAL%20Enclaves-10b981?style=flat-square&logo=sqlite&logoColor=white)](https://sqlite.org)
 [![Telemetry Posture](https://img.shields.io/badge/Telemetry-Zero%20%2F%20Non--Cloud-ef4444?style=flat-square)](#)
 [![Deterministic Logic](https://img.shields.io/badge/Logic-Deterministic%20Non--AI-8b5cf6?style=flat-square)](#)
-[![Automated Tests](https://img.shields.io/badge/Tests-19%2F19%20Passing-brightgreen?style=flat-square)](#)
+[![Automated Tests](https://img.shields.io/badge/Tests-73%2F73%20Passing-brightgreen?style=flat-square)](#)
 
 A production-grade, offline-first personal command workstation engineered entirely with Python, PySide6, Chromium QtWebEngine, and 17 isolated SQLite databases in Write-Ahead Logging (WAL) mode. Designed with a strict non-AI, zero-telemetry operational posture.
 
@@ -213,22 +213,81 @@ personal_space/
 
 ---
 
-## 6. Automated Verification & Testing
+## 6. Automated Verification & Testing Suite
 
-A comprehensive automated test suite validates database integrity, RPC slot serialization, and service logic across all 17 subsystems:
+An exhaustive, deterministic test suite validates database integrity, RPC slot serialization, cryptographic ciphers, numerical engines, and service logic across all subsystems:
 
 ```bash
-PYTHONPATH=. pytest tests/test_subsystems.py -v
+# Run full automated test suite (73 passing tests across 7 suites)
+python3 -m pytest tests/ -v
 ```
 
 Expected output:
 ```text
-============================== 19 passed in 9.82s ==============================
+tests/test_advanced_mathematics.py ......                                [  8%]
+tests/test_bridge_api.py .....                                           [ 15%]
+tests/test_core_engines.py ..........                                    [ 28%]
+tests/test_cryptography_and_vault.py .....                               [ 35%]
+tests/test_export_and_validation.py ......                               [ 43%]
+tests/test_search_nlp_compression.py ........                            [ 54%]
+tests/test_subsystems.py .....................                           [ 83%]
+tests/test_subsystems_enhanced.py ............                           [100%]
+
+============================= 73 passed in 32.04s ==============================
 ```
 
 ---
 
-## 7. Continuous Git Update Workflow
+## 7. Administrative CLI & Computational Benchmarks
+
+Aether includes command-line tools for database maintenance, storage audits, and computational stress testing:
+
+### Database Administration Suite (`scripts/database_tool.py`)
+```bash
+# Audit storage, WAL files, and row counts across all 17 isolated databases
+python3 scripts/database_tool.py audit
+
+# Execute PRAGMA integrity_check across all enclaves
+python3 scripts/database_tool.py integrity
+
+# Run SQLite VACUUM defragmentation and query planner ANALYZE routines
+python3 scripts/database_tool.py optimize
+
+# Create atomic hot snapshot backups via SQLite Online Backup API
+python3 scripts/database_tool.py backup --target ./data/backups
+
+# Query or export enclave tables to JSON or CSV
+python3 scripts/database_tool.py query --db notes.db --sql "SELECT * FROM notes"
+python3 scripts/database_tool.py export --db calendar.db --table calendar_events --format json
+```
+
+### Computational Stress Test & Benchmark Suite (`scripts/benchmark_suite.py`)
+```bash
+# Run full computational benchmark (WAL throughput, Dijkstra, BM25, TextRank, Compression, CTR Cipher)
+python3 scripts/benchmark_suite.py
+
+# Run quick evaluation
+python3 scripts/benchmark_suite.py --quick
+```
+
+---
+
+## 8. Pure Python Core Engineering Framework (`backend/core/`)
+
+Aether features a sovereign, zero-dependency algorithmic foundation implemented entirely in pure Python:
+- **`algorithms.py`**: Graph theory (Dijkstra, A*, Topological sort, Cycle detection), 2D KD-Tree spatial index, Bloom Filter, LRU Cache with TTL expiry, and String Distance metrics (Levenshtein, Damerau-Levenshtein, Jaro-Winkler, KMP search, Longest Common Subsequence).
+- **`statistics_engine.py`**: Descriptive statistics (quantiles, skewness, kurtosis), Inferential correlation (Pearson, Spearman), Ordinary Least Squares (OLS) regression, Simpson's numerical integration, Newton-Raphson root solver, Runge-Kutta 4th Order ODE solver, and Matrix Gaussian elimination linear system solver ($Ax = b$).
+- **`search_indexer.py`**: Inverted index full-text search engine featuring Okapi BM25 probabilistic relevance ranking, TF-IDF vector space model with cosine similarity, and recursive-descent Boolean query parsing (`AND`, `OR`, `NOT`).
+- **`nlp_engine.py`**: Extractive text summarization using TextRank graph centrality (PageRank on sentence similarity), RAKE keyword extraction via co-occurrence word graphs, high-precision regex Named Entity Recognizer, and N-gram language identification profiler.
+- **`compression.py`**: Lossless compression engines including Run-Length Encoding (RLE), Canonical Huffman variable-length prefix coding, Lempel-Ziv-Welch (LZW) dictionary compression, and Shannon entropy calculations.
+- **`crypto_utils.py`**: SHA-256, SHA-512, BLAKE2b digests, constant-time verification, PBKDF2 key derivation, and authenticated HMAC-SHA256 Counter-Mode (`LocalVaultCipher`) keystream encryption.
+- **`export_engine.py`**: Multi-format data pipelines supporting RFC 5545 iCalendar (`.ics`), RFC 2426 vCard 3.0, GPS Exchange Format (`.gpx`), Google Earth (`.kml`), OPML 2.0 XML feeds, and Markdown table/TOC generators.
+- **`audio_dsp.py`**: Acoustic metrics (RMS, peak amplitude, crest factor, dBFS), Discrete Fourier Transform (DFT), Biquad IIR audio filters, and multi-waveform sound synthesis.
+- **`gis_engine.py`**: Slippy map Web Mercator tile math, UTM projection coordinate conversion, and spatial point clustering.
+
+---
+
+## 9. Continuous Git Update Workflow
 
 To update your workstation, commit your work, and synchronize changes with GitHub:
 

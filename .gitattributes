@@ -1,0 +1,15 @@
+# GitHub Linguist Configuration for Aether Personal Command Workstation
+# Ensures deterministic Python primacy across repository statistics
+
+# Mark bundled frontend UI HTML and assets as vendored graphical presentation layer
+frontend/* linguist-vendored
+frontend/index.html linguist-vendored
+
+# Ensure all backend engines, algorithms, modules, and diagnostic tools are explicitly detected as Python
+*.py linguist-detectable=true
+*.py linguist-language=Python
+
+# Exclude test fixtures, sample datasets, and documentation screenshots from language stats
+data/* linguist-vendored
+docs/* linguist-documentation
+tests/* linguist-detectable=true

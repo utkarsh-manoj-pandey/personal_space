@@ -1,14 +1,18 @@
 """
 Database Manager - Multi-SQLite Isolated Persistence Architecture
-Production-grade SQLite manager maintaining 17 isolated local databases for the workstation.
+Production-grade SQLite coordinator maintaining 17 isolated local databases for the workstation.
 Zero external server dependencies, full ACID compliance, WAL-enabled for concurrent read/write performance.
+Includes automated hot backup engine, real-time B-Tree diagnostics, integrity auditing, and defragmentation.
 """
 
 import os
+import time
+import shutil
 import sqlite3
 import logging
+import datetime
 from contextlib import contextmanager
-from typing import Generator, Any, Dict, List, Optional
+from typing import Generator, Any, Dict, List, Optional, Tuple
 
 # Configure module logging with clear, professional telemetry formatting
 logger = logging.getLogger("DatabaseManager")
@@ -57,6 +61,7 @@ class DatabaseManager:
             self.storage_dir = os.path.abspath(os.path.join(current_dir, "..", "data"))
         
         os.makedirs(self.storage_dir, exist_ok=True)
+        self.query_telemetry: List[Dict[str, Any]] = []
         logger.info(f"DatabaseManager initialized. Dedicated storage path: {self.storage_dir}")
         self._initialize_all_schemas()
 
@@ -96,11 +101,15 @@ class DatabaseManager:
             conn.close()
 
     def execute_query(self, db_name: str, query: str, params: tuple = ()) -> List[Dict[str, Any]]:
-        """Executes a SELECT query and returns a list of dictionaries."""
+        """Executes a SELECT query and returns a list of dictionaries with execution telemetry."""
+        t0 = time.perf_counter()
         with self.get_connection(db_name) as conn:
             cursor = conn.cursor()
             cursor.execute(query, params)
             rows = cursor.fetchall()
+            elapsed_ms = (time.perf_counter() - t0) * 1000.0
+            if elapsed_ms > 50.0:
+                logger.warning(f"Slow query on {db_name} ({elapsed_ms:.2f}ms): {query[:120]}")
             return [dict(row) for row in rows]
 
     def execute_non_query(self, db_name: str, query: str, params: tuple = ()) -> int:
@@ -115,6 +124,215 @@ class DatabaseManager:
         with self.get_connection(db_name) as conn:
             cursor = conn.cursor()
             cursor.executescript(script)
+
+    # =========================================================================
+    # ADVANCED DATABASE DIAGNOSTICS & TELEMETRY
+    # =========================================================================
+
+    def get_database_diagnostics(self, db_name: str) -> Dict[str, Any]:
+        """
+        Inspects deep SQLite B-Tree metrics, page allocations, and WAL journals.
+        """
+        db_path = self.get_db_path(db_name)
+        if not os.path.exists(db_path):
+            return {"name": db_name, "status": "Offline", "error": "File does not exist"}
+
+        file_size_bytes = os.path.getsize(db_path)
+        wal_path = f"{db_path}-wal"
+        wal_size_bytes = os.path.getsize(wal_path) if os.path.exists(wal_path) else 0
+
+        with self.get_connection(db_name) as conn:
+            cur = conn.cursor()
+            cur.execute("PRAGMA page_count;")
+            page_count = cur.fetchone()[0]
+            cur.execute("PRAGMA page_size;")
+            page_size = cur.fetchone()[0]
+            cur.execute("PRAGMA freelist_count;")
+            freelist_count = cur.fetchone()[0]
+            cur.execute("PRAGMA journal_mode;")
+            journal_mode = cur.fetchone()[0]
+            cur.execute("PRAGMA integrity_check;")
+            integrity_row = cur.fetchone()
+            integrity = integrity_row[0] if integrity_row else "unknown"
+
+            # Table and row auditing
+            cur.execute("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%';")
+            tables = [row[0] for row in cur.fetchall()]
+            table_stats = {}
+            total_records = 0
+            for t in tables:
+                try:
+                    cur.execute(f"SELECT COUNT(*) FROM \"{t}\";")
+                    cnt = cur.fetchone()[0]
+                    table_stats[t] = cnt
+                    total_records += cnt
+                except Exception:
+                    table_stats[t] = 0
+
+            # Fragmentation ratio
+            fragmentation_pct = round((freelist_count / max(1, page_count)) * 100.0, 2)
+
+        return {
+            "name": db_name,
+            "status": "Online",
+            "path": db_path,
+            "file_size_kb": round(file_size_bytes / 1024.0, 2),
+            "wal_size_kb": round(wal_size_bytes / 1024.0, 2),
+            "page_count": page_count,
+            "page_size": page_size,
+            "freelist_pages": freelist_count,
+            "fragmentation_percent": fragmentation_pct,
+            "journal_mode": journal_mode.upper(),
+            "integrity": integrity,
+            "tables_count": len(tables),
+            "total_records": total_records,
+            "table_breakdown": table_stats
+        }
+
+    def get_all_databases_diagnostics(self) -> List[Dict[str, Any]]:
+        """Collect diagnostic telemetry across all 17 isolated databases."""
+        return [self.get_database_diagnostics(name) for name in self.DATABASE_NAMES]
+
+    def verify_integrity_all_databases(self) -> Dict[str, Any]:
+        """
+        Runs PRAGMA integrity_check and foreign_key_check on all 17 databases.
+        """
+        results = {}
+        all_passed = True
+        for name in self.DATABASE_NAMES:
+            try:
+                with self.get_connection(name) as conn:
+                    cur = conn.cursor()
+                    cur.execute("PRAGMA integrity_check;")
+                    int_res = cur.fetchone()[0]
+                    cur.execute("PRAGMA foreign_key_check;")
+                    fk_errors = cur.fetchall()
+
+                    passed = (int_res == "ok") and (len(fk_errors) == 0)
+                    if not passed:
+                        all_passed = False
+
+                    results[name] = {
+                        "integrity": int_res,
+                        "foreign_key_violations": len(fk_errors),
+                        "status": "Healthy" if passed else "Degraded"
+                    }
+            except Exception as e:
+                all_passed = False
+                results[name] = {"integrity": f"Error: {e}", "foreign_key_violations": -1, "status": "Error"}
+
+        return {
+            "all_healthy": all_passed,
+            "timestamp": datetime.datetime.now().isoformat(),
+            "databases": results
+        }
+
+    def optimize_all_databases(self) -> Dict[str, Any]:
+        """
+        Performs SQLite VACUUM and ANALYZE routines across all 17 databases.
+        Rebuilds B-Tree indexes, compacts disk pages, and refreshes query planner statistics.
+        """
+        t0 = time.perf_counter()
+        optimized = []
+        space_reclaimed_bytes = 0
+
+        for name in self.DATABASE_NAMES:
+            db_path = self.get_db_path(name)
+            size_before = os.path.getsize(db_path) if os.path.exists(db_path) else 0
+            try:
+                # Direct connection for VACUUM (cannot run in transaction block)
+                conn = sqlite3.connect(db_path)
+                conn.execute("VACUUM;")
+                conn.execute("ANALYZE;")
+                conn.close()
+                size_after = os.path.getsize(db_path)
+                diff = max(0, size_before - size_after)
+                space_reclaimed_bytes += diff
+                optimized.append({"name": name, "reclaimed_kb": round(diff / 1024.0, 2), "status": "Optimized"})
+            except Exception as e:
+                logger.error(f"Error optimizing {name}: {e}")
+                optimized.append({"name": name, "reclaimed_kb": 0, "status": f"Failed: {e}"})
+
+        duration_sec = round(time.perf_counter() - t0, 3)
+        return {
+            "success": True,
+            "databases_optimized": len(optimized),
+            "space_reclaimed_kb": round(space_reclaimed_bytes / 1024.0, 2),
+            "duration_seconds": duration_sec,
+            "details": optimized
+        }
+
+    def backup_all_databases(self, backup_dir: Optional[str] = None) -> Dict[str, Any]:
+        """
+        Creates hot atomic snapshots of all 17 databases using the official SQLite Online Backup API.
+        Zero disruption to active reading or writing processes.
+        """
+        if not backup_dir:
+            stamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            backup_dir = os.path.join(self.storage_dir, "backups", f"snapshot_{stamp}")
+        os.makedirs(backup_dir, exist_ok=True)
+
+        backup_manifest = []
+        total_bytes = 0
+
+        for name in self.DATABASE_NAMES:
+            src_path = self.get_db_path(name)
+            dest_path = os.path.join(backup_dir, name)
+            if not os.path.exists(src_path):
+                continue
+
+            try:
+                src_conn = sqlite3.connect(src_path)
+                dest_conn = sqlite3.connect(dest_path)
+                with dest_conn:
+                    src_conn.backup(dest_conn, pages=-1, sleep=0.005)
+                dest_conn.close()
+                src_conn.close()
+
+                b_size = os.path.getsize(dest_path)
+                total_bytes += b_size
+                backup_manifest.append({"database": name, "size_kb": round(b_size / 1024.0, 2), "status": "Success"})
+            except Exception as e:
+                logger.error(f"Backup failed for {name}: {e}")
+                backup_manifest.append({"database": name, "size_kb": 0, "status": f"Error: {e}"})
+
+        return {
+            "success": True,
+            "backup_directory": backup_dir,
+            "databases_backed_up": len(backup_manifest),
+            "total_size_mb": round(total_bytes / (1024.0 * 1024.0), 3),
+            "timestamp": datetime.datetime.now().isoformat(),
+            "manifest": backup_manifest
+        }
+
+    def get_storage_audit(self) -> Dict[str, Any]:
+        """Comprehensive storage audit of the entire database enclave."""
+        total_file_bytes = 0
+        total_wal_bytes = 0
+        total_records = 0
+        table_counts = {}
+
+        for name in self.DATABASE_NAMES:
+            diag = self.get_database_diagnostics(name)
+            if diag.get("status") == "Online":
+                total_file_bytes += int(diag.get("file_size_kb", 0) * 1024)
+                total_wal_bytes += int(diag.get("wal_size_kb", 0) * 1024)
+                total_records += diag.get("total_records", 0)
+                table_counts[name] = diag.get("tables_count", 0)
+
+        return {
+            "total_databases": len(self.DATABASE_NAMES),
+            "storage_path": self.storage_dir,
+            "total_data_size_mb": round(total_file_bytes / (1024 * 1024), 2),
+            "total_wal_size_mb": round(total_wal_bytes / (1024 * 1024), 2),
+            "combined_storage_mb": round((total_file_bytes + total_wal_bytes) / (1024 * 1024), 2),
+            "total_records_stored": total_records,
+            "tables_per_subsystem": table_counts
+        }
+
+    # =========================================================================
+    # DDL SCHEMA INITIALIZATION
+    # =========================================================================
 
     def _initialize_all_schemas(self) -> None:
         """Runs the DDL schema initialization for each of the 17 isolated databases."""
