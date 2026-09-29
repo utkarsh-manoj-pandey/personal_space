@@ -778,6 +778,37 @@ class BackendBridge(QObject):
         except Exception as e:
             return self._safe_json({"error": str(e)})
 
+    # =========================================================================
+    # COUNTRY GEOPOLITICAL INTELLIGENCE & LIVE DOSSIER SLOTS
+    # =========================================================================
+    @Slot(str, str, result=str)
+    def listCountries(self, region: str = "", search: str = "") -> str:
+        """List sovereign countries filtered by continent region and search query."""
+        return self._safe_json(world_monitor_service.get_countries(region=region, search=search))
+
+    @Slot(str, result=str)
+    def getCountryDetails(self, country_code: str) -> str:
+        """Get full geopolitical profile dossier for a country."""
+        return self._safe_json(world_monitor_service.get_country_details(country_code))
+
+    @Slot(str, result=str)
+    def getCountryLiveIntel(self, country_code: str) -> str:
+        """Correlate country with real-time USGS quakes, local time, and nearest maritime choke."""
+        return self._safe_json(world_monitor_service.get_country_live_intel(country_code))
+
+    # =========================================================================
+    # WEB CONTENT & ZERO-TRACKING SEARCH INTELLIGENCE SLOTS
+    # =========================================================================
+    @Slot(str, result=str)
+    def fetchWebContent(self, url: str) -> str:
+        """Fetch sanitized readable web article text and links via backend privacy proxy."""
+        return self._safe_json(browser_service.fetch_web_content(url))
+
+    @Slot(str, str, result=str)
+    def searchWebIntelligence(self, query: str, engine: str = "DuckDuckGo") -> str:
+        """Instant zero-tracking search cards and knowledge abstracts."""
+        return self._safe_json(browser_service.instant_search(query, engine=engine))
+
 
 # Global singleton instance
 backend_bridge = BackendBridge()

@@ -275,3 +275,37 @@ def test_new_backend_bridge_slots():
     astro_raw = backend_bridge.getAstronomicalTelemetry()
     astro = json.loads(astro_raw)
     assert "julian_date" in astro
+
+    # World Monitor Country Intelligence slots
+    countries_raw = backend_bridge.listCountries("", "")
+    countries = json.loads(countries_raw)
+    assert len(countries) >= 20
+    assert any(c["id"] == "US" for c in countries)
+    assert any(c["id"] == "IN" for c in countries)
+    assert any(c["id"] == "JP" for c in countries)
+
+    us_details_raw = backend_bridge.getCountryDetails("US")
+    us = json.loads(us_details_raw)
+    assert us["name"] == "United States"
+    assert us["capital"] == "Washington, D.C."
+    assert "defcon" in us
+    assert "gdp_usd" in us
+    assert "cyber_defense_score" in us
+
+    us_intel_raw = backend_bridge.getCountryLiveIntel("US")
+    us_intel = json.loads(us_intel_raw)
+    assert us_intel["success"] is True
+    assert "live_local_time" in us_intel
+    assert "nearby_earthquakes" in us_intel
+
+    # Privacy Browser Intelligence & Reader slots
+    search_raw = backend_bridge.searchWebIntelligence("Python", "DuckDuckGo")
+    search_res = json.loads(search_raw)
+    assert search_res["success"] is True
+    assert len(search_res["results"]) > 0
+
+    reader_raw = backend_bridge.fetchWebContent("https://en.wikipedia.org/wiki/Python_(programming_language)")
+    reader_res = json.loads(reader_raw)
+    assert "domain" in reader_res
+    assert reader_res["domain"] == "en.wikipedia.org"
+

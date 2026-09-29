@@ -48,43 +48,42 @@
 
   <style>
     /* ── Scrollbars ── */
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
     ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.10); border-radius: 100px; }
-    ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.18); }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.22); }
 
     /* ── Glassmorphism Panels ── */
     .glass-panel {
-      background: rgba(15, 15, 18, 0.80);
-      backdrop-filter: blur(24px) saturate(1.2);
-      -webkit-backdrop-filter: blur(24px) saturate(1.2);
-      border: 1px solid rgba(255, 255, 255, 0.06);
+      background: rgba(14, 15, 20, 0.82);
+      backdrop-filter: blur(28px) saturate(1.3);
+      -webkit-backdrop-filter: blur(28px) saturate(1.3);
+      border: 1px solid rgba(255, 255, 255, 0.07);
     }
     .glass-elevated {
-      background: rgba(24, 24, 27, 0.85);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border: 1px solid rgba(255, 255, 255, 0.06);
+      background: rgba(22, 24, 31, 0.90);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(255, 255, 255, 0.09);
     }
 
-    /* ── Removed corner reticles — now a no-op class ── */
-    .corner-reticle { position: relative; }
-
-    /* ── Subtle elevation shadow ── */
+    /* ── Elevation & Glow Effects ── */
+    .glow-accent {
+      box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.25), 0 8px 30px rgba(99, 102, 241, 0.15);
+    }
     .glow-cyan {
-      box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.15), 0 4px 24px rgba(99, 102, 241, 0.10);
+      box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.20), 0 8px 30px rgba(56, 189, 248, 0.12);
     }
-    .glow-violet {
-      box-shadow: 0 0 0 1px rgba(139, 92, 246, 0.15), 0 4px 24px rgba(139, 92, 246, 0.10);
+    .glow-emerald {
+      box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.20), 0 8px 30px rgba(16, 185, 129, 0.12);
     }
-    .text-glow-cyan { text-shadow: none; }
 
     /* ── Animations ── */
     @keyframes pulse-subtle {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.5; }
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.45; transform: scale(0.96); }
     }
-    .animate-pulse-subtle { animation: pulse-subtle 3s infinite ease-in-out; }
+    .animate-pulse-subtle { animation: pulse-subtle 2.5s infinite ease-in-out; }
 
     @keyframes eq-bounce {
       0%, 100% { height: 3px; }
@@ -94,27 +93,67 @@
     .eq-bar-2 { animation: eq-bounce 1.1s infinite ease-in-out 0.2s; }
     .eq-bar-3 { animation: eq-bounce 0.9s infinite ease-in-out 0.4s; }
 
-    @keyframes fade-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
-    .animate-fade-in { animation: fade-in 0.3s ease-out; }
+    @keyframes fade-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+    .animate-fade-in { animation: fade-in 0.25s ease-out; }
 
-    /* ── Global transition polish ── */
-    button, a, input, select, textarea { transition: all 0.15s ease; }
-    input:focus, select:focus, textarea:focus { outline: none; box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.35); border-color: #6366f1 !important; }
+    /* ── Global Interactive Transitions ── */
+    button, a, input, select, textarea { transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1); }
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.40);
+      border-color: #6366f1 !important;
+    }
 
-    /* ── Leaflet dark theme override ── */
+    /* ── Leaflet Dark Theme Override ── */
     .leaflet-container { background: #09090b !important; }
     .leaflet-bar a { background: #18181b !important; color: #a1a1aa !important; border-color: rgba(255,255,255,0.08) !important; }
     .leaflet-bar a:hover { background: #27272a !important; color: #fff !important; }
 
-    /* ── Nav item hover lift ── */
+    /* ── Nav Item Polish ── */
     .nav-item { transition: all 0.2s ease; }
-    .nav-item:hover { transform: translateX(2px); }
+    .nav-item:hover { transform: translateX(3px); }
 
-    /* ── Premium card hover ── */
-    .card-hover { transition: all 0.2s ease; }
-    .card-hover:hover { border-color: rgba(99, 102, 241, 0.3) !important; box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
+    /* ── Premium Card Hover ── */
+    .card-hover { transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1); }
+    .card-hover:hover {
+      border-color: rgba(99, 102, 241, 0.35) !important;
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px -8px rgba(0, 0, 0, 0.45);
+    }
 
-    /* ── Font aliases for backward compat with font-rajdhani / font-orbitron in classes ── */
+    /* ── Country Directory Cards ── */
+    .country-card {
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+    .country-card:hover {
+      border-color: rgba(99, 102, 241, 0.45) !important;
+      background: rgba(30, 32, 44, 0.75) !important;
+      transform: translateY(-2px);
+    }
+    .country-card.selected {
+      border-color: #6366f1 !important;
+      background: rgba(40, 42, 60, 0.85) !important;
+      box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.4), 0 8px 24px rgba(99, 102, 241, 0.15);
+    }
+
+    /* ── Reader Mode Typography ── */
+    .reader-article {
+      max-width: 820px;
+      margin: 0 auto;
+      line-height: 1.8;
+      font-size: 15px;
+      color: #d4d4d8;
+    }
+    .reader-article h1 { font-size: 1.85rem; font-weight: 700; color: #ffffff; margin-bottom: 0.75rem; line-height: 1.25; }
+    .reader-article h2 { font-size: 1.35rem; font-weight: 600; color: #f4f4f5; margin-top: 1.75rem; margin-bottom: 0.5rem; }
+    .reader-article h3 { font-size: 1.15rem; font-weight: 600; color: #e4e4e7; margin-top: 1.25rem; margin-bottom: 0.4rem; }
+    .reader-article p { margin-bottom: 1.2rem; }
+    .reader-article a { color: #818cf8; text-decoration: underline; text-underline-offset: 3px; }
+    .reader-article ul, .reader-article ol { margin-left: 1.5rem; margin-bottom: 1.2rem; list-style-type: disc; }
+    .reader-article blockquote { border-left: 3px solid #6366f1; padding-left: 1rem; color: #a1a1aa; font-style: italic; margin: 1.5rem 0; }
+
+    /* ── Font aliases ── */
     .font-rajdhani { font-family: 'Inter', sans-serif; font-weight: 600; }
     .font-orbitron { font-family: 'Inter', sans-serif; font-weight: 700; letter-spacing: 0.03em; }
   </style>
@@ -738,31 +777,51 @@
       <!-- 1. WORLD MONITOR VIEW (3D SATELLITE & GLOBAL PULSE)               -->
       <!-- ================================================================= -->
       <section id="view-world_monitor" class="view-panel hidden flex-1 flex flex-col overflow-hidden">
-        <!-- Dashboard Top Stats -->
+        <!-- Dashboard Top Stats & Dual View Switcher -->
         <div class="h-12 glass-panel border-b border-panel-border px-6 flex items-center justify-between flex-shrink-0">
           <div class="flex items-center space-x-4">
             <h1 class="text-xs font-semibold text-white tracking-wide uppercase flex items-center space-x-2">
               <span class="w-2 h-2 bg-indigo-400 rounded-full animate-pulse-subtle"></span>
               <span>World Monitor</span>
             </h1>
-            <span id="wm-threat-posture" class="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-medium">Normal</span>
-            <span class="text-[11px] text-zinc-500 hidden sm:inline">• Drag globe to rotate • Scroll to zoom</span>
+
+            <!-- Subsystem Mode Switcher Tabs -->
+            <div class="flex items-center bg-zinc-900/90 border border-zinc-800 rounded-lg p-0.5 text-xs font-medium">
+              <button onclick="switchWorldMonitorMode('globe')" id="btn-wm-mode-globe" class="px-3 py-1 rounded-md bg-indigo-600 text-white font-medium flex items-center space-x-1.5 shadow-sm shadow-indigo-600/30">
+                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="2" y1="12" x2="22" y2="12"></line>
+                  <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                </svg>
+                <span>3D Planetary Sphere</span>
+              </button>
+              <button onclick="switchWorldMonitorMode('countries')" id="btn-wm-mode-countries" class="px-3 py-1 rounded-md text-zinc-400 hover:text-white flex items-center space-x-1.5">
+                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                  <circle cx="12" cy="10" r="3"></circle>
+                </svg>
+                <span>Country Intelligence & Geopolitics</span>
+                <span class="text-[9px] font-mono px-1.5 py-0.2 bg-zinc-800 text-indigo-300 rounded border border-zinc-700">24 Nations</span>
+              </button>
+            </div>
+
+            <span id="wm-threat-posture" class="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-medium hidden md:inline">DEFCON 4 (Guarded)</span>
           </div>
 
-          <div class="flex items-center space-x-6 text-xs font-mono">
+          <div class="flex items-center space-x-5 text-xs font-mono">
             <div>
-              <span class="text-zinc-500">Quakes:</span>
+              <span class="text-zinc-500">Live Quakes:</span>
               <span id="wm-quake-count" class="text-indigo-400 font-bold ml-1">0</span>
             </div>
             <div>
               <span class="text-zinc-500">Max Mag:</span>
               <span id="wm-max-mag" class="text-amber-400 font-bold ml-1">0.0</span>
             </div>
-            <div>
+            <div class="hidden lg:block">
               <span class="text-zinc-500">Solar Wind:</span>
               <span class="text-emerald-400 font-bold ml-1">412 km/s</span>
             </div>
-            <button onclick="refreshWorldMonitor()" class="text-zinc-400 hover:text-white p-1 transition-colors" title="Refresh Feed">
+            <button onclick="refreshWorldMonitor()" class="text-zinc-400 hover:text-white p-1 hover:bg-zinc-800 rounded transition-colors" title="Refresh Live Feeds">
               <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path>
               </svg>
@@ -770,10 +829,11 @@
           </div>
         </div>
 
-        <!-- Dashboard Content Grid -->
-        <div class="flex-1 grid grid-cols-12 gap-3 p-4 overflow-hidden">
+        <!-- MODE 1: 3D Planetary Sphere & Telemetry -->
+        <div id="wm-panel-globe" class="flex-1 grid grid-cols-12 gap-3 p-4 overflow-hidden">
           <!-- 3D Three.js Interactive Earth & Telemetry -->
           <div class="col-span-8 glass-panel rounded-xl flex flex-col overflow-hidden relative border border-panel-border">
+            <!-- Top-Left ISS Orbit Telemetry -->
             <div class="absolute top-3 left-3 z-10 bg-zinc-900/90 backdrop-blur-md px-3 py-1.5 rounded-lg border border-zinc-700/60 text-xs font-mono flex items-center space-x-3">
               <div class="flex items-center space-x-1.5">
                 <span class="w-2 h-2 rounded-full bg-indigo-400 animate-pulse-subtle"></span>
@@ -783,6 +843,28 @@
               <span id="wm-iss-coords" class="text-indigo-300 font-bold">LAT: 00.00° LON: 00.00°</span>
               <span class="text-zinc-600">|</span>
               <span class="text-zinc-400">27,580 KM/H</span>
+            </div>
+
+            <!-- Top-Right Fly-to Target Selector -->
+            <div class="absolute top-3 right-3 z-10 bg-zinc-900/90 backdrop-blur-md px-2.5 py-1.5 rounded-lg border border-zinc-700/60 text-xs flex items-center space-x-2">
+              <span class="text-zinc-400 font-mono text-[11px]">Target Nation:</span>
+              <select id="wm-globe-country-select" onchange="onGlobeCountrySelect(this.value)" class="bg-zinc-800 text-white border border-zinc-700/80 rounded px-2 py-0.5 text-xs font-sans focus:outline-none focus:border-indigo-500">
+                <option value="">🎯 Orbit Camera...</option>
+                <option value="US">🇺🇸 United States</option>
+                <option value="CN">🇨🇳 China</option>
+                <option value="IN">🇮🇳 India</option>
+                <option value="GB">🇬🇧 United Kingdom</option>
+                <option value="JP">🇯🇵 Japan</option>
+                <option value="DE">🇩🇪 Germany</option>
+                <option value="FR">🇫🇷 France</option>
+                <option value="RU">🇷🇺 Russia</option>
+                <option value="BR">🇧🇷 Brazil</option>
+                <option value="AE">🇦🇪 United Arab Emirates</option>
+                <option value="AU">🇦🇺 Australia</option>
+                <option value="SA">🇸🇦 Saudi Arabia</option>
+                <option value="KR">🇰🇷 South Korea</option>
+                <option value="IL">🇮🇱 Israel</option>
+              </select>
             </div>
 
             <!-- Globe Canvas Container -->
@@ -838,6 +920,161 @@
             </div>
           </div>
         </div>
+
+        <!-- MODE 2: Country Intelligence Directory & Live Geopolitical Dossier -->
+        <div id="wm-panel-countries" class="hidden flex-1 flex flex-col overflow-hidden">
+          <!-- Filter and Search Header -->
+          <div class="h-11 bg-zinc-950/60 border-b border-panel-border px-5 flex items-center justify-between flex-shrink-0">
+            <div class="flex items-center space-x-2">
+              <span class="text-zinc-500 text-xs font-mono">Region:</span>
+              <div id="wm-region-filters" class="flex space-x-1 text-xs">
+                <button onclick="filterCountryRegion('')" id="btn-wm-reg-all" class="px-2.5 py-0.5 rounded-md bg-indigo-600 text-white font-medium text-[11px]">All Nations</button>
+                <button onclick="filterCountryRegion('Americas')" id="btn-wm-reg-americas" class="px-2.5 py-0.5 rounded-md bg-zinc-800 text-zinc-400 hover:text-white text-[11px]">Americas</button>
+                <button onclick="filterCountryRegion('Europe')" id="btn-wm-reg-europe" class="px-2.5 py-0.5 rounded-md bg-zinc-800 text-zinc-400 hover:text-white text-[11px]">Europe</button>
+                <button onclick="filterCountryRegion('Asia-Pacific')" id="btn-wm-reg-asiapac" class="px-2.5 py-0.5 rounded-md bg-zinc-800 text-zinc-400 hover:text-white text-[11px]">Asia-Pacific</button>
+                <button onclick="filterCountryRegion('Middle East')" id="btn-wm-reg-mideast" class="px-2.5 py-0.5 rounded-md bg-zinc-800 text-zinc-400 hover:text-white text-[11px]">Middle East</button>
+                <button onclick="filterCountryRegion('Africa')" id="btn-wm-reg-africa" class="px-2.5 py-0.5 rounded-md bg-zinc-800 text-zinc-400 hover:text-white text-[11px]">Africa</button>
+              </div>
+            </div>
+
+            <div class="flex items-center space-x-3">
+              <div class="relative">
+                <input id="wm-country-search-input" oninput="onCountrySearchInput()" type="text" placeholder="Search by nation, capital, or pact (e.g. NATO, BRICS)..." class="w-72 bg-zinc-900 border border-zinc-700/60 rounded-lg pl-8 pr-3 py-1 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-indigo-500">
+                <svg class="w-3.5 h-3.5 text-zinc-400 absolute left-2.5 top-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+              </div>
+              <span id="wm-country-count-badge" class="text-xs font-mono text-zinc-500">24 Nations</span>
+            </div>
+          </div>
+
+          <!-- Main Directory & Dossier Split Grid -->
+          <div class="flex-1 grid grid-cols-12 gap-3 p-4 overflow-hidden">
+            <!-- Left 7 Cols: Country Cards Directory List -->
+            <div class="col-span-7 flex flex-col overflow-hidden glass-panel rounded-xl border border-panel-border p-3">
+              <div class="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider mb-2 flex items-center justify-between">
+                <span>Sovereign Nations Directory</span>
+                <span class="text-[10px] text-zinc-500 font-mono">Select any country to view live dossier</span>
+              </div>
+              <div id="wm-countries-cards-grid" class="flex-1 overflow-y-auto grid grid-cols-1 lg:grid-cols-2 gap-2.5 pr-1">
+                <!-- Populated via renderCountriesDirectory() -->
+              </div>
+            </div>
+
+            <!-- Right 5 Cols: Live Geopolitical Strategic Dossier Panel -->
+            <div id="wm-country-dossier-panel" class="col-span-5 glass-panel rounded-xl border border-panel-border p-4 flex flex-col overflow-y-auto space-y-4">
+              <!-- Default Placeholder State -->
+              <div id="wm-dossier-placeholder" class="flex-1 flex flex-col items-center justify-center text-center p-8 space-y-3">
+                <div class="w-16 h-16 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-3xl">
+                  🌐
+                </div>
+                <div class="text-sm font-semibold text-white">Select a Nation to Inspect</div>
+                <p class="text-xs text-zinc-400 max-w-xs">
+                  Click on any sovereign state in the directory to inspect its live local time, DEFCON readiness, economic footprint, defense telemetry, and nearby seismic correlations.
+                </p>
+              </div>
+
+              <!-- Active Dossier Content (Hidden initially) -->
+              <div id="wm-dossier-content" class="hidden flex-1 flex flex-col space-y-4">
+                <!-- Dossier Top Header -->
+                <div class="flex items-start justify-between pb-3 border-b border-panel-border">
+                  <div class="flex items-center space-x-3">
+                    <span id="dossier-flag" class="text-4xl">🇺🇸</span>
+                    <div>
+                      <div class="flex items-center space-x-2">
+                        <h2 id="dossier-name" class="text-base font-bold text-white leading-tight">United States</h2>
+                        <span id="dossier-defcon-badge" class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30">DEFCON 4</span>
+                      </div>
+                      <div class="text-xs text-zinc-400 mt-0.5">
+                        <span id="dossier-capital">Washington, D.C.</span> • <span id="dossier-region" class="text-indigo-400">Americas</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Live Country Clock -->
+                  <div class="text-right">
+                    <div id="dossier-live-clock" class="text-sm font-mono font-bold text-white tracking-tight">00:00:00</div>
+                    <div id="dossier-utc-offset" class="text-[10px] font-mono text-zinc-500">UTC -05:00</div>
+                  </div>
+                </div>
+
+                <!-- Strategic Assessment Text -->
+                <div class="glass-elevated p-3 rounded-lg border border-panel-border">
+                  <div class="text-[10px] uppercase font-mono font-semibold text-indigo-400 mb-1 tracking-wider">Strategic Assessment</div>
+                  <p id="dossier-assessment" class="text-xs text-zinc-300 leading-relaxed font-sans"></p>
+                </div>
+
+                <!-- 4 KPI Metrics Grid -->
+                <div class="grid grid-cols-2 gap-2 text-xs font-mono">
+                  <div class="bg-zinc-900/80 p-2.5 rounded-lg border border-zinc-800">
+                    <div class="text-zinc-500 text-[10px] uppercase">Gross Domestic Product</div>
+                    <div id="dossier-gdp" class="text-white font-bold text-sm mt-0.5">$27.97 Trillion</div>
+                  </div>
+                  <div class="bg-zinc-900/80 p-2.5 rounded-lg border border-zinc-800">
+                    <div class="text-zinc-500 text-[10px] uppercase">Demographic Scale</div>
+                    <div id="dossier-population" class="text-white font-bold text-sm mt-0.5">340 Million</div>
+                  </div>
+                  <div class="bg-zinc-900/80 p-2.5 rounded-lg border border-zinc-800">
+                    <div class="text-zinc-500 text-[10px] uppercase">Global Firepower Rank</div>
+                    <div id="dossier-military-rank" class="text-emerald-400 font-bold text-sm mt-0.5">#1 Global Force</div>
+                  </div>
+                  <div class="bg-zinc-900/80 p-2.5 rounded-lg border border-zinc-800">
+                    <div class="text-zinc-500 text-[10px] uppercase">Cyber Defense Index</div>
+                    <div id="dossier-cyber-score" class="text-indigo-400 font-bold text-sm mt-0.5">96 / 100</div>
+                  </div>
+                </div>
+
+                <!-- Alliances & Pacts -->
+                <div>
+                  <div class="text-[10px] uppercase font-mono font-semibold text-zinc-400 mb-1.5">Treaty Alliances & Strategic Pacts</div>
+                  <div id="dossier-alliances" class="flex flex-wrap gap-1.5">
+                    <!-- Populated dynamically -->
+                  </div>
+                </div>
+
+                <!-- Correlated Real-Time Quakes Near Country (<2,500 km) -->
+                <div>
+                  <div class="flex items-center justify-between mb-1.5">
+                    <span class="text-[10px] uppercase font-mono font-semibold text-amber-400">Proximate Seismic Events (&lt;2500 km)</span>
+                    <span id="dossier-quakes-count" class="text-[10px] font-mono text-zinc-500">0 Events</span>
+                  </div>
+                  <div id="dossier-quakes-list" class="space-y-1.5 max-h-36 overflow-y-auto text-xs font-sans">
+                    <!-- Populated dynamically -->
+                  </div>
+                </div>
+
+                <!-- Strategic Subsea Chokepoints -->
+                <div>
+                  <div class="text-[10px] uppercase font-mono font-semibold text-sky-400 mb-1.5">Strategic Maritime & Fiber Chokepoints</div>
+                  <div id="dossier-chokepoints" class="space-y-1 text-xs">
+                    <!-- Populated dynamically -->
+                  </div>
+                </div>
+
+                <!-- Action Triggers -->
+                <div class="pt-2 flex space-x-2">
+                  <button onclick="flyDossierCountryToGlobe()" class="flex-1 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold flex items-center justify-center space-x-1.5 shadow-md shadow-indigo-600/30 transition-all">
+                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <line x1="2" y1="12" x2="22" y2="12"></line>
+                      <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                    </svg>
+                    <span>Target on 3D Globe</span>
+                  </button>
+                  <button onclick="locateDossierCountryOnMap()" class="flex-1 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700 rounded-lg text-xs font-semibold flex items-center justify-center space-x-1.5 transition-all">
+                    <svg class="w-3.5 h-3.5 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon>
+                      <line x1="8" y1="2" x2="8" y2="18"></line>
+                      <line x1="16" y1="6" x2="16" y2="22"></line>
+                    </svg>
+                    <span>Locate on Maps</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </section>
 
       <!-- ================================================================= -->
@@ -849,15 +1086,19 @@
           <div class="flex items-center space-x-4">
             <h1 class="text-xs font-semibold text-white tracking-wide uppercase">Maps & Navigation</h1>
             
-            <!-- Map Layer Toggles -->
+            <!-- Map Layer Toggles: 100% Free Public ESRI & OSM Layers, Zero API Key -->
             <div class="flex space-x-1 font-mono text-[10px]">
-              <button onclick="setMapLayer('dark')" id="btn-map-dark" class="px-2.5 py-1 rounded-md bg-indigo-600 text-white font-medium">Dark Vector</button>
+              <button onclick="setMapLayer('dark')" id="btn-map-dark" class="px-2.5 py-1 rounded-md bg-indigo-600 text-white font-medium shadow-sm shadow-indigo-600/30">Dark Canvas</button>
+              <button onclick="setMapLayer('sat')" id="btn-map-sat" class="px-2.5 py-1 rounded-md bg-zinc-800 text-zinc-400 hover:text-white">Satellite HD</button>
               <button onclick="setMapLayer('osm')" id="btn-map-osm" class="px-2.5 py-1 rounded-md bg-zinc-800 text-zinc-400 hover:text-white">OpenStreetMap</button>
-              <button onclick="setMapLayer('light')" id="btn-map-light" class="px-2.5 py-1 rounded-md bg-zinc-800 text-zinc-400 hover:text-white">Voyager</button>
+              <button onclick="setMapLayer('topo')" id="btn-map-topo" class="px-2.5 py-1 rounded-md bg-zinc-800 text-zinc-400 hover:text-white">Topographic</button>
             </div>
 
+            <!-- Zero API Key Badge -->
+            <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-medium hidden lg:inline">✓ Zero API Key Required</span>
+
             <!-- Quick City Jump Chips -->
-            <div class="hidden xl:flex items-center space-x-1.5 text-[11px]">
+            <div class="hidden 2xl:flex items-center space-x-1 text-[11px]">
               <span class="text-zinc-500">Jump:</span>
               <button onclick="flyToCity(0)" class="px-2 py-0.5 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-300">NYC</button>
               <button onclick="flyToCity(1)" class="px-2 py-0.5 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-300">London</button>
@@ -865,6 +1106,8 @@
               <button onclick="flyToCity(3)" class="px-2 py-0.5 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-300">Paris</button>
               <button onclick="flyToCity(4)" class="px-2 py-0.5 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-300">SF</button>
               <button onclick="flyToCity(5)" class="px-2 py-0.5 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-300">Mumbai</button>
+              <button onclick="flyToCity(6)" class="px-2 py-0.5 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-300">Dubai</button>
+              <button onclick="flyToCity(7)" class="px-2 py-0.5 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-300">Singapore</button>
             </div>
           </div>
 
@@ -1653,17 +1896,17 @@
             <button onclick="browserReload()" class="p-1.5 hover:bg-zinc-800 rounded-md text-zinc-400 hover:text-white transition-colors" title="Reload">
               <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path></svg>
             </button>
-            <button onclick="browserLoadUrl('https://duckduckgo.com')" class="p-1.5 hover:bg-zinc-800 rounded-md text-zinc-400 hover:text-white transition-colors" title="Home">
+            <button onclick="browserLoadHome()" class="p-1.5 hover:bg-zinc-800 rounded-md text-zinc-400 hover:text-white transition-colors" title="Home">
               <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
             </button>
           </div>
 
           <!-- Engine Select -->
           <select id="browser-engine-select" class="bg-zinc-900 border border-zinc-700/60 rounded-lg px-2 py-1 text-xs text-zinc-300 font-medium focus:outline-none">
-            <option value="https://duckduckgo.com/?q=" selected>DuckDuckGo</option>
-            <option value="https://search.brave.com/search?q=">Brave</option>
-            <option value="https://www.startpage.com/sp/search?query=">Startpage</option>
-            <option value="https://en.wikipedia.org/wiki/Special:Search?search=">Wikipedia</option>
+            <option value="DuckDuckGo" selected>DuckDuckGo</option>
+            <option value="Wikipedia">Wikipedia</option>
+            <option value="Brave">Brave</option>
+            <option value="Startpage">Startpage</option>
           </select>
 
           <!-- URL / Search Bar -->
@@ -1672,38 +1915,112 @@
               <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
               <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
             </svg>
-            <input id="browser-url-bar" onkeydown="if(event.key==='Enter') browserNavigate()" type="text" placeholder="Enter web URL or search privacy query..." class="w-full bg-transparent text-xs text-white focus:outline-none font-sans">
-            <button onclick="browserNavigate()" class="ml-2 text-indigo-400 hover:text-indigo-300 text-xs font-semibold">GO</button>
+            <input id="browser-url-bar" onkeydown="if(event.key==='Enter') browserNavigate()" type="text" placeholder="Search privacy web intelligence or enter URL..." class="w-full bg-transparent text-xs text-white focus:outline-none font-sans">
+            <button onclick="browserNavigate()" class="ml-2 px-2.5 py-0.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded text-xs font-semibold">Search</button>
+          </div>
+
+          <!-- Mode Switcher Tabs -->
+          <div class="flex items-center bg-zinc-900 border border-zinc-800 rounded-lg p-0.5 text-xs font-medium">
+            <button onclick="switchBrowserTab('search')" id="btn-browser-tab-search" class="px-2.5 py-1 rounded bg-indigo-600 text-white font-medium flex items-center space-x-1 shadow-sm">
+              <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+              <span>Instant Intel</span>
+            </button>
+            <button onclick="switchBrowserTab('reader')" id="btn-browser-tab-reader" class="px-2.5 py-1 rounded text-zinc-400 hover:text-white flex items-center space-x-1">
+              <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+              <span>Reader Mode</span>
+            </button>
+            <button onclick="switchBrowserTab('frame')" id="btn-browser-tab-frame" class="px-2.5 py-1 rounded text-zinc-400 hover:text-white flex items-center space-x-1">
+              <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line></svg>
+              <span>Web Frame</span>
+            </button>
           </div>
 
           <!-- External System Browser Trigger -->
-          <button onclick="openCurrentInExternalBrowser()" class="px-3 py-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded-lg text-xs font-medium flex items-center space-x-1.5 border border-zinc-700/60 flex-shrink-0 transition-colors" title="Open current URL in your system default web browser (Chrome, Firefox, etc.)">
-            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+          <button onclick="openCurrentInExternalBrowser()" class="px-3 py-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded-lg text-xs font-medium flex items-center space-x-1.5 border border-zinc-700/60 flex-shrink-0 transition-colors" title="Launch current search or URL directly in your system default browser">
+            <svg class="w-3.5 h-3.5 text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
             <span>Open in System Browser</span>
           </button>
-
-          <!-- Privacy Shield Badges -->
-          <div class="hidden xl:flex items-center space-x-1.5">
-            <span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-mono font-medium">TOR-UA</span>
-            <span class="px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 text-[10px] font-mono font-medium">NO-TRACK</span>
-          </div>
         </div>
 
         <!-- Bookmarks Bar -->
         <div id="browser-bookmarks-bar" class="h-8 bg-zinc-950/70 border-b border-panel-border px-4 flex items-center space-x-4 text-xs font-medium overflow-x-auto">
-          <!-- Populated via initBrowserBookmarks -->
+          <!-- Populated dynamically via initBrowserBookmarks -->
         </div>
 
-        <!-- Web Content Frame -->
-        <div class="flex-1 bg-zinc-950 relative">
-          <iframe id="browser-frame" src="https://duckduckgo.com" class="w-full h-full border-none bg-white"></iframe>
+        <!-- MODE A: Instant Search & Web Intelligence Results Pane -->
+        <div id="browser-pane-search" class="flex-1 p-6 overflow-y-auto space-y-4">
+          <!-- Suggested Search Query Pills -->
+          <div class="flex items-center space-x-2 text-xs">
+            <span class="text-zinc-500 font-mono">Suggested:</span>
+            <div class="flex flex-wrap gap-1.5">
+              <button onclick="browserExecuteSearch('Python 3.14 features')" class="px-2.5 py-0.5 rounded-full bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-[11px]">Python 3.14</button>
+              <button onclick="browserExecuteSearch('Global cyber threat telemetry')" class="px-2.5 py-0.5 rounded-full bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-[11px]">Cyber Threats</button>
+              <button onclick="browserExecuteSearch('Quantum cryptography algorithms')" class="px-2.5 py-0.5 rounded-full bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-[11px]">Quantum Cryptography</button>
+              <button onclick="browserExecuteSearch('OpenStreetMap tile server architecture')" class="px-2.5 py-0.5 rounded-full bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-[11px]">OpenStreetMap Tech</button>
+              <button onclick="browserExecuteSearch('Linux eBPF kernel tracing')" class="px-2.5 py-0.5 rounded-full bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-[11px]">Linux eBPF</button>
+            </div>
+          </div>
 
-          <!-- Quick Open in External Floating Chip -->
-          <div class="absolute bottom-4 right-4 z-20">
-            <button onclick="openCurrentInExternalBrowser()" class="px-3 py-1.5 bg-zinc-900/90 hover:bg-zinc-800 text-zinc-300 hover:text-white rounded-lg text-xs font-medium border border-zinc-700/80 shadow-xl backdrop-blur-md flex items-center space-x-1.5 transition-all">
-              <svg class="w-3.5 h-3.5 text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
-              <span>Pop out to Native Browser</span>
-            </button>
+          <!-- Loading Indicator -->
+          <div id="browser-search-loading" class="hidden text-center py-10 space-y-2">
+            <div class="w-7 h-7 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+            <div class="text-xs text-zinc-400 font-mono">Querying sovereign privacy intelligence index...</div>
+          </div>
+
+          <!-- Instant Knowledge Card (DuckDuckGo / Wikipedia Abstract) -->
+          <div id="browser-instant-knowledge" class="hidden glass-panel p-5 rounded-xl border border-indigo-500/30 glow-accent space-y-2">
+            <div class="flex items-center justify-between">
+              <span id="knowledge-source-badge" class="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-indigo-500/15 text-indigo-400 border border-indigo-500/30">Knowledge Abstract</span>
+              <a id="knowledge-link" href="#" target="_blank" onclick="openExternalFromLink(event, this.href)" class="text-xs text-indigo-400 hover:text-indigo-300 font-medium">Read Full Source ↗</a>
+            </div>
+            <p id="knowledge-text" class="text-sm text-zinc-200 leading-relaxed font-sans"></p>
+          </div>
+
+          <!-- Structured Result Cards Container -->
+          <div id="browser-results-container" class="space-y-3">
+            <div class="glass-panel p-8 rounded-xl border border-panel-border text-center space-y-3">
+              <div class="w-12 h-12 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center mx-auto text-indigo-400 text-2xl">
+                🛡️
+              </div>
+              <h2 class="text-sm font-semibold text-white">Private Sovereign Web Intelligence</h2>
+              <p class="text-xs text-zinc-400 max-w-md mx-auto">
+                Search topics without telemetry or cookies. Click any result to read in distraction-free Reader Mode or launch in your native system browser.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- MODE B: Distraction-Free Article Reader Mode Pane -->
+        <div id="browser-pane-reader" class="hidden flex-1 flex flex-col overflow-hidden bg-zinc-950">
+          <div class="h-10 bg-zinc-900/80 border-b border-panel-border px-6 flex items-center justify-between flex-shrink-0">
+            <div class="flex items-center space-x-3 text-xs">
+              <span class="text-indigo-400 font-semibold font-mono uppercase tracking-wider">Reader Mode</span>
+              <span class="text-zinc-600">•</span>
+              <span id="reader-stats" class="text-zinc-400 font-mono text-[11px]">0 words • 0 min read</span>
+            </div>
+            <div class="flex items-center space-x-2">
+              <button onclick="openCurrentInExternalBrowser()" class="px-2.5 py-1 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-medium">Open in Browser ↗</button>
+              <button onclick="switchBrowserTab('search')" class="px-2.5 py-1 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-medium">Exit Reader</button>
+            </div>
+          </div>
+
+          <div class="flex-1 overflow-y-auto p-8">
+            <div id="reader-content-body" class="reader-article">
+              <div class="text-center py-16 text-zinc-500 font-mono text-xs">
+                No article loaded. Enter a web URL in the search bar or click "Read in Reader Mode" on any search result.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- MODE C: Embedded Web Frame Pane -->
+        <div id="browser-pane-frame" class="hidden flex-1 bg-zinc-950 relative flex flex-col">
+          <div class="h-8 bg-zinc-900/80 border-b border-panel-border px-4 flex items-center justify-between text-xs text-zinc-400 flex-shrink-0">
+            <span>💡 Note: Modern sites may block iframe embedding. Use Reader Mode or "Open in System Browser" if the page is blank.</span>
+            <button onclick="openCurrentInExternalBrowser()" class="text-indigo-400 hover:text-indigo-300 font-medium">Open Externally ↗</button>
+          </div>
+          <div class="flex-1 relative">
+            <iframe id="browser-frame" src="about:blank" class="w-full h-full border-none bg-white"></iframe>
           </div>
         </div>
       </section>
@@ -2631,8 +2948,306 @@
       ro.observe(container);
     }
 
+    // ── World Monitor Sovereign Country Intelligence State ──
+    let allCountriesCache = [];
+    let currentCountryRegion = "";
+    let selectedCountryData = null;
+    let countryClockTimer = null;
+
+    function switchWorldMonitorMode(mode) {
+      const isGlobe = mode === 'globe';
+      document.getElementById('wm-panel-globe').classList.toggle('hidden', !isGlobe);
+      document.getElementById('wm-panel-countries').classList.toggle('hidden', isGlobe);
+
+      const btnGlobe = document.getElementById('btn-wm-mode-globe');
+      const btnCountries = document.getElementById('btn-wm-mode-countries');
+      if (isGlobe) {
+        btnGlobe.className = "px-3 py-1 rounded-md bg-indigo-600 text-white font-medium flex items-center space-x-1.5 shadow-sm shadow-indigo-600/30";
+        btnCountries.className = "px-3 py-1 rounded-md text-zinc-400 hover:text-white flex items-center space-x-1.5";
+        setTimeout(() => {
+          const container = document.getElementById('globe-container');
+          if (container && globeRenderer && globeCamera) {
+            const w = container.clientWidth || 800;
+            const h = container.clientHeight || 500;
+            globeCamera.aspect = w / h;
+            globeCamera.updateProjectionMatrix();
+            globeRenderer.setSize(w, h);
+          }
+        }, 60);
+      } else {
+        btnCountries.className = "px-3 py-1 rounded-md bg-indigo-600 text-white font-medium flex items-center space-x-1.5 shadow-sm shadow-indigo-600/30";
+        btnGlobe.className = "px-3 py-1 rounded-md text-zinc-400 hover:text-white flex items-center space-x-1.5";
+        if (allCountriesCache.length === 0) {
+          loadCountryDirectory();
+        }
+      }
+    }
+
+    async function loadCountryDirectory(region = "", search = "") {
+      const countries = await callBackend('listCountries', region, search);
+      if (Array.isArray(countries)) {
+        allCountriesCache = countries;
+        renderCountriesDirectory(countries);
+      }
+    }
+
+    function renderCountriesDirectory(countries) {
+      const grid = document.getElementById('wm-countries-cards-grid');
+      const badge = document.getElementById('wm-country-count-badge');
+      if (badge) badge.textContent = `${countries.length} Nations`;
+      if (!grid) return;
+
+      if (!countries || countries.length === 0) {
+        grid.innerHTML = '<div class="col-span-2 text-center py-12 text-zinc-500 font-mono text-xs">No sovereign nations match your filter criteria.</div>';
+        return;
+      }
+
+      grid.innerHTML = countries.map(c => {
+        const isSel = selectedCountryData && selectedCountryData.id === c.id;
+        const defconColor = c.defcon === 1 ? 'text-red-400 border-red-500/30 bg-red-500/15' :
+                            c.defcon === 2 ? 'text-orange-400 border-orange-500/30 bg-orange-500/15' :
+                            c.defcon === 3 ? 'text-amber-400 border-amber-500/30 bg-amber-500/15' :
+                            'text-emerald-400 border-emerald-500/30 bg-emerald-500/15';
+
+        // Compute local time for card preview
+        const now = new Date();
+        const utcMs = now.getTime() + (now.getTimezoneOffset() * 60000);
+        const countryMs = utcMs + ((c.utc_offset_hours || 0) * 3600000);
+        const countryDate = new Date(countryMs);
+        const timeStr = countryDate.toTimeString().split(' ')[0];
+
+        return `
+          <div onclick="selectCountry('${c.id}')" class="country-card glass-panel p-3.5 rounded-xl border border-panel-border flex flex-col justify-between ${isSel ? 'selected' : ''}">
+            <div>
+              <div class="flex items-start justify-between">
+                <div class="flex items-center space-x-2.5">
+                  <span class="text-2xl">${c.flag_emoji || '🌐'}</span>
+                  <div>
+                    <h3 class="text-xs font-bold text-white leading-tight">${escapeHtml(c.name)}</h3>
+                    <div class="text-[10px] text-zinc-400">${escapeHtml(c.capital)} • <span class="text-indigo-400 font-mono">${escapeHtml(c.region)}</span></div>
+                  </div>
+                </div>
+                <span class="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold border ${defconColor}">DEFCON ${c.defcon}</span>
+              </div>
+
+              <!-- Metrics Row -->
+              <div class="grid grid-cols-2 gap-2 my-2.5 text-[10px] font-mono">
+                <div class="bg-zinc-900/80 px-2 py-1 rounded border border-zinc-800/80">
+                  <span class="text-zinc-500">GDP: </span><span class="text-zinc-200 font-bold">${c.gdp_usd || 'N/A'}</span>
+                </div>
+                <div class="bg-zinc-900/80 px-2 py-1 rounded border border-zinc-800/80">
+                  <span class="text-zinc-500">Local: </span><span class="text-indigo-300 font-bold">${timeStr}</span>
+                </div>
+              </div>
+
+              <!-- Cyber readiness meter -->
+              <div class="text-[9px] font-mono text-zinc-400 flex items-center justify-between mb-1">
+                <span>Cyber Readiness:</span>
+                <span class="text-emerald-400 font-bold">${c.cyber_defense_score || 80}/100</span>
+              </div>
+              <div class="w-full bg-zinc-800 rounded-full h-1 overflow-hidden">
+                <div class="bg-gradient-to-r from-indigo-500 to-emerald-400 h-full" style="width: ${c.cyber_defense_score || 80}%"></div>
+              </div>
+            </div>
+
+            <div class="mt-2.5 pt-2 border-t border-panel-border/60 flex items-center justify-between text-[10px]">
+              <span class="text-zinc-500 font-mono">Mil Rank: #${c.military_rank || 'N/A'}</span>
+              <span class="text-indigo-400 font-medium group-hover:text-indigo-300 flex items-center space-x-1">
+                <span>Inspect Dossier</span>
+                <span>→</span>
+              </span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function filterCountryRegion(reg) {
+      currentCountryRegion = reg;
+      ['all', 'americas', 'europe', 'asiapac', 'mideast', 'africa'].forEach(r => {
+        const btn = document.getElementById(`btn-wm-reg-${r}`);
+        if (!btn) return;
+        const matches = (r === 'all' && reg === '') ||
+                        (r === 'americas' && reg === 'Americas') ||
+                        (r === 'europe' && reg === 'Europe') ||
+                        (r === 'asiapac' && reg === 'Asia-Pacific') ||
+                        (r === 'mideast' && reg === 'Middle East') ||
+                        (r === 'africa' && reg === 'Africa');
+        if (matches) {
+          btn.className = "px-2.5 py-0.5 rounded-md bg-indigo-600 text-white font-medium text-[11px]";
+        } else {
+          btn.className = "px-2.5 py-0.5 rounded-md bg-zinc-800 text-zinc-400 hover:text-white text-[11px]";
+        }
+      });
+
+      const q = document.getElementById('wm-country-search-input')?.value.trim() || '';
+      loadCountryDirectory(currentCountryRegion, q);
+    }
+
+    let countrySearchDebounce = null;
+    function onCountrySearchInput() {
+      clearTimeout(countrySearchDebounce);
+      countrySearchDebounce = setTimeout(() => {
+        const q = document.getElementById('wm-country-search-input')?.value.trim() || '';
+        loadCountryDirectory(currentCountryRegion, q);
+      }, 200);
+    }
+
+    async function selectCountry(countryId) {
+      const details = await callBackend('getCountryDetails', countryId);
+      if (!details) return;
+      selectedCountryData = details;
+
+      // Update selection styling in directory
+      document.querySelectorAll('.country-card').forEach(c => c.classList.remove('selected'));
+      renderCountriesDirectory(allCountriesCache);
+
+      // Fetch live correlation telemetry
+      const liveIntel = await callBackend('getCountryLiveIntel', countryId);
+      renderCountryDossier(details, liveIntel);
+    }
+
+    function renderCountryDossier(country, liveIntel) {
+      document.getElementById('wm-dossier-placeholder')?.classList.add('hidden');
+      const content = document.getElementById('wm-dossier-content');
+      if (!content) return;
+      content.classList.remove('hidden');
+
+      document.getElementById('dossier-flag').textContent = country.flag_emoji || '🌐';
+      document.getElementById('dossier-name').textContent = country.name;
+      document.getElementById('dossier-capital').textContent = country.capital;
+      document.getElementById('dossier-region').textContent = country.region;
+      document.getElementById('dossier-assessment').textContent = country.geopolitical_assessment || "No formal assessment logged.";
+
+      // DEFCON Badge
+      const defconBadge = document.getElementById('dossier-defcon-badge');
+      if (defconBadge) {
+        defconBadge.textContent = `DEFCON ${country.defcon || 4}`;
+        defconBadge.className = country.defcon === 1 ? 'px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-red-500/15 text-red-400 border border-red-500/30' :
+                                country.defcon === 2 ? 'px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-orange-500/15 text-orange-400 border border-orange-500/30' :
+                                country.defcon === 3 ? 'px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30' :
+                                'px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30';
+      }
+
+      // UTC offset & live ticker
+      const utcOffset = country.utc_offset_hours || 0;
+      const sign = utcOffset >= 0 ? '+' : '-';
+      const absH = Math.floor(Math.abs(utcOffset));
+      const absM = Math.round((Math.abs(utcOffset) - absH) * 60);
+      const pad = (n) => String(n).padStart(2, '0');
+      document.getElementById('dossier-utc-offset').textContent = `UTC ${sign}${pad(absH)}:${pad(absM)}`;
+
+      if (countryClockTimer) clearInterval(countryClockTimer);
+      function updateLiveCountryClock() {
+        const now = new Date();
+        const utcMs = now.getTime() + (now.getTimezoneOffset() * 60000);
+        const countryMs = utcMs + (utcOffset * 3600000);
+        const countryDate = new Date(countryMs);
+        const timeEl = document.getElementById('dossier-live-clock');
+        if (timeEl) timeEl.textContent = countryDate.toTimeString().split(' ')[0];
+      }
+      updateLiveCountryClock();
+      countryClockTimer = setInterval(updateLiveCountryClock, 1000);
+
+      // 4 Vital Stats
+      document.getElementById('dossier-gdp').textContent = country.gdp_usd || 'N/A';
+      document.getElementById('dossier-population').textContent = country.population ? `${(country.population / 1e6).toFixed(1)} Million` : 'N/A';
+      document.getElementById('dossier-military-rank').textContent = country.military_rank ? `#${country.military_rank} Global Force` : 'Standard Force';
+      document.getElementById('dossier-cyber-score').textContent = country.cyber_defense_score ? `${country.cyber_defense_score} / 100` : '80 / 100';
+
+      // Alliances
+      const alliancesEl = document.getElementById('dossier-alliances');
+      if (alliancesEl) {
+        if (country.alliances && country.alliances.length > 0) {
+          alliancesEl.innerHTML = country.alliances.map(a => `
+            <span class="px-2 py-0.5 rounded bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 font-mono text-[10px] font-semibold">${escapeHtml(a)}</span>
+          `).join('');
+        } else {
+          alliancesEl.innerHTML = '<span class="text-zinc-500 text-xs font-mono">Non-aligned sovereign state</span>';
+        }
+      }
+
+      // Real-Time Quakes near country
+      const quakesList = document.getElementById('dossier-quakes-list');
+      const quakesCount = document.getElementById('dossier-quakes-count');
+      if (quakesList && liveIntel && liveIntel.nearby_earthquakes) {
+        if (quakesCount) quakesCount.textContent = `${liveIntel.nearby_earthquakes.length} Events`;
+        if (liveIntel.nearby_earthquakes.length === 0) {
+          quakesList.innerHTML = '<div class="text-zinc-500 text-[11px] font-mono py-1.5">No recent earthquakes recorded within 2,500 km.</div>';
+        } else {
+          quakesList.innerHTML = liveIntel.nearby_earthquakes.map(q => `
+            <div class="glass-elevated p-2 rounded border border-panel-border flex items-center justify-between text-xs font-mono">
+              <span class="text-white truncate max-w-[210px]">${escapeHtml(q.title)}</span>
+              <div class="flex items-center space-x-2">
+                <span class="text-zinc-400 text-[10px]">${q.distance_km} km</span>
+                <span class="px-1.5 py-0.5 rounded font-bold text-[10px] ${q.mag >= 5 ? 'bg-red-500/20 text-red-400' : 'bg-amber-500/20 text-amber-400'}">M${q.mag}</span>
+              </div>
+            </div>
+          `).join('');
+        }
+      }
+
+      // Nearby Subsea Chokepoints
+      const chokepointsEl = document.getElementById('dossier-chokepoints');
+      if (chokepointsEl && liveIntel && liveIntel.proximate_subsea_chokepoints) {
+        chokepointsEl.innerHTML = liveIntel.proximate_subsea_chokepoints.map(cp => `
+          <div class="glass-elevated p-1.5 rounded border border-panel-border flex items-center justify-between text-[11px] font-mono">
+            <span class="text-sky-300 font-medium">${escapeHtml(cp.name)}</span>
+            <span class="text-zinc-400">${cp.bandwidth_tbps} Tbps (${cp.status})</span>
+          </div>
+        `).join('');
+      }
+    }
+
+    function flyGlobeToCoordinates(lat, lon) {
+      if (!globeCamera || !earthRoot) return;
+      const targetRotX = -(lat * Math.PI / 180);
+      const targetRotY = -((lon + 90) * Math.PI / 180);
+      globeTargetRotation.x = Math.max(-Math.PI / 2.2, Math.min(Math.PI / 2.2, targetRotX));
+      globeTargetRotation.y = targetRotY;
+      globeCamera.position.z = 2.0;
+    }
+
+    function onGlobeCountrySelect(countryId) {
+      if (!countryId) return;
+      flyGlobeToCountry(countryId);
+    }
+
+    async function flyGlobeToCountry(countryId) {
+      const country = await callBackend('getCountryDetails', countryId);
+      if (country && country.lat !== undefined && country.lon !== undefined) {
+        flyGlobeToCoordinates(country.lat, country.lon);
+      }
+    }
+
+    function flyDossierCountryToGlobe() {
+      if (!selectedCountryData) return;
+      switchWorldMonitorMode('globe');
+      flyGlobeToCoordinates(selectedCountryData.lat, selectedCountryData.lon);
+    }
+
+    function locateDossierCountryOnMap() {
+      if (!selectedCountryData) return;
+      switchTab('maps');
+      setTimeout(() => {
+        if (leafletMapInstance) {
+          leafletMapInstance.flyTo([selectedCountryData.lat, selectedCountryData.lon], 6, { duration: 1.5 });
+          if (window._tempMapPin) leafletMapInstance.removeLayer(window._tempMapPin);
+          window._tempMapPin = L.marker([selectedCountryData.lat, selectedCountryData.lon], { icon: createMapMarkerIcon('#6366f1') }).addTo(leafletMapInstance);
+          window._tempMapPin.bindPopup(`
+            <div style="font-family:Inter,sans-serif; color:#09090b; padding:4px;">
+              <div style="font-weight:700; font-size:13px;">${selectedCountryData.flag_emoji || ''} ${selectedCountryData.name}</div>
+              <div style="font-size:11px; color:#52525b; margin-top:2px;">Capital: ${selectedCountryData.capital}</div>
+              <div style="font-size:11px; color:#52525b;">GDP: ${selectedCountryData.gdp_usd || 'N/A'}</div>
+            </div>
+          `).openPopup();
+        }
+      }, 200);
+    }
+
     async function refreshWorldMonitor() {
       init3DGlobe();
+      loadCountryDirectory();
       const summary = await callBackend('getWorldMonitorSummary');
       if (!summary) return;
 
@@ -2707,7 +3322,7 @@
     }
 
     // =========================================================================
-    // 4. MAPS & NAVIGATION SUBSYSTEM
+    // 4. MAPS & NAVIGATION SUBSYSTEM (ESRI ZERO-API-KEY TILES)
     // =========================================================================
     let leafletMapInstance = null;
     let currentMapTileLayer = null;
@@ -2720,7 +3335,10 @@
       { name: "Tokyo", lat: 35.6762, lon: 139.6503 },
       { name: "Paris", lat: 48.8566, lon: 2.3522 },
       { name: "San Francisco", lat: 37.7749, lon: -122.4194 },
-      { name: "Mumbai", lat: 19.0760, lon: 72.8777 }
+      { name: "Mumbai", lat: 19.0760, lon: 72.8777 },
+      { name: "Dubai", lat: 25.2048, lon: 55.2708 },
+      { name: "Singapore", lat: 1.3521, lon: 103.8198 },
+      { name: "Sydney", lat: -33.8688, lon: 151.2093 }
     ];
 
     function createMapMarkerIcon(color = '#6366f1') {
@@ -2782,31 +3400,39 @@
       if (!leafletMapInstance) return;
       if (currentMapTileLayer) leafletMapInstance.removeLayer(currentMapTileLayer);
 
-      ['dark', 'osm', 'light'].forEach(t => {
+      ['dark', 'sat', 'osm', 'topo'].forEach(t => {
         const btn = document.getElementById(`btn-map-${t}`);
         if (btn) {
           if (t === layerType) {
-            btn.className = "px-2.5 py-1 rounded-md bg-indigo-600 text-white font-medium";
+            btn.className = "px-2.5 py-1 rounded-md bg-indigo-600 text-white font-medium shadow-sm shadow-indigo-600/30";
           } else {
             btn.className = "px-2.5 py-1 rounded-md bg-zinc-800 text-zinc-400 hover:text-white";
           }
         }
       });
 
+      // 100% Free Public High-Resolution Map Tiles (Zero API Key Required)
       if (layerType === 'dark') {
-        currentMapTileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-          attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
-          subdomains: 'abcd',
+        // ESRI World Dark Gray Canvas
+        currentMapTileLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+          attribution: '&copy; Esri &copy; OpenStreetMap contributors',
+          maxZoom: 16
+        }).addTo(leafletMapInstance);
+      } else if (layerType === 'sat') {
+        // ESRI World Imagery HD (Photorealistic Satellite)
+        currentMapTileLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+          attribution: '&copy; Esri, Maxar, Earthstar Geographics',
           maxZoom: 19
         }).addTo(leafletMapInstance);
-      } else if (layerType === 'light') {
-        currentMapTileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-          attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
-          subdomains: 'abcd',
+      } else if (layerType === 'topo') {
+        // ESRI World Topographic Map
+        currentMapTileLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', {
+          attribution: '&copy; Esri, USGS, NOAA',
           maxZoom: 19
         }).addTo(leafletMapInstance);
       } else {
-        currentMapTileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        // OpenStreetMap Standard Free Public Tiles
+        currentMapTileLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
           attribution: '&copy; OpenStreetMap contributors',
           maxZoom: 19
         }).addTo(leafletMapInstance);
@@ -4274,38 +4900,274 @@
     }
 
     // =========================================================================
-    // 18. PRIVACY WEB BROWSER
+    // 18. PRIVACY WEB BROWSER WITH INSTANT INTEL & DISTRACTION-FREE READER MODE
     // =========================================================================
+    let activeBrowserTab = 'search';
+    let currentBrowserQuery = '';
+    let currentLoadedUrl = '';
+
+    function switchBrowserTab(tab) {
+      activeBrowserTab = tab;
+      document.getElementById('browser-pane-search')?.classList.toggle('hidden', tab !== 'search');
+      document.getElementById('browser-pane-reader')?.classList.toggle('hidden', tab !== 'reader');
+      document.getElementById('browser-pane-frame')?.classList.toggle('hidden', tab !== 'frame');
+
+      ['search', 'reader', 'frame'].forEach(t => {
+        const btn = document.getElementById(`btn-browser-tab-${t}`);
+        if (!btn) return;
+        if (t === tab) {
+          btn.className = "px-2.5 py-1 rounded bg-indigo-600 text-white font-medium flex items-center space-x-1 shadow-sm";
+        } else {
+          btn.className = "px-2.5 py-1 rounded text-zinc-400 hover:text-white flex items-center space-x-1";
+        }
+      });
+    }
+
     async function initBrowserBookmarks() {
       const bar = document.getElementById('browser-bookmarks-bar');
       if (!bar) return;
       try {
-        const bms = await callBackend('listBrowserBookmarks');
-        if (bms && Array.isArray(bms) && bms.length > 0) {
-          bar.innerHTML = bms.map(b => `
-            <button onclick="browserLoadUrl('${escapeHtml(b.url)}')" class="px-2.5 py-1 rounded bg-zinc-900/80 hover:bg-zinc-800 text-zinc-300 hover:text-white border border-zinc-800 text-xs flex items-center space-x-1.5 flex-shrink-0 transition-colors">
-              <span class="w-1.5 h-1.5 rounded-full bg-indigo-400"></span>
-              <span>${escapeHtml(b.title)}</span>
-            </button>
-          `).join('') + `
-            <button onclick="addCurrentAsBookmark()" class="px-2 py-1 text-zinc-500 hover:text-indigo-400 text-xs font-medium flex-shrink-0 transition-colors">+ Bookmark</button>
-          `;
-        } else {
-          bar.innerHTML = `
-            <button onclick="browserLoadUrl('https://duckduckgo.com')" class="px-2.5 py-1 rounded bg-zinc-900/80 hover:bg-zinc-800 text-zinc-300 hover:text-white border border-zinc-800 text-xs">DuckDuckGo</button>
-            <button onclick="browserLoadUrl('https://en.wikipedia.org')" class="px-2.5 py-1 rounded bg-zinc-900/80 hover:bg-zinc-800 text-zinc-300 hover:text-white border border-zinc-800 text-xs">Wikipedia</button>
-            <button onclick="browserLoadUrl('https://github.com')" class="px-2.5 py-1 rounded bg-zinc-900/80 hover:bg-zinc-800 text-zinc-300 hover:text-white border border-zinc-800 text-xs">GitHub</button>
-            <button onclick="browserLoadUrl('https://news.ycombinator.com')" class="px-2.5 py-1 rounded bg-zinc-900/80 hover:bg-zinc-800 text-zinc-300 hover:text-white border border-zinc-800 text-xs">Hacker News</button>
-            <button onclick="addCurrentAsBookmark()" class="px-2 py-1 text-zinc-500 hover:text-indigo-400 text-xs font-medium flex-shrink-0 transition-colors">+ Bookmark</button>
-          `;
-        }
+        const PRESETS = [
+          { title: "DuckDuckGo", icon: "🦆", url: "https://duckduckgo.com" },
+          { title: "Wikipedia", icon: "📚", url: "https://en.wikipedia.org" },
+          { title: "GitHub", icon: "🐙", url: "https://github.com" },
+          { title: "Hacker News", icon: "🟧", url: "https://news.ycombinator.com" },
+          { title: "OpenStreetMap", icon: "🗺️", url: "https://www.openstreetmap.org" },
+          { title: "ArXiv", icon: "🔬", url: "https://arxiv.org" },
+          { title: "Internet Archive", icon: "🏛️", url: "https://archive.org" },
+          { title: "Startpage", icon: "⚡", url: "https://www.startpage.com" }
+        ];
+
+        bar.innerHTML = PRESETS.map(b => `
+          <button onclick="onBookmarkClick('${escapeHtml(b.title)}', '${escapeHtml(b.url)}')" class="px-2.5 py-1 rounded-md bg-zinc-900/90 hover:bg-zinc-800 text-zinc-300 hover:text-white border border-zinc-800 text-xs flex items-center space-x-1.5 flex-shrink-0 transition-all hover:scale-[1.02]">
+            <span>${b.icon}</span>
+            <span>${escapeHtml(b.title)}</span>
+          </button>
+        `).join('') + `
+          <button onclick="addCurrentAsBookmark()" class="px-2.5 py-1 text-zinc-500 hover:text-indigo-400 text-xs font-medium flex-shrink-0 transition-colors">+ Save Bookmark</button>
+        `;
       } catch (e) {
         console.error("Bookmarks error:", e);
       }
     }
 
+    function onBookmarkClick(title, url) {
+      document.getElementById('browser-url-bar').value = url;
+      currentLoadedUrl = url;
+      if (url.includes('wikipedia.org') || url.includes('github.com')) {
+        browserExecuteSearch(title);
+      } else {
+        callBackend('openExternalUrl', url);
+      }
+    }
+
+    function browserLoadHome() {
+      document.getElementById('browser-url-bar').value = '';
+      switchBrowserTab('search');
+    }
+
+    async function browserNavigate() {
+      const input = document.getElementById('browser-url-bar').value.trim();
+      if (!input) return;
+
+      if (input.startsWith('http://') || input.startsWith('https://')) {
+        currentLoadedUrl = input;
+        await openReaderMode(input);
+      } else if (input.includes('.') && !input.includes(' ')) {
+        const fullUrl = 'https://' + input;
+        currentLoadedUrl = fullUrl;
+        document.getElementById('browser-url-bar').value = fullUrl;
+        await openReaderMode(fullUrl);
+      } else {
+        await browserExecuteSearch(input);
+      }
+    }
+
+    async function browserExecuteSearch(query) {
+      if (!query) return;
+      document.getElementById('browser-url-bar').value = query;
+      currentBrowserQuery = query;
+      switchBrowserTab('search');
+
+      const loading = document.getElementById('browser-search-loading');
+      const resultsContainer = document.getElementById('browser-results-container');
+      const knowledgeCard = document.getElementById('browser-instant-knowledge');
+
+      if (loading) loading.classList.remove('hidden');
+      if (resultsContainer) resultsContainer.innerHTML = '';
+      if (knowledgeCard) knowledgeCard.classList.add('hidden');
+
+      const engine = document.getElementById('browser-engine-select')?.value || 'DuckDuckGo';
+
+      try {
+        const res = await callBackend('searchWebIntelligence', query, engine);
+        if (loading) loading.classList.add('hidden');
+
+        if (res && res.success) {
+          renderSearchResults(res);
+        } else {
+          resultsContainer.innerHTML = `
+            <div class="glass-panel p-6 rounded-xl border border-panel-border text-center text-xs text-zinc-400">
+              No results returned. Try searching a different keyword or open directly in your system browser.
+            </div>
+          `;
+        }
+      } catch (err) {
+        if (loading) loading.classList.add('hidden');
+        resultsContainer.innerHTML = `
+          <div class="glass-panel p-6 rounded-xl border border-panel-border text-center text-xs text-red-400">
+            Error querying search intelligence: ${escapeHtml(String(err))}
+          </div>
+        `;
+      }
+    }
+
+    function renderSearchResults(data) {
+      const resultsContainer = document.getElementById('browser-results-container');
+      const knowledgeCard = document.getElementById('browser-instant-knowledge');
+      if (!resultsContainer) return;
+
+      // 1. Instant Abstract Card
+      if (data.abstract && knowledgeCard) {
+        knowledgeCard.classList.remove('hidden');
+        document.getElementById('knowledge-text').textContent = data.abstract;
+        document.getElementById('knowledge-source-badge').textContent = data.abstract_source || "Knowledge Intel";
+        const linkEl = document.getElementById('knowledge-link');
+        if (data.abstract_url && linkEl) {
+          linkEl.href = data.abstract_url;
+          linkEl.classList.remove('hidden');
+        } else if (linkEl) {
+          linkEl.classList.add('hidden');
+        }
+      }
+
+      // 2. Structured Result Cards
+      if (!data.results || data.results.length === 0) {
+        resultsContainer.innerHTML = `
+          <div class="glass-panel p-6 rounded-xl border border-panel-border text-center text-xs text-zinc-400">
+            No matches found for "${escapeHtml(data.query)}".
+          </div>
+        `;
+        return;
+      }
+
+      resultsContainer.innerHTML = data.results.map(r => {
+        let domain = "";
+        try { domain = new URL(r.url).hostname; } catch(e){ domain = r.source || "web"; }
+
+        return `
+          <div class="glass-panel p-4 rounded-xl border border-panel-border card-hover flex flex-col justify-between space-y-2">
+            <div>
+              <div class="flex items-center space-x-2">
+                <span class="text-[10px] font-mono font-medium px-2 py-0.5 rounded bg-zinc-800 text-indigo-400 border border-zinc-700/60">${escapeHtml(domain)}</span>
+                <span class="text-[10px] text-zinc-500 font-mono">${escapeHtml(r.source || 'Search Index')}</span>
+              </div>
+              <h3 class="text-sm font-bold text-white mt-1.5 leading-snug hover:text-indigo-300 transition-colors cursor-pointer" onclick="openReaderMode('${escapeHtml(r.url)}')">${escapeHtml(r.title)}</h3>
+              <p class="text-xs text-zinc-300 font-sans mt-1 leading-relaxed">${escapeHtml(r.snippet)}</p>
+            </div>
+
+            <div class="flex items-center space-x-2 pt-2 border-t border-panel-border/60 text-xs">
+              <button onclick="openReaderMode('${escapeHtml(r.url)}')" class="px-2.5 py-1 rounded bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 text-xs font-medium flex items-center space-x-1 transition-colors">
+                <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+                <span>Read in Reader Mode</span>
+              </button>
+              <button onclick="callBackend('openExternalUrl', '${escapeHtml(r.url)}')" class="px-2.5 py-1 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-medium flex items-center space-x-1 transition-colors">
+                <svg class="w-3 h-3 text-zinc-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                <span>Open in Native Browser</span>
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function openReaderMode(url) {
+      if (!url) return;
+      currentLoadedUrl = url;
+      switchBrowserTab('reader');
+
+      const bodyEl = document.getElementById('reader-content-body');
+      const statsEl = document.getElementById('reader-stats');
+      if (bodyEl) {
+        bodyEl.innerHTML = `
+          <div class="text-center py-16 space-y-3">
+            <div class="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+            <div class="text-xs text-zinc-400 font-mono">Fetching sanitized article text & stripping telemetry...</div>
+          </div>
+        `;
+      }
+
+      try {
+        const article = await callBackend('fetchWebContent', url);
+        if (article && article.success) {
+          renderReaderContent(article);
+        } else {
+          if (bodyEl) {
+            bodyEl.innerHTML = `
+              <div class="glass-panel p-6 rounded-xl border border-panel-border text-center space-y-3">
+                <div class="text-sm font-bold text-amber-400">Reader Mode Preview Unavailable</div>
+                <p class="text-xs text-zinc-400 max-w-md mx-auto">
+                  ${escapeHtml(article?.error || "This website blocked programmatic fetching or requires browser rendering.")}
+                </p>
+                <div class="pt-2">
+                  <button onclick="callBackend('openExternalUrl', '${escapeHtml(url)}')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold">
+                    Open Directly in Native Browser ↗
+                  </button>
+                </div>
+              </div>
+            `;
+          }
+        }
+      } catch (err) {
+        if (bodyEl) {
+          bodyEl.innerHTML = `
+            <div class="glass-panel p-6 rounded-xl border border-panel-border text-center text-xs text-red-400">
+              Failed to load reader mode: ${escapeHtml(String(err))}
+            </div>
+          `;
+        }
+      }
+    }
+
+    function renderReaderContent(data) {
+      const bodyEl = document.getElementById('reader-content-body');
+      const statsEl = document.getElementById('reader-stats');
+      if (!bodyEl) return;
+
+      if (statsEl) {
+        statsEl.textContent = `${data.word_count || 0} words • ~${data.reading_time_min || 1} min read`;
+      }
+
+      // Convert clean markdown / text into readable paragraphs
+      const paragraphs = (data.content || "").split(/\n\n+/).map(p => p.trim()).filter(Boolean);
+      const formattedHtml = paragraphs.map(p => {
+        if (p.startsWith('# ')) return `<h1>${escapeHtml(p.replace('# ', ''))}</h1>`;
+        if (p.startsWith('## ')) return `<h2>${escapeHtml(p.replace('## ', ''))}</h2>`;
+        if (p.startsWith('### ')) return `<h3>${escapeHtml(p.replace('### ', ''))}</h3>`;
+        return `<p>${escapeHtml(p)}</p>`;
+      }).join('');
+
+      bodyEl.innerHTML = `
+        <div class="border-b border-panel-border pb-4 mb-6">
+          <div class="text-xs font-mono text-indigo-400 mb-1">${escapeHtml(data.domain || '')}</div>
+          <h1 class="text-2xl font-bold text-white leading-tight">${escapeHtml(data.title || 'Article Content')}</h1>
+          <div class="text-xs text-zinc-500 font-mono mt-1">Source: <a href="${escapeHtml(data.url)}" onclick="callBackend('openExternalUrl', '${escapeHtml(data.url)}')" class="text-indigo-400 hover:underline">${escapeHtml(data.url)}</a></div>
+        </div>
+        <div class="text-zinc-200 leading-relaxed font-sans text-sm space-y-4">
+          ${formattedHtml || '<p class="text-zinc-500 font-mono">No article text extracted.</p>'}
+        </div>
+      `;
+    }
+
+    function openExternalFromLink(event, url) {
+      if (event) event.preventDefault();
+      if (url && url !== '#') {
+        callBackend('openExternalUrl', url);
+      }
+    }
+
     async function addCurrentAsBookmark() {
-      const currentUrl = document.getElementById('browser-url-bar').value.trim();
+      const currentUrl = currentLoadedUrl || document.getElementById('browser-url-bar').value.trim();
       if (!currentUrl) {
         alert("Enter or load a URL first to bookmark.");
         return;
@@ -4318,43 +5180,35 @@
       }
     }
 
-    function browserLoadUrl(url) {
-      if (!url) return;
-      document.getElementById('browser-url-bar').value = url;
-      document.getElementById('browser-frame').src = url;
-    }
-
-    async function browserNavigate() {
-      const query = document.getElementById('browser-url-bar').value.trim();
-      if (!query) return;
-
-      if (query.startsWith('http://') || query.startsWith('https://')) {
-        browserLoadUrl(query);
-      } else if (query.includes('.') && !query.includes(' ')) {
-        browserLoadUrl('https://' + query);
+    function browserGoBack() {
+      if (activeBrowserTab === 'frame') {
+        try { document.getElementById('browser-frame').contentWindow.history.back(); } catch(e){}
       } else {
-        const engineSelect = document.getElementById('browser-engine-select');
-        const engineBase = engineSelect ? engineSelect.value : "https://duckduckgo.com/?q=";
-        const targetUrl = engineBase + encodeURIComponent(query);
-        browserLoadUrl(targetUrl);
+        switchBrowserTab('search');
       }
     }
 
-    function browserGoBack() {
-      try { document.getElementById('browser-frame').contentWindow.history.back(); } catch(e){}
-    }
-
     function browserReload() {
-      const frame = document.getElementById('browser-frame');
-      if (frame) frame.src = frame.src;
+      if (activeBrowserTab === 'search' && currentBrowserQuery) {
+        browserExecuteSearch(currentBrowserQuery);
+      } else if (activeBrowserTab === 'reader' && currentLoadedUrl) {
+        openReaderMode(currentLoadedUrl);
+      } else {
+        const frame = document.getElementById('browser-frame');
+        if (frame) frame.src = frame.src;
+      }
     }
 
     function openCurrentInExternalBrowser() {
-      const url = document.getElementById('browser-url-bar').value.trim() || document.getElementById('browser-frame').src;
+      const url = currentLoadedUrl || document.getElementById('browser-url-bar').value.trim();
       if (url && url !== 'about:blank') {
-        callBackend('openExternalUrl', url);
+        if (!url.startsWith('http://') && !url.startsWith('https://')) {
+          callBackend('openExternalUrl', `https://duckduckgo.com/?q=${encodeURIComponent(url)}`);
+        } else {
+          callBackend('openExternalUrl', url);
+        }
       } else {
-        alert("Enter or navigate to a URL first.");
+        callBackend('openExternalUrl', 'https://duckduckgo.com');
       }
     }
 

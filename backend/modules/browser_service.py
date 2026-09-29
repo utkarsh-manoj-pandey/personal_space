@@ -11,10 +11,16 @@ Features:
 """
 
 import re
+import json
+import logging
 import urllib.parse
+import urllib.request
 from typing import List, Dict, Any, Optional
 from ..database_manager import db_manager
 from ..core.validation import Sanitizer, FieldValidator
+
+logger = logging.getLogger("BrowserService")
+
 
 
 class TrackerFilterEngine:
@@ -246,8 +252,156 @@ class BrowserService:
             cat = bm.get("category", "General")
             lines.append(f"    <DT><A HREF=\"{url}\" TAGS=\"{cat}\">{title}</A>")
 
-        lines.append("</DL><p>")
-        return "\n".join(lines)
+    def fetch_web_content(self, url: str) -> Dict[str, Any]:
+        """
+        Fetches web page content securely via hardened backend proxy.
+        Strips intrusive tracking scripts, ads, and anti-iframe headers.
+        Extracts title, clean text, links, and readable HTML content.
+        """
+        clean_url = self.sanitize_nav_url(url)
+        security_eval = self.evaluate_url_security(clean_url)
+        if security_eval.get("is_tracker_domain"):
+            return {
+                "success": False,
+                "error": f"URL blocked by surveillance tracker filter: {security_eval.get('threat_reason')}",
+                "url": clean_url
+            }
+
+        headers = self.generate_hardened_headers()
+        try:
+            req = urllib.request.Request(clean_url, headers=headers)
+            with urllib.request.urlopen(req, timeout=8) as response:
+                content_type = response.headers.get("Content-Type", "")
+                raw_bytes = response.read()
+
+                # Detect encoding
+                encoding = "utf-8"
+                if "charset=" in content_type:
+                    encoding = content_type.split("charset=")[-1].split(";")[0].strip()
+
+                try:
+                    html_text = raw_bytes.decode(encoding, errors="replace")
+                except Exception:
+                    html_text = raw_bytes.decode("utf-8", errors="replace")
+
+                # Extract title
+                title_match = re.search(r"<title[^>]*>(.*?)</title>", html_text, re.IGNORECASE | re.DOTALL)
+                title = title_match.group(1).strip() if title_match else clean_url
+
+                # Clean basic HTML: remove script, style, and iframe tags
+                clean_html = re.sub(r"<(script|style|iframe|noscript)[^>]*>.*?</\1>", "", html_text, flags=re.IGNORECASE | re.DOTALL)
+                # Strip all HTML tags to get pure article text
+                text_content = re.sub(r"<[^>]+>", " ", clean_html)
+                text_content = re.sub(r"\s+", " ", text_content).strip()
+
+                # Extract top external links
+                links = []
+                for m in re.finditer(r'<a\s+(?:[^>]*?\s+)?href="([^"]*)"[^>]*>(.*?)</a>', clean_html, re.IGNORECASE):
+                    href = m.group(1).strip()
+                    link_text = re.sub(r"<[^>]+>", "", m.group(2)).strip()
+                    if href.startswith("http") and link_text and len(links) < 15:
+                        links.append({"url": href, "text": link_text[:80]})
+
+                domain = urllib.parse.urlparse(clean_url).netloc
+                words = len(text_content.split())
+                reading_time = max(1, round(words / 200))
+
+                return {
+                    "success": True,
+                    "url": clean_url,
+                    "domain": domain,
+                    "title": title,
+                    "word_count": words,
+                    "reading_time_min": reading_time,
+                    "content_length": len(text_content),
+                    "summary_preview": text_content[:500] + ("..." if len(text_content) > 500 else ""),
+                    "article_text": text_content[:4000],
+                    "content": text_content[:8000],
+                    "links": links
+                }
+        except Exception as e:
+            return {
+                "success": False,
+                "error": f"Failed to retrieve web page: {str(e)}",
+                "url": clean_url
+            }
+
+    def instant_search(self, query: str, engine: str = "DuckDuckGo") -> Dict[str, Any]:
+        """
+        Executes zero-tracking privacy search across DuckDuckGo and Wikipedia OpenSearch APIs.
+        Returns instantaneous structured search cards without external tracking or iframe locks.
+        """
+        q = query.strip()
+        if not q:
+            return {"success": False, "query": "", "results": []}
+
+        results = []
+        abstract_text = ""
+        abstract_source = ""
+        abstract_url = ""
+
+        # 1. Query DuckDuckGo Instant Answers API
+        try:
+            ddg_url = f"https://api.duckduckgo.com/?q={urllib.parse.quote_plus(q)}&format=json&no_html=1&skip_disambig=1"
+            req = urllib.request.Request(ddg_url, headers={"User-Agent": "AetherPrivacyBrowser/2.0"})
+            with urllib.request.urlopen(req, timeout=4) as resp:
+                data = json.loads(resp.read().decode())
+                if data.get("AbstractText"):
+                    abstract_text = data.get("AbstractText")
+                    abstract_source = data.get("AbstractSource", "DuckDuckGo Knowledge")
+                    abstract_url = data.get("AbstractURL", "")
+
+                for topic in data.get("RelatedTopics", [])[:6]:
+                    if "Text" in topic and "FirstURL" in topic:
+                        results.append({
+                            "title": topic["Text"][:75] + ("..." if len(topic["Text"]) > 75 else ""),
+                            "snippet": topic["Text"],
+                            "url": topic["FirstURL"],
+                            "source": "DuckDuckGo"
+                        })
+        except Exception as e:
+            logger.warning(f"DuckDuckGo API search error: {e}")
+
+        # 2. Query Wikipedia OpenSearch API as enrichment
+        try:
+            wiki_url = f"https://en.wikipedia.org/w/api.php?action=opensearch&search={urllib.parse.quote_plus(q)}&limit=6&namespace=0&format=json"
+            req = urllib.request.Request(wiki_url, headers={"User-Agent": "AetherPrivacyBrowser/2.0"})
+            with urllib.request.urlopen(req, timeout=4) as resp:
+                wiki_data = json.loads(resp.read().decode())
+                # Format: [query, [titles], [descriptions], [urls]]
+                if len(wiki_data) >= 4:
+                    titles = wiki_data[1]
+                    descs = wiki_data[2]
+                    urls = wiki_data[3]
+                    for t, d, u in zip(titles, descs, urls):
+                        if not any(r["url"] == u for r in results):
+                            results.append({
+                                "title": t,
+                                "snippet": d or f"Wikipedia article covering {t}.",
+                                "url": u,
+                                "source": "Wikipedia"
+                            })
+        except Exception as e:
+            logger.warning(f"Wikipedia API search error: {e}")
+
+        # Fallback simulated curated technical resources if offline
+        if not results:
+            results = [
+                {"title": f"DuckDuckGo Search: {q}", "snippet": f"Execute complete web search for '{q}' in your default system browser.", "url": f"https://duckduckgo.com/?q={urllib.parse.quote_plus(q)}", "source": "DuckDuckGo Web"},
+                {"title": f"Wikipedia Search: {q}", "snippet": f"Look up '{q}' encyclopedia article on Wikipedia.", "url": f"https://en.wikipedia.org/wiki/Special:Search?search={urllib.parse.quote_plus(q)}", "source": "Wikipedia"},
+                {"title": f"GitHub Code Search: {q}", "snippet": f"Explore open-source repositories and code for '{q}'.", "url": f"https://github.com/search?q={urllib.parse.quote_plus(q)}", "source": "GitHub"},
+                {"title": f"Brave Privacy Search: {q}", "snippet": f"Independent privacy index search for '{q}'.", "url": f"https://search.brave.com/search?q={urllib.parse.quote_plus(q)}", "source": "Brave"}
+            ]
+
+        return {
+            "success": True,
+            "query": q,
+            "abstract": abstract_text,
+            "abstract_source": abstract_source,
+            "abstract_url": abstract_url,
+            "results_count": len(results),
+            "results": results
+        }
 
 
 browser_service = BrowserService()
