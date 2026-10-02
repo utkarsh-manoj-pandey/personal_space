@@ -240,17 +240,32 @@ class MapsService:
             logger.error(f"Geocoding error for {query}: {e}")
             return []
 
-    def calculate_route(self, start_lat: float, start_lon: float, end_lat: float, end_lon: float) -> Dict[str, Any]:
+    def calculate_route(self, start_lat: float, start_lon: float, end_lat: float, end_lon: float, mode: str = "driving") -> Dict[str, Any]:
         """
-        Computes driving route using Open Source Routing Machine (OSRM) public demo server.
-        Enriches route with initial compass bearing, straight-line distance, and ellipsoidal distance.
+        Computes turn-by-turn route using Open Source Routing Machine (OSRM) public servers.
+        Supports driving, walking (foot), and cycling (bicycle) profiles.
+        Enriches route with step-by-step maneuver instructions, icons, distance, duration, and geodetic metrics.
         """
-        # Geodetic calculations
         great_circle_km = GeodesyEngine.haversine_distance_km(start_lat, start_lon, end_lat, end_lon)
         bearing = GeodesyEngine.initial_bearing_degrees(start_lat, start_lon, end_lat, end_lon)
 
+        # Normalize travel mode to OSRM profile
+        m = (mode or "driving").strip().lower()
+        if m in ("walking", "walk", "pedestrian", "foot"):
+            profile = "foot"
+            avg_speed_kmh = 5.0
+            mode_label = "Walking"
+        elif m in ("cycling", "cycle", "bike", "bicycle"):
+            profile = "bicycle"
+            avg_speed_kmh = 18.0
+            mode_label = "Cycling"
+        else:
+            profile = "driving"
+            avg_speed_kmh = 60.0
+            mode_label = "Driving"
+
         try:
-            url = f"https://router.project-osrm.org/route/v1/driving/{start_lon},{start_lat};{end_lon},{end_lat}?overview=full&geometries=geojson&steps=true"
+            url = f"https://router.project-osrm.org/route/v1/{profile}/{start_lon},{start_lat};{end_lon},{end_lat}?overview=full&geometries=geojson&steps=true"
             req = urllib.request.Request(url, headers={"User-Agent": "AetherWorkstationRouting/2.0"})
             with urllib.request.urlopen(req, timeout=8) as response:
                 payload = json.loads(response.read().decode())
@@ -264,33 +279,76 @@ class MapsService:
                     for leg in route.get("legs", []):
                         for step in leg.get("steps", []):
                             maneuver = step.get("maneuver", {})
-                            instr = step.get("name", "") or maneuver.get("type", "Proceed")
+                            m_type = maneuver.get("type", "turn").lower()
+                            m_mod = maneuver.get("modifier", "").lower()
+                            name = step.get("name", "").strip()
+                            dist_m = round(step.get("distance", 0))
+                            dur_s = round(step.get("duration", 0))
+
+                            # Formulate clean human-readable turn guidance
+                            if m_type == "depart":
+                                instr = f"Head on {name}" if name else "Depart toward destination"
+                                icon = "depart"
+                            elif m_type == "arrive":
+                                instr = "Arrive at your destination"
+                                icon = "arrive"
+                            elif "roundabout" in m_type:
+                                exit_num = maneuver.get("exit", 1)
+                                instr = f"At the roundabout, take exit {exit_num}" + (f" onto {name}" if name else "")
+                                icon = "roundabout"
+                            elif m_mod:
+                                clean_mod = m_mod.replace("sharp ", "sharp ").replace("slight ", "slight ")
+                                instr = f"Turn {clean_mod}" + (f" onto {name}" if name else "")
+                                icon = f"turn-{clean_mod.replace(' ', '-')}"
+                            else:
+                                instr = f"Continue on {name}" if name else "Continue straight"
+                                icon = "straight"
+
+                            dist_str = f"{dist_m} m" if dist_m < 1000 else f"{dist_m / 1000:.1f} km"
+                            dur_str = f"{dur_s} sec" if dur_s < 60 else f"{round(dur_s / 60)} min"
+
                             steps.append({
-                                "instruction": f"{maneuver.get('type', 'Proceed').capitalize()}: {instr}",
-                                "distance_m": round(step.get("distance", 0)),
-                                "duration_s": round(step.get("duration", 0))
+                                "instruction": instr,
+                                "street_name": name,
+                                "type": m_type,
+                                "modifier": m_mod,
+                                "icon": icon,
+                                "distance_m": dist_m,
+                                "distance_formatted": dist_str,
+                                "duration_s": dur_s,
+                                "duration_formatted": dur_str
                             })
 
                     return {
                         "success": True,
+                        "mode": mode_label,
                         "distance_km": dist_km,
                         "duration_mins": dur_mins,
                         "straight_line_km": great_circle_km,
                         "initial_bearing_degrees": bearing,
+                        "steps_count": len(steps),
                         "steps": steps,
                         "geojson": geojson
                     }
         except Exception as e:
-            logger.error(f"Routing error: {e}")
+            logger.error(f"Routing error for {profile}: {e}")
 
-        # Fallback straight line representation
+        # Intelligent geodetic fallback based on travel mode
+        est_dur_mins = round((great_circle_km / max(1.0, avg_speed_kmh)) * 60.0, 1)
+        fallback_steps = [
+            {"instruction": f"Depart from start coordinates heading {bearing}°", "street_name": "Route", "icon": "depart", "distance_m": 0, "distance_formatted": "0 m", "duration_s": 0, "duration_formatted": "0 sec"},
+            {"instruction": f"Direct geodetic navigation via {mode_label} course", "street_name": f"{bearing}° Azimuth", "icon": "straight", "distance_m": int(great_circle_km * 1000), "distance_formatted": f"{great_circle_km:.1f} km", "duration_s": int(est_dur_mins * 60), "duration_formatted": f"{est_dur_mins} min"},
+            {"instruction": "Arrive at destination point", "street_name": "Waypoint", "icon": "arrive", "distance_m": 0, "distance_formatted": "0 m", "duration_s": 0, "duration_formatted": "0 sec"}
+        ]
         return {
             "success": True,
+            "mode": mode_label,
             "distance_km": great_circle_km,
-            "duration_mins": round((great_circle_km / 80.0) * 60.0, 1),
+            "duration_mins": est_dur_mins,
             "straight_line_km": great_circle_km,
             "initial_bearing_degrees": bearing,
-            "steps": [{"instruction": f"Direct geodetic transit heading {bearing}°", "distance_m": int(great_circle_km * 1000), "duration_s": int((great_circle_km / 80.0) * 3600)}],
+            "steps_count": len(fallback_steps),
+            "steps": fallback_steps,
             "geojson": {
                 "type": "LineString",
                 "coordinates": [[start_lon, start_lat], [end_lon, end_lat]]

@@ -141,7 +141,24 @@ class ClockService:
     ]
 
     def __init__(self):
+        self._ensure_alarm_schema()
         self._seed_default_cities()
+
+    def _ensure_alarm_schema(self):
+        """Ensure alarms table exists in clocks.db."""
+        db_manager.execute_non_query(
+            self.DB,
+            """CREATE TABLE IF NOT EXISTS alarms (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                title TEXT NOT NULL,
+                time_str TEXT NOT NULL,
+                days TEXT DEFAULT 'Everyday',
+                sound TEXT DEFAULT 'Tactical Radar',
+                is_active INTEGER DEFAULT 1,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );"""
+        )
+
 
     def _seed_default_cities(self):
         """Seed major geopolitical and financial time hubs."""
@@ -227,5 +244,48 @@ class ClockService:
             return {"valid": True, "next_run": next_run.strftime("%Y-%m-%d %H:%M:%S"), "expression": cron_expression}
         return {"valid": False, "error": "Invalid cron syntax or unreachable schedule", "expression": cron_expression}
 
+    # =========================================================================
+    # ALARM OPERATIONS
+    # =========================================================================
+    def list_alarms(self) -> List[Dict[str, Any]]:
+        """Retrieve all registered alarms."""
+        return db_manager.execute_query(
+            self.DB,
+            "SELECT * FROM alarms ORDER BY is_active DESC, time_str ASC"
+        )
+
+    def create_alarm(self, title: str, time_str: str, days: str = "Everyday", sound: str = "Tactical Radar") -> Dict[str, Any]:
+        """Register a new recurring or one-shot temporal alarm."""
+        new_id = db_manager.execute_non_query(
+            self.DB,
+            """INSERT INTO alarms (title, time_str, days, sound, is_active)
+               VALUES (?, ?, ?, ?, 1)""",
+            (title.strip() or "Standard Alarm", time_str.strip(), days.strip() or "Everyday", sound.strip() or "Tactical Radar")
+        )
+        return {
+            "id": new_id,
+            "title": title,
+            "time_str": time_str,
+            "days": days,
+            "sound": sound,
+            "is_active": 1
+        }
+
+    def toggle_alarm(self, alarm_id: int, is_active: Optional[bool] = None) -> Optional[Dict[str, Any]]:
+        """Toggle or explicitly set alarm armed status."""
+        rows = db_manager.execute_query(self.DB, "SELECT * FROM alarms WHERE id = ?", (alarm_id,))
+        if not rows:
+            return None
+        current = rows[0]
+        new_status = (1 if is_active else 0) if is_active is not None else (0 if current["is_active"] else 1)
+        db_manager.execute_non_query(self.DB, "UPDATE alarms SET is_active = ? WHERE id = ?", (new_status, alarm_id))
+        updated = db_manager.execute_query(self.DB, "SELECT * FROM alarms WHERE id = ?", (alarm_id,))
+        return updated[0] if updated else None
+
+    def delete_alarm(self, alarm_id: int) -> bool:
+        """Permanently remove alarm from database."""
+        return db_manager.execute_non_query(self.DB, "DELETE FROM alarms WHERE id = ?", (alarm_id,)) > 0
+
 
 clock_service = ClockService()
+

@@ -188,6 +188,85 @@ class NewsService:
         db_manager.execute_non_query(self.DB, "UPDATE news_articles SET is_read = 1 WHERE id = ?", (article_id,))
         return True
 
+    def get_country_news(self, country: str = "", limit: int = 30) -> List[Dict[str, Any]]:
+        """
+        Fetches latest country-specific live news updates via sovereign RSS syndication.
+        Enriches headlines with source attribution, clean description, and sentiment scoring.
+        """
+        c = (country or "").strip()
+        if not c or c.lower() in ("all", "global", "world"):
+            return self.list_articles(limit=limit)
+
+        articles = []
+        try:
+            encoded_country = urllib.parse.quote_plus(c)
+            url = f"https://news.google.com/rss/search?q={encoded_country}+news&hl=en"
+            req = urllib.request.Request(
+                url,
+                headers={"User-Agent": "AetherIntelligenceNews/2.0 (country-syndication)"}
+            )
+            with urllib.request.urlopen(req, timeout=5) as response:
+                xml_data = response.read()
+                root = ET.fromstring(xml_data)
+                items = root.findall(".//item")
+
+                for item in items[:limit]:
+                    raw_title = item.findtext("title") or "Untitled Headline"
+                    link = item.findtext("link") or ""
+                    desc = item.findtext("description") or ""
+                    pub_date = item.findtext("pubDate") or ""
+
+                    # Split title and publisher source: "Headline Text - Publisher"
+                    title = raw_title
+                    source_name = c
+                    if " - " in raw_title:
+                        parts = raw_title.rsplit(" - ", 1)
+                        title = parts[0].strip()
+                        source_name = parts[1].strip()
+
+                    clean_summary = self._strip_html(desc)[:350]
+                    sentiment = NewsSentimentAnalyzer.evaluate_sentiment(title)
+
+                    articles.append({
+                        "id": hash(link) % 10000000,
+                        "title": title,
+                        "link": link,
+                        "summary": clean_summary or f"Latest operational intelligence update regarding {c}.",
+                        "published_date": pub_date,
+                        "feed_title": source_name,
+                        "feed_category": f"{c} Intel",
+                        "country": c,
+                        "is_bookmarked": 0,
+                        "is_read": 0,
+                        "sentiment_label": sentiment["label"],
+                        "sentiment_score": sentiment["score"]
+                    })
+        except Exception as e:
+            logger.error(f"Error fetching country news for {c}: {e}")
+
+        # If live fetch returned results, return them
+        if articles:
+            return articles
+
+        # Fallback to local cached articles mentioning country
+        cached = db_manager.execute_query(
+            self.DB,
+            "SELECT a.*, f.title as feed_title, f.category as feed_category FROM news_articles a JOIN news_feeds f ON a.feed_id = f.id WHERE a.title LIKE ? OR a.summary LIKE ? ORDER BY a.id DESC LIMIT ?",
+            (f"%{c}%", f"%{c}%", limit)
+        )
+        if cached:
+            for r in cached:
+                art = dict(r)
+                sentiment = NewsSentimentAnalyzer.evaluate_sentiment(art.get("title", ""))
+                art["sentiment_label"] = sentiment["label"]
+                art["sentiment_score"] = sentiment["score"]
+                art["country"] = c
+                articles.append(art)
+            return articles
+
+        # Otherwise return general articles
+        return self.list_articles(limit=limit)
+
     def export_feeds_opml(self) -> str:
         """Export active RSS feeds in OPML 2.0 XML schema."""
         feeds = db_manager.execute_query(self.DB, "SELECT * FROM news_feeds WHERE is_active = 1")
@@ -195,3 +274,4 @@ class NewsService:
 
 
 news_service = NewsService()
+

@@ -324,5 +324,59 @@ class CalendarService:
         events = self.list_events()
         return CalendarICalExporter.serialize_events(events)
 
+    def get_country_holidays(self, country_code: str = "US", year: int = 2026) -> List[Dict[str, Any]]:
+        """
+        Retrieves national holidays and cultural festivals for a specified sovereign country.
+        Checks built-in comprehensive festival repository, then falls back to Nager.Date open API,
+        caching records into calendar.db for offline availability.
+        """
+        code = (country_code or "US").strip().upper()
+        if len(code) > 2:
+            # Match common country names to codes
+            mapping = {
+                "UNITED STATES": "US", "USA": "US", "INDIA": "IN", "UNITED KINGDOM": "GB",
+                "UK": "GB", "JAPAN": "JP", "CHINA": "CN", "FRANCE": "FR", "GERMANY": "DE",
+                "CANADA": "CA", "AUSTRALIA": "AU", "BRAZIL": "BR"
+            }
+            code = mapping.get(code, code[:2])
+
+        # 1. Check local repository first
+        try:
+            from .holiday_data import COUNTRY_HOLIDAYS_REPO
+            if code in COUNTRY_HOLIDAYS_REPO:
+                return COUNTRY_HOLIDAYS_REPO[code]
+        except Exception:
+            pass
+
+        # 2. Query open Nager.Date public API
+        try:
+            import urllib.request
+            import json
+            url = f"https://date.nager.at/api/v3/PublicHolidays/{year}/{code}"
+            req = urllib.request.Request(url, headers={"User-Agent": "AetherWorkstationCalendar/2.0"})
+            with urllib.request.urlopen(req, timeout=4) as res:
+                data = json.loads(res.read().decode())
+                holidays = []
+                for item in data:
+                    holidays.append({
+                        "date": item.get("date"),
+                        "name": item.get("name"),
+                        "local_name": item.get("localName", item.get("name")),
+                        "type": "National Holiday" if item.get("nationalHoliday", True) else "Observance"
+                    })
+                if holidays:
+                    return holidays
+        except Exception:
+            pass
+
+        # 3. Fallback generic global festivals
+        return [
+            {"date": f"{year}-01-01", "name": "New Year's Day", "local_name": "New Year", "type": "Public Holiday"},
+            {"date": f"{year}-05-01", "name": "International Workers' Day", "local_name": "May Day", "type": "International Observance"},
+            {"date": f"{year}-12-25", "name": "Christmas Day", "local_name": "Christmas", "type": "Global Holiday"},
+            {"date": f"{year}-12-31", "name": "New Year's Eve", "local_name": "New Year's Eve", "type": "Observance"}
+        ]
+
 
 calendar_service = CalendarService()
+

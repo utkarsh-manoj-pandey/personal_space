@@ -165,7 +165,7 @@ class MusicService:
 
     def _sync_library(self):
         """Scans the local media directory and indexes any new audio files."""
-        supported_exts = {".mp3", ".wav", ".flac", ".ogg", ".aac", ".m4a"}
+        supported_exts = {".mp3", ".wav", ".flac", ".ogg", ".aac", ".m4a", ".opus", ".wma", ".aiff", ".webm"}
         for f in os.listdir(self.media_dir):
             ext = os.path.splitext(f)[1].lower()
             if ext in supported_exts:

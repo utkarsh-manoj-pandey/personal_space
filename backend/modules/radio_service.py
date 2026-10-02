@@ -44,126 +44,116 @@ class RadioService:
     DB = "radio.db"
 
     def __init__(self):
+        self._ensure_schema()
         self._seed_default_stations()
 
+    def _ensure_schema(self):
+        """Ensure language column exists in stations table."""
+        try:
+            cols = [row["name"] for row in db_manager.execute_query(self.DB, "PRAGMA table_info(stations)")]
+            if "language" not in cols:
+                db_manager.execute_non_query(self.DB, "ALTER TABLE stations ADD COLUMN language TEXT DEFAULT 'English'")
+        except Exception as e:
+            logger.debug(f"Schema check on stations: {e}")
+
     def _seed_default_stations(self):
-        """Seed established global public internet radio streams."""
-        count = db_manager.execute_query(self.DB, "SELECT COUNT(*) as count FROM stations")
-        if count and count[0]["count"] == 0:
-            stations = [
-                (
-                    "SomaFM: Groove Salad",
-                    "https://ice1.somafm.com/groovesalad-128-mp3",
-                    "Ambient Chill",
-                    "USA",
-                    "128k",
-                    "MP3",
-                    1
-                ),
-                (
-                    "SomaFM: Drone Zone",
-                    "https://ice1.somafm.com/dronezone-128-mp3",
-                    "Space Ambient",
-                    "USA",
-                    "128k",
-                    "MP3",
-                    1
-                ),
-                (
-                    "Nightwave Plaza (Vaporwave/Synth)",
-                    "https://radio.plaza.one/mp3",
-                    "Synthwave",
-                    "Global",
-                    "128k",
-                    "MP3",
-                    1
-                ),
-                (
-                    "SomaFM: Secret Agent",
-                    "https://ice1.somafm.com/secretagent-128-mp3",
-                    "Spy Lounge",
-                    "USA",
-                    "128k",
-                    "MP3",
-                    0
-                ),
-                (
-                    "SomaFM: Space Station Soma",
-                    "https://ice1.somafm.com/spacestation-128-mp3",
-                    "Electronica",
-                    "USA",
-                    "128k",
-                    "MP3",
-                    0
-                ),
-                (
-                    "SomaFM: DEF CON Radio",
-                    "https://ice1.somafm.com/defcon-128-mp3",
-                    "Cyber Hack",
-                    "USA",
-                    "128k",
-                    "MP3",
-                    1
-                ),
-                (
-                    "BBC World Service News",
-                    "https://stream.live.vc.bbcmedia.co.uk/bbc_world_service",
-                    "News & Politics",
-                    "UK",
-                    "128k",
-                    "MP3",
-                    0
-                ),
-                (
-                    "KUSC Classical HD",
-                    "https://kusc.streamguys1.com/kusc-128k-aac",
-                    "Classical",
-                    "USA",
-                    "128k",
-                    "AAC",
-                    0
-                ),
-                (
-                    "Radio Swiss Jazz",
-                    "http://stream.srg-ssr.ch/m/rsj/mp3_128",
-                    "Acoustic Jazz",
-                    "Switzerland",
-                    "128k",
-                    "MP3",
-                    0
-                ),
-                (
-                    "FIP Radio Paris",
-                    "https://icecast.radiofrance.fr/fip-midfi.mp3",
-                    "Eclectic",
-                    "France",
-                    "128k",
-                    "MP3",
-                    0
-                )
-            ]
+        """Seed established global public internet radio streams with countries and languages."""
+        stations = [
+            # USA
+            ("SomaFM: Groove Salad", "https://ice1.somafm.com/groovesalad-128-mp3", "Ambient Chill", "USA", "English", "128k", "MP3", 1),
+            ("SomaFM: Drone Zone", "https://ice1.somafm.com/dronezone-128-mp3", "Space Ambient", "USA", "English", "128k", "MP3", 1),
+            ("SomaFM: DEF CON Radio", "https://ice1.somafm.com/defcon-128-mp3", "Cyber Hack", "USA", "English", "128k", "MP3", 1),
+            ("SomaFM: Secret Agent", "https://ice1.somafm.com/secretagent-128-mp3", "Spy Lounge", "USA", "English", "128k", "MP3", 0),
+            ("SomaFM: Space Station Soma", "https://ice1.somafm.com/spacestation-128-mp3", "Electronica", "USA", "English", "128k", "MP3", 0),
+            ("KUSC Classical HD", "https://kusc.streamguys1.com/kusc-128k-aac", "Classical", "USA", "English", "128k", "AAC", 0),
+            ("WNYC 93.9 FM Public Radio", "https://fm939.wnyc.org/wnycfm", "News & Culture", "USA", "English", "128k", "MP3", 0),
+            # Global / Electronic
+            ("Nightwave Plaza", "https://radio.plaza.one/mp3", "Synthwave", "Global", "Instrumental", "128k", "MP3", 1),
+            ("Ibiza Global Radio", "https://listens.ibizaglobalradio.com:8024/ibizaglobalradio.mp3", "House / Electronic", "Global", "English", "128k", "MP3", 1),
+            ("Lofi Hip Hop Stream", "https://play.streamafrica.net/lofiradio", "Lofi Beats", "Global", "Instrumental", "128k", "MP3", 1),
+            # UK
+            ("BBC World Service News", "https://stream.live.vc.bbcmedia.co.uk/bbc_world_service", "News & Politics", "UK", "English", "128k", "MP3", 1),
+            ("Classic FM London", "https://media-ice.musicradio.com/ClassicFMMP3", "Classical", "UK", "English", "128k", "MP3", 0),
+            ("Capital FM UK", "https://media-ice.musicradio.com/CapitalMP3", "Top 40 Pop", "UK", "English", "128k", "MP3", 0),
+            # France
+            ("FIP Radio Paris", "https://icecast.radiofrance.fr/fip-midfi.mp3", "Eclectic", "France", "French", "128k", "MP3", 1),
+            ("Radio Nova France", "https://novazz.ice.infomaniak.ch/novazz-128.mp3", "World / Indie", "France", "French", "128k", "MP3", 0),
+            ("France Inter", "https://icecast.radiofrance.fr/franceinter-midfi.mp3", "News & Culture", "France", "French", "128k", "MP3", 0),
+            # Germany
+            ("TechnoBase.FM", "https://listen.technobase.fm/tunein-mp3-pls", "EDM / Techno", "Germany", "German", "128k", "MP3", 0),
+            ("Antenne Bayern", "https://s3-webradio.antenne.de/antenne", "Pop Hits", "Germany", "German", "128k", "MP3", 0),
+            ("Radio BOB! Rock", "https://streams.radiobob.de/bob-live/mp3-192/streams.radiobob.de/", "Rock", "Germany", "German", "192k", "MP3", 0),
+            # Switzerland
+            ("Radio Swiss Jazz", "http://stream.srg-ssr.ch/m/rsj/mp3_128", "Acoustic Jazz", "Switzerland", "Instrumental", "128k", "MP3", 1),
+            ("Radio Swiss Classic", "http://stream.srg-ssr.ch/m/rsc_de/mp3_128", "Classical", "Switzerland", "Instrumental", "128k", "MP3", 0),
+            # India
+            ("Radio Mirchi Top Hits", "https://stream.zeno.fm/f3wvbbqmdg8uv", "Bollywood Pop", "India", "Hindi", "128k", "MP3", 1),
+            ("Vividh Bharati Retro", "https://air.pc.cdn.bitgravity.com/air/live/pbaudio001/playlist.m3u8", "Classic Retro", "India", "Hindi", "128k", "AAC", 0),
+            ("AIR FM Gold Delhi", "https://air.pc.cdn.bitgravity.com/air/live/pbaudio002/playlist.m3u8", "News & Music", "India", "Hindi", "128k", "AAC", 0),
+            # Japan
+            ("J-Pop Powerplay Tokyo", "https://kathy.torontocast.com:3560/stream", "J-Pop", "Japan", "Japanese", "128k", "MP3", 1),
+            ("Anime NFO Radio", "https://anradio-ice.streamguys1.com/anradio.mp3", "Anime Soundtracks", "Japan", "Japanese", "128k", "MP3", 0),
+            ("Big B Radio - Jpop", "https://antares.dribbcast.com/proxy/jpop?mp=/stream", "Asian Pop", "Japan", "Japanese", "128k", "MP3", 0),
+            # Spain
+            ("Cadena SER Madrid", "https://playerservices.streamtheworld.com/api/livestream-redirect/CADENASER.mp3", "News & Talk", "Spain", "Spanish", "128k", "MP3", 0),
+            ("Los 40 Principales", "https://playerservices.streamtheworld.com/api/livestream-redirect/LOS40.mp3", "Latin Pop", "Spain", "Spanish", "128k", "MP3", 0),
+            # Italy
+            ("Radio Italia Solo Musica", "https://stream.radioitalia.it", "Italian Pop", "Italy", "Italian", "128k", "MP3", 0),
+            ("Radio 105 Network", "https://icecast.unitedradio.it/Radio105.mp3", "Contemporary Hit", "Italy", "Italian", "128k", "MP3", 0),
+            # Canada
+            ("CBC Radio One Toronto", "https://cbc_r1_tor.akacdn.cowboy.net/cbc_r1_tor", "News & Discussion", "Canada", "English", "128k", "MP3", 0),
+            ("Indie88 Toronto", "https://indie.streamon.fm/indie-64k.aac", "Indie Rock", "Canada", "English", "128k", "AAC", 0),
+            # Australia
+            ("ABC News Radio Australia", "https://live-radio01.mediahubaustralia.com/PBW/mp3/", "News", "Australia", "English", "128k", "MP3", 0),
+            ("Double J Radio", "https://live-radio01.mediahubaustralia.com/DJW/mp3/", "Alternative", "Australia", "English", "128k", "MP3", 0),
+            # Brazil
+            ("Nova Brasil FM", "https://playerservices.streamtheworld.com/api/livestream-redirect/NOVABRASIL_SP.mp3", "MPB & Samba", "Brazil", "Portuguese", "128k", "MP3", 0),
+            ("Radio Bandeirantes", "https://playerservices.streamtheworld.com/api/livestream-redirect/RADIO_BANDEIRANTES.mp3", "News & Sports", "Brazil", "Portuguese", "128k", "MP3", 0)
+        ]
 
-            for s in stations:
-                db_manager.execute_non_query(
-                    self.DB,
-                    """INSERT OR IGNORE INTO stations (name, stream_url, genre, country, bitrate, codec, is_favorite)
-                       VALUES (?, ?, ?, ?, ?, ?, ?)""",
-                    s
-                )
+        for s in stations:
+            db_manager.execute_non_query(
+                self.DB,
+                """INSERT OR REPLACE INTO stations (name, stream_url, genre, country, language, bitrate, codec, is_favorite)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+                s
+            )
 
-    def list_stations(self, genre: Optional[str] = None, search: Optional[str] = None) -> List[Dict[str, Any]]:
-        """List radio stations with optional genre or search terms."""
+    def list_stations(self, country: Optional[str] = None, language: Optional[str] = None,
+                      genre: Optional[str] = None, search: Optional[str] = None) -> List[Dict[str, Any]]:
+        """List radio stations with multi-facet filters: country, language, genre, and search keywords."""
         query = "SELECT * FROM stations WHERE 1=1"
         params = []
-        if genre and genre != "All":
+        if country and country not in ("All", "World", "Global Filter"):
+            if country == "Global":
+                query += " AND (country = 'Global' OR country = 'International')"
+            else:
+                query += " AND country = ?"
+                params.append(country)
+        if language and language not in ("All", "All Languages"):
+            query += " AND language = ?"
+            params.append(language)
+        if genre and genre not in ("All", "All Genres"):
             query += " AND genre = ?"
             params.append(genre)
         if search:
-            query += " AND (name LIKE ? OR country LIKE ? OR genre LIKE ?)"
+            query += " AND (name LIKE ? OR country LIKE ? OR genre LIKE ? OR language LIKE ?)"
             term = f"%{search}%"
-            params.extend([term, term, term])
+            params.extend([term, term, term, term])
         query += " ORDER BY is_favorite DESC, click_count DESC, name ASC"
         return db_manager.execute_query(self.DB, query, tuple(params))
+
+    def get_filter_options(self) -> Dict[str, List[str]]:
+        """Extract all unique countries, languages, and genres from registered stations."""
+        c_rows = db_manager.execute_query(self.DB, "SELECT DISTINCT country FROM stations WHERE country IS NOT NULL AND country != '' ORDER BY country ASC")
+        l_rows = db_manager.execute_query(self.DB, "SELECT DISTINCT language FROM stations WHERE language IS NOT NULL AND language != '' ORDER BY language ASC")
+        g_rows = db_manager.execute_query(self.DB, "SELECT DISTINCT genre FROM stations WHERE genre IS NOT NULL AND genre != '' ORDER BY genre ASC")
+
+        return {
+            "countries": [r["country"] for r in c_rows if r["country"]],
+            "languages": [r["language"] for r in l_rows if r["language"]],
+            "genres": [r["genre"] for r in g_rows if r["genre"]]
+        }
 
     def toggle_favorite(self, station_id: int) -> Optional[Dict[str, Any]]:
         """Toggle favorite status for stream."""

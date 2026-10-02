@@ -167,16 +167,104 @@ Your machine remains entirely yours.
                 content = f"Error reading PDF content: {str(e)}"
                 pages_content = [{"page": 1, "text": content}]
 
-        elif ext == ".csv":
+        elif ext in (".csv", ".tsv"):
             try:
+                delimiter = "\t" if ext == ".tsv" else ","
+                with open(file_path, "r", encoding="utf-8", errors="replace") as f:
+                    reader = csv.reader(f, delimiter=delimiter)
+                    all_rows = list(reader)
+                
+                headers = all_rows[0] if all_rows else []
+                data_rows = all_rows[1:201] if len(all_rows) > 1 else []
+                structured_info["spreadsheet_data"] = {
+                    "columns": headers,
+                    "rows": data_rows,
+                    "total_rows": max(0, len(all_rows) - 1)
+                }
                 summary = DocumentParserEngine.parse_csv_summary(file_path)
                 structured_info["csv_summary"] = summary
-                with open(file_path, "r", encoding="utf-8", errors="replace") as f:
-                    content = f.read()
+                content = summary.get("preview_table_markdown", "")
                 pages_content = [{"page": 1, "text": content}]
             except Exception as e:
                 content = f"Error parsing CSV: {e}"
                 pages_content = [{"page": 1, "text": content}]
+
+        elif ext in (".xlsx", ".xls"):
+            try:
+                import openpyxl
+                wb = openpyxl.load_workbook(file_path, data_only=True)
+                sheet = wb.active
+                raw_rows = list(sheet.iter_rows(values_only=True))
+                headers = [str(c or f"Col{i+1}") for i, c in enumerate(raw_rows[0])] if raw_rows else []
+                data_rows = [[str(cell if cell is not None else "") for cell in r] for r in raw_rows[1:201]]
+                structured_info["spreadsheet_data"] = {
+                    "sheets": wb.sheetnames,
+                    "active_sheet": sheet.title,
+                    "columns": headers,
+                    "rows": data_rows,
+                    "total_rows": max(0, len(raw_rows) - 1)
+                }
+                content = f"# Spreadsheet: {sheet.title} ({len(raw_rows)} rows, {len(headers)} columns)\n\n"
+                pages_content = [{"page": 1, "text": content}]
+            except Exception as e:
+                content = f"Error reading Spreadsheet: {e}"
+                pages_content = [{"page": 1, "text": content}]
+
+        elif ext in (".docx", ".doc"):
+            try:
+                import docx
+                doc_obj = docx.Document(file_path)
+                paras = [p.text for p in doc_obj.paragraphs if p.text.strip()]
+                tables_data = []
+                for tbl in doc_obj.tables:
+                    t_rows = [[c.text.strip() for c in row.cells] for row in tbl.rows]
+                    if t_rows:
+                        tables_data.append(t_rows)
+                structured_info["word_document"] = {
+                    "paragraphs_count": len(paras),
+                    "tables_count": len(tables_data),
+                    "tables": tables_data[:5]
+                }
+                content = "\n\n".join(paras)
+                pages_content = [{"page": 1, "text": content}]
+            except Exception as e:
+                content = f"Error reading Word Document: {e}"
+                pages_content = [{"page": 1, "text": content}]
+
+        elif ext in (".pptx", ".ppt"):
+            try:
+                import pptx
+                prs = pptx.Presentation(file_path)
+                slides_list = []
+                for s_idx, slide in enumerate(prs.slides):
+                    texts = []
+                    for sh in slide.shapes:
+                        if hasattr(sh, "text") and sh.text.strip():
+                            texts.append(sh.text.strip())
+                    slides_list.append({"page": s_idx + 1, "title": f"Slide {s_idx + 1}", "text": "\n".join(texts)})
+                total_pages = len(slides_list) or 1
+                pages_content = slides_list if slides_list else [{"page": 1, "text": "Empty Slide Deck"}]
+                content = pages_content[0]["text"]
+                structured_info["slides"] = slides_list
+            except Exception as e:
+                content = f"Error reading PowerPoint presentation: {e}"
+                pages_content = [{"page": 1, "text": content}]
+
+        elif ext in (".html", ".htm"):
+            try:
+                with open(file_path, "r", encoding="utf-8", errors="replace") as f:
+                    content = f.read()
+                structured_info["is_html"] = True
+                pages_content = [{"page": 1, "text": content}]
+            except Exception as e:
+                content = f"Error reading HTML: {e}"
+                pages_content = [{"page": 1, "text": content}]
+
+        elif ext in (".png", ".jpg", ".jpeg", ".webp", ".bmp", ".gif", ".svg"):
+            structured_info["is_image"] = True
+            structured_info["image_url"] = f"file://{file_path}"
+            content = f"Image Display: {file_name}"
+            pages_content = [{"page": 1, "text": content}]
 
         elif ext in (".md", ".markdown"):
             try:

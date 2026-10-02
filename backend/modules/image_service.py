@@ -13,7 +13,7 @@ import os
 import math
 import logging
 from typing import List, Dict, Any, Optional, Tuple
-from PIL import Image, ImageDraw, ImageOps, ImageEnhance
+from PIL import Image, ImageDraw, ImageOps, ImageEnhance, ImageFilter
 from ..database_manager import db_manager
 
 logger = logging.getLogger("ImageService")
@@ -193,7 +193,165 @@ class ImageService:
                    VALUES (?, ?, ?, ?, ?, ?, ?)""",
                 (f_name, file_path, fsize, w, h, im.mode, fmt)
             )
-            return {"id": new_id, "file_name": f_name, "file_path": file_path, "width": w, "height": h}
+    def scan_directory(self, folder_path: str) -> int:
+        """Scan an external directory for images and add to catalog."""
+        if not os.path.isdir(folder_path):
+            return 0
+        supported_exts = {".png", ".jpg", ".jpeg", ".webp", ".bmp", ".gif"}
+        added = 0
+        for root, _, files in os.walk(folder_path):
+            for f in files:
+                if os.path.splitext(f)[1].lower() in supported_exts:
+                    full_path = os.path.join(root, f)
+                    try:
+                        self.register_local_image(full_path)
+                        added += 1
+                    except Exception:
+                        pass
+        return added
+
+    def edit_image(self, file_path: str, operations: Dict[str, Any], output_path: Optional[str] = None) -> Dict[str, Any]:
+        """
+        Applies comprehensive adjustments, transforms, filters, and formats to an image.
+        Operations can include:
+        - brightness (float, 0.1 to 3.0)
+        - contrast (float, 0.1 to 3.0)
+        - saturation (float, 0.0 to 3.0)
+        - sharpness (float, 0.0 to 4.0)
+        - rotate (float in degrees, e.g. 90, 180, 270)
+        - flip_h (bool)
+        - flip_v (bool)
+        - crop (dict {x, y, width, height} or {left, top, right, bottom})
+        - resize (dict {width, height})
+        - filter ('none', 'grayscale', 'invert', 'sepia', 'blur', 'sharpen', 'contour', 'emboss', 'edge_enhance')
+        """
+        if not os.path.exists(file_path):
+            raise FileNotFoundError(f"Source image not found: {file_path}")
+
+        with Image.open(file_path) as src_im:
+            im = src_im.copy()
+
+        # Handle color mode if necessary
+        if im.mode not in ("RGB", "RGBA"):
+            im = im.convert("RGBA" if "A" in im.mode else "RGB")
+
+        # 1. Transforms
+        if operations.get("flip_h"):
+            im = im.transpose(Image.FLIP_LEFT_RIGHT)
+        if operations.get("flip_v"):
+            im = im.transpose(Image.FLIP_TOP_BOTTOM)
+
+        rotate_angle = operations.get("rotate", 0)
+        if rotate_angle and float(rotate_angle) % 360 != 0:
+            im = im.rotate(-float(rotate_angle), expand=True)
+
+        if "crop" in operations and operations["crop"]:
+            c = operations["crop"]
+            if isinstance(c, dict):
+                left = int(c.get("x", c.get("left", 0)))
+                top = int(c.get("y", c.get("top", 0)))
+                width = int(c.get("width", im.width - left))
+                height = int(c.get("height", im.height - top))
+                right = left + width if "width" in c else int(c.get("right", im.width))
+                bottom = top + height if "height" in c else int(c.get("bottom", im.height))
+                # Validate bounds
+                left = max(0, min(left, im.width - 1))
+                top = max(0, min(top, im.height - 1))
+                right = max(left + 1, min(right, im.width))
+                bottom = max(top + 1, min(bottom, im.height))
+                im = im.crop((left, top, right, bottom))
+
+        if "resize" in operations and operations["resize"]:
+            r = operations["resize"]
+            rw = int(r.get("width", im.width))
+            rh = int(r.get("height", im.height))
+            if rw > 0 and rh > 0 and (rw != im.width or rh != im.height):
+                im = im.resize((rw, rh), Image.Resampling.LANCZOS)
+
+        # 2. Filters
+        flt = operations.get("filter", "none").lower()
+        if flt == "grayscale":
+            if im.mode == "RGBA":
+                alpha = im.split()[-1]
+                rgb = ImageOps.grayscale(im.convert("RGB")).convert("RGBA")
+                rgb.putalpha(alpha)
+                im = rgb
+            else:
+                im = ImageOps.grayscale(im).convert("RGB")
+        elif flt == "invert":
+            if im.mode == "RGBA":
+                r, g, b, a = im.split()
+                rgb = Image.merge("RGB", (r, g, b))
+                inv = ImageOps.invert(rgb)
+                inv = inv.convert("RGBA")
+                inv.putalpha(a)
+                im = inv
+            else:
+                im = ImageOps.invert(im.convert("RGB"))
+        elif flt == "sepia":
+            gray = ImageOps.grayscale(im.convert("RGB"))
+            sep = ImageOps.colorize(gray, "#2b1d0c", "#ffebba")
+            if im.mode == "RGBA":
+                sep = sep.convert("RGBA")
+                sep.putalpha(im.split()[-1])
+            im = sep
+        elif flt == "blur":
+            radius = float(operations.get("blur_radius", 2.0))
+            im = im.filter(ImageFilter.GaussianBlur(radius=radius))
+        elif flt == "sharpen":
+            im = im.filter(ImageFilter.SHARPEN)
+        elif flt == "contour":
+            im = im.filter(ImageFilter.CONTOUR)
+        elif flt == "emboss":
+            im = im.filter(ImageFilter.EMBOSS)
+        elif flt == "edge_enhance":
+            im = im.filter(ImageFilter.EDGE_ENHANCE_MORE)
+
+        # 3. Tone Enhancements
+        brightness = float(operations.get("brightness", 1.0))
+        if brightness != 1.0:
+            enhancer = ImageEnhance.Brightness(im)
+            im = enhancer.enhance(brightness)
+
+        contrast = float(operations.get("contrast", 1.0))
+        if contrast != 1.0:
+            enhancer = ImageEnhance.Contrast(im)
+            im = enhancer.enhance(contrast)
+
+        saturation = float(operations.get("saturation", 1.0))
+        if saturation != 1.0:
+            enhancer = ImageEnhance.Color(im)
+            im = enhancer.enhance(saturation)
+
+        sharpness = float(operations.get("sharpness", 1.0))
+        if sharpness != 1.0:
+            enhancer = ImageEnhance.Sharpness(im)
+            im = enhancer.enhance(sharpness)
+
+        # 4. Save
+        if not output_path:
+            base, ext = os.path.splitext(file_path)
+            output_path = f"{base}_edited{ext or '.png'}"
+
+        os.makedirs(os.path.dirname(os.path.abspath(output_path)), exist_ok=True)
+        # Determine format from extension
+        out_ext = os.path.splitext(output_path)[1].lower()
+        if out_ext in (".jpg", ".jpeg"):
+            if im.mode == "RGBA":
+                im = im.convert("RGB")
+            im.save(output_path, "JPEG", quality=95)
+        elif out_ext == ".webp":
+            im.save(output_path, "WEBP", quality=95)
+        else:
+            im.save(output_path, "PNG")
+
+        # Register in catalog
+        info = self.register_local_image(output_path)
+        info["output_path"] = output_path
+        info["width"] = im.width
+        info["height"] = im.height
+        return info
 
 
 image_service = ImageService()
+

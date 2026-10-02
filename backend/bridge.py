@@ -84,6 +84,11 @@ class BackendBridge(QObject):
     def exportCalendarIcs(self) -> str:
         return calendar_service.export_ics()
 
+    @Slot(str, int, result=str)
+    def getCountryHolidays(self, country_code: str, year: int = 2026) -> str:
+        return self._safe_json(calendar_service.get_country_holidays(country_code, year))
+
+
     # =========================================================================
     # 2. PRIVACY BROWSER SUBSYSTEM SLOTS
     # =========================================================================
@@ -216,6 +221,15 @@ class BackendBridge(QObject):
     def listRadioStations(self, genre: str = "", search: str = "") -> str:
         return self._safe_json(radio_service.list_stations(genre=genre or None, search=search or None))
 
+    @Slot(str, str, str, str, result=str)
+    def listRadioStationsFiltered(self, country: str = "", language: str = "", genre: str = "", search: str = "") -> str:
+        return self._safe_json(radio_service.list_stations(country=country or None, language=language or None, genre=genre or None, search=search or None))
+
+    @Slot(result=str)
+    def getRadioFilterOptions(self) -> str:
+        return self._safe_json(radio_service.get_filter_options())
+
+
     @Slot(int, result=str)
     def toggleRadioFavorite(self, station_id: int) -> str:
         return self._safe_json(radio_service.toggle_favorite(station_id))
@@ -256,6 +270,11 @@ class BackendBridge(QObject):
         news_service.mark_read(article_id)
         return True
 
+    @Slot(str, int, result=str)
+    def getCountryNews(self, country: str, limit: int = 30) -> str:
+        return self._safe_json(news_service.get_country_news(country=country, limit=limit))
+
+
     # =========================================================================
     # 10. CALCULATOR SUBSYSTEM SLOTS
     # =========================================================================
@@ -286,6 +305,16 @@ class BackendBridge(QObject):
     def scanImageDirectory(self, folder_path: str) -> int:
         return image_service.scan_directory(folder_path)
 
+    @Slot(str, str, str, result=str)
+    def editImage(self, file_path: str, operations_json: str, output_path: str = "") -> str:
+        try:
+            ops = json.loads(operations_json)
+            result = image_service.edit_image(file_path, ops, output_path=output_path or None)
+            return self._safe_json({"success": True, "image": result})
+        except Exception as e:
+            logger.error(f"editImage error: {e}")
+            return self._safe_json({"success": False, "error": str(e)})
+
     # =========================================================================
     # 12. CLOCK AND TIMERS SUBSYSTEM SLOTS
     # =========================================================================
@@ -301,6 +330,22 @@ class BackendBridge(QObject):
     def getStopwatchLaps(self, session_id: str) -> str:
         return self._safe_json(clock_service.get_stopwatch_laps(session_id))
 
+    @Slot(result=str)
+    def listAlarms(self) -> str:
+        return self._safe_json(clock_service.list_alarms())
+
+    @Slot(str, str, str, str, result=str)
+    def createAlarm(self, title: str, time_str: str, days: str = "Everyday", sound: str = "Tactical Radar") -> str:
+        return self._safe_json(clock_service.create_alarm(title, time_str, days, sound))
+
+    @Slot(int, bool, result=str)
+    def toggleAlarm(self, alarm_id: int, is_active: bool = True) -> str:
+        return self._safe_json(clock_service.toggle_alarm(alarm_id, is_active))
+
+    @Slot(int, result=bool)
+    def deleteAlarm(self, alarm_id: int) -> bool:
+        return clock_service.delete_alarm(alarm_id)
+
     # =========================================================================
     # 13. MAPS AND NAVIGATION SUBSYSTEM SLOTS
     # =========================================================================
@@ -310,7 +355,11 @@ class BackendBridge(QObject):
 
     @Slot(float, float, float, float, result=str)
     def calculateRoute(self, start_lat: float, start_lon: float, end_lat: float, end_lon: float) -> str:
-        return self._safe_json(maps_service.calculate_route(start_lat, start_lon, end_lat, end_lon))
+        return self._safe_json(maps_service.calculate_route(start_lat, start_lon, end_lat, end_lon, mode="driving"))
+
+    @Slot(float, float, float, float, str, result=str)
+    def calculateRouteWithMode(self, start_lat: float, start_lon: float, end_lat: float, end_lon: float, mode: str = "driving") -> str:
+        return self._safe_json(maps_service.calculate_route(start_lat, start_lon, end_lat, end_lon, mode=mode))
 
     @Slot(result=str)
     def listWaypoints(self) -> str:
@@ -326,6 +375,11 @@ class BackendBridge(QObject):
     @Slot(result=str)
     def getWorldMonitorSummary(self) -> str:
         return self._safe_json(world_monitor_service.get_world_monitor_summary())
+
+    @Slot(result=str)
+    def getAllCountryMarkers(self) -> str:
+        return self._safe_json(world_monitor_service.get_all_country_markers())
+
 
     @Slot(result=str)
     def getSeismicFeed(self) -> str:
