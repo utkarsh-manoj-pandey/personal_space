@@ -3226,6 +3226,7 @@
     // 2. TAB ROUTING, BREADCRUMBS & HOME DASHBOARD
     // =========================================================================
     let currentTab = 'home';
+    let currentActiveView = 'home';
 
     const tabMeta = {
       home: { title: "Command Home", desc: "Executive workspace dashboard" },
@@ -3264,6 +3265,7 @@
 
     function switchTab(tabId) {
       currentTab = tabId;
+      currentActiveView = tabId;
       document.querySelectorAll('.view-panel').forEach(p => p.classList.add('hidden'));
       document.querySelectorAll('.nav-item').forEach(b => {
         b.classList.remove('active', 'text-white', 'bg-indigo-500/10', 'border', 'border-indigo-500/20');
@@ -3775,14 +3777,71 @@
       const gridMesh = new THREE.Mesh(gridGeo, gridMat);
       earthRoot.add(gridMesh);
 
-      // Procedural Vector Continents Point Cloud
-      const dotsCount = 2400;
+      // High-Precision Geopolitical Country Borders & Coastlines (Vector LineSegments)
+      const bordersGroup = new THREE.Group();
+      earthRoot.add(bordersGroup);
+      window._bordersGroup = bordersGroup;
+
+      async function loadGlobeVectorOutlines() {
+        try {
+          const rawArcs = await callBackend('getGlobeVectorOutlines');
+          const arcs = Array.isArray(rawArcs) ? rawArcs : JSON.parse(rawArcs || '[]');
+          if (!arcs || !arcs.length) return;
+
+          const positions = [];
+          const r = 1.005; // Slightly above core sphere (1.000) and coordinate grid (1.002)
+          const deg2rad = Math.PI / 180;
+
+          for (let a = 0; a < arcs.length; a++) {
+            const arc = arcs[a];
+            if (!arc || arc.length < 2) continue;
+            for (let i = 0; i < arc.length - 1; i++) {
+              const lon1 = arc[i][0], lat1 = arc[i][1];
+              const lon2 = arc[i+1][0], lat2 = arc[i+1][1];
+
+              // Guard against antimeridian jump artifacts
+              if (Math.abs(lon2 - lon1) > 180) continue;
+
+              const phi1 = (90 - lat1) * deg2rad;
+              const theta1 = (lon1 + 180) * deg2rad;
+              const x1 = -(r * Math.sin(phi1) * Math.cos(theta1));
+              const y1 = r * Math.cos(phi1);
+              const z1 = r * Math.sin(phi1) * Math.sin(theta1);
+
+              const phi2 = (90 - lat2) * deg2rad;
+              const theta2 = (lon2 + 180) * deg2rad;
+              const x2 = -(r * Math.sin(phi2) * Math.cos(theta2));
+              const y2 = r * Math.cos(phi2);
+              const z2 = r * Math.sin(phi2) * Math.sin(theta2);
+
+              positions.push(x1, y1, z1, x2, y2, z2);
+            }
+          }
+
+          const bordersGeo = new THREE.BufferGeometry();
+          bordersGeo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+          const bordersMat = new THREE.LineBasicMaterial({
+            color: 0x818cf8, // Glowing tactical indigo country border vectors
+            transparent: true,
+            opacity: 0.95
+          });
+          const bordersMesh = new THREE.LineSegments(bordersGeo, bordersMat);
+          bordersGroup.add(bordersMesh);
+          window._bordersMesh = bordersMesh;
+        } catch (err) {
+          console.error("Failed to load globe vector outlines:", err);
+        }
+      }
+      loadGlobeVectorOutlines();
+
+      // Subtle Background Continents Depth Shading
+      const dotsCount = 1800;
       const dotsGeo = new THREE.BufferGeometry();
       const dotsPos = new Float32Array(dotsCount * 3);
       let dotIdx = 0;
-      for (let lat = -80; lat <= 80; lat += 3.5) {
+      for (let lat = -80; lat <= 80; lat += 4.0) {
         const latRad = lat * (Math.PI / 180);
-        const numPoints = Math.max(4, Math.floor(Math.cos(latRad) * 70));
+        const numPoints = Math.max(4, Math.floor(Math.cos(latRad) * 60));
         for (let p = 0; p < numPoints; p++) {
           const lon = (p / numPoints) * 360 - 180;
           const isLand = (
@@ -3794,7 +3853,7 @@
             (lat > -45 && lat < -10 && lon > 110 && lon < 155)
           );
           if (isLand && dotIdx < dotsCount * 3) {
-            const r = 1.008;
+            const r = 1.002;
             const phi = (90 - lat) * (Math.PI / 180);
             const theta = (lon + 180) * (Math.PI / 180);
             dotsPos[dotIdx++] = -(r * Math.sin(phi) * Math.cos(theta));
@@ -3805,10 +3864,10 @@
       }
       dotsGeo.setAttribute('position', new THREE.BufferAttribute(dotsPos.slice(0, dotIdx), 3));
       const dotsMat = new THREE.PointsMaterial({
-        color: 0x818cf8,
-        size: 0.024,
+        color: 0x4f46e5,
+        size: 0.016,
         transparent: true,
-        opacity: 0.8
+        opacity: 0.35
       });
       const continentDots = new THREE.Points(dotsGeo, dotsMat);
       earthRoot.add(continentDots);

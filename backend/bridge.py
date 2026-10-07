@@ -380,6 +380,10 @@ class BackendBridge(QObject):
     def getAllCountryMarkers(self) -> str:
         return self._safe_json(world_monitor_service.get_all_country_markers())
 
+    @Slot(result=str)
+    def getGlobeVectorOutlines(self) -> str:
+        return self._safe_json(world_monitor_service.get_globe_vector_outlines())
+
 
     @Slot(result=str)
     def getSeismicFeed(self) -> str:
