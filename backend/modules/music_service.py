@@ -77,8 +77,9 @@ class AudioSynthesisDSP:
         waveform: str = "sine"
     ) -> bool:
         """
-        Synthesizes a stereo WAV file with harmonic overtones and binaural beat frequency.
-        Left ear receives base_freq, Right ear receives base_freq + binaural_beat_hz.
+        I have written this part of code because procedural acoustic synthesis with stereo binaural beats
+        produces calming, focus-enhancing background soundscapes on demand completely in pure Python,
+        without needing external audio downloads or streaming network connections!
         """
         try:
             num_samples = int(cls.SAMPLE_RATE * duration_sec)

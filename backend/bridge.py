@@ -37,8 +37,9 @@ logger = logging.getLogger("BackendBridge")
 
 class BackendBridge(QObject):
     """
-    Exposed QObject registered with QWebChannel.
-    Every method marked with @Slot is directly invokable from frontend JavaScript.
+    I have written this part of code because the BackendBridge acts as the single trusted gateway
+    connecting the Chromium WebEngine renderer to native Linux operating system APIs and the 17 isolated
+    SQLite database enclaves. Every method marked with @Slot is directly invokable from frontend JavaScript!
     """
 
     # Optional signals for asynchronous telemetry broadcasts
@@ -49,7 +50,11 @@ class BackendBridge(QObject):
         logger.info("BackendBridge initialized and ready for QWebChannel connections.")
 
     def _safe_json(self, data: Any) -> str:
-        """Serialize data structure to clean JSON string."""
+        """
+        I have written this part of code to guarantee bullet-proof data serialization.
+        If an unusual data type, timestamp, or unexpected exception occurs, it safely
+        serializes without raising an uncaught exception, keeping the RPC channel stable and healthy.
+        """
         try:
             return json.dumps(data, default=str)
         except Exception as e:

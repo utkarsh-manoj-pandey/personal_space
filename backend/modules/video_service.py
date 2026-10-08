@@ -43,7 +43,9 @@ class VideoMetadataInspector:
     @classmethod
     def generate_webvtt_chapters(cls, bookmarks: List[Dict[str, Any]], video_duration: float) -> str:
         """
-        Compiles chapter markers into compliant WebVTT subtitle/cue track format.
+        I have written this part of code because compiling local video chapter bookmarks
+        into standardized WebVTT cue tracks allows the HTML5 video player to render interactive
+        timeline scrubbing markers and chapter titles natively!
         """
         lines = ["WEBVTT", ""]
         if not bookmarks:

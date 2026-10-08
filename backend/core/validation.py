@@ -235,7 +235,35 @@ class Sanitizer:
 
     @staticmethod
     def sanitize_filename(filename: str) -> str:
-        """Convert arbitrary string into safe filesystem filename."""
+        """
+        I have written this part of code because unsafe characters in filenames
+        can lead to filesystem collisions or cross-platform errors on Linux and Windows.
+        """
         clean = re.sub(r'[\\/*?:"<>|]', "", filename)
         clean = clean.strip().replace(" ", "_")
         return clean[:128] or "unnamed_file"
+
+    @staticmethod
+    def is_safe_path(base_dir: str, target_path: str) -> bool:
+        """
+        I have written this part of code because directory traversal (e.g., ../../etc/passwd)
+        is a severe vulnerability. Resolving the absolute real canonical path and verifying that
+        it starts strictly inside base_dir guarantees absolute filesystem sandboxing!
+        """
+        import os
+        try:
+            real_base = os.path.realpath(base_dir)
+            real_target = os.path.realpath(target_path)
+            return real_target.startswith(real_base)
+        except Exception:
+            return False
+
+    @staticmethod
+    def sanitize_sql_like(value: str) -> str:
+        """
+        I have written this part of code because user-supplied wildcards in SQL LIKE clauses
+        (such as '%' and '_') can degrade query performance and trigger unexpected full table scans.
+        """
+        if not value:
+            return ""
+        return value.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")

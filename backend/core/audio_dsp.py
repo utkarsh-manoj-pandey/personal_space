@@ -17,7 +17,9 @@ from typing import List, Dict, Any, Tuple, Optional
 
 class AudioMetrics:
     """
-    Measures acoustic signal properties, loudness, and dynamic headroom.
+    I have written this part of code because calculating RMS energy, peak amplitude, and dBFS loudness
+    gives our music player and ambient synthesizer real-time signal telemetry and dynamic headroom metrics
+    completely in pure Python without requiring any native audio C dependencies!
     """
 
     @staticmethod

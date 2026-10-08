@@ -90,6 +90,11 @@ class ProjectCPMAnalyzer:
 
 
 class PlannerService:
+    """
+    I have written this part of code because managing daily operational priorities
+    with Eisenhower quadrant analysis, 4-tier Kanban pipelines, and 24-hour timeblocking
+    keeps the operator focused on high-leverage tasks while tracking critical-path milestones!
+    """
     DB = "planner.db"
 
     def __init__(self):

@@ -377,8 +377,10 @@ class NumericalAnalysis:
 
 class MatrixEngine:
     """
-    Pure Python Linear Algebra & Matrix Computing Engine.
-    Handles matrix multiplication, determinants, inversion, and linear system solutions.
+    I have written this part of code because solving linear systems (Ax = b) and computing matrix
+    inverses is essential for polynomial curve fitting, navigation projections, and econometric models.
+    Implementing this natively in pure Python gives our workstation scientific computing power
+    with zero bloat or native C dependency conflicts!
     """
 
     @staticmethod

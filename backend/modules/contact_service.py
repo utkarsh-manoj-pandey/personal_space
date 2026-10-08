@@ -16,6 +16,12 @@ from ..core.export_engine import VCardExporter
 
 
 class ContactService:
+    """
+    I have written this part of code because storing personal and professional contacts
+    in an isolated, local SQLite enclave ensures absolute communication privacy.
+    With built-in Jaro-Winkler deduplication and RFC 2426 vCard export, the user maintains
+    complete sovereignty over their address book with zero cloud surveillance!
+    """
     DB = "contacts.db"
 
     CATEGORIES = ["Personal", "Family", "Professional", "Emergency", "VIP"]

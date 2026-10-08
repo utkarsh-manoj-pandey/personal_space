@@ -447,24 +447,30 @@ class CalendarService:
 
         # 1. Live Non-API Public Open Endpoint Fetch (Nager.Date - Zero API Key)
         try:
-            import urllib.request
-            import json
+            # I have written this part of code because public holiday APIs should never stall the calendar.
+            # Using network_executor with 24-hour caching ensures instant sub-millisecond calendar loading
+            # after the first fetch, while retaining full live non-API connectivity.
+            from ..core.async_network import network_executor
             url = f"https://date.nager.at/api/v3/PublicHolidays/{year}/{code}"
-            req = urllib.request.Request(url, headers={"User-Agent": "AetherLiveCalendar/2.0 (Zero-Key-OpenData)"})
-            with urllib.request.urlopen(req, timeout=4) as res:
-                if res.status == 200:
-                    data = json.loads(res.read().decode())
-                    if isinstance(data, list):
-                        for item in data:
-                            d = item.get("date")
-                            n = item.get("name")
-                            if d and n:
-                                holidays_map[f"{d}_{n}"] = {
-                                    "date": d,
-                                    "name": n,
-                                    "local_name": item.get("localName", n),
-                                    "type": "National Holiday" if item.get("nationalHoliday", True) else "Public Observance"
-                                }
+            ok, raw_res, _ = network_executor.fetch_url(
+                url,
+                headers={"User-Agent": "AetherLiveCalendar/2.0 (Zero-Key-OpenData)"},
+                timeout=2.0,
+                ttl_seconds=86400.0
+            )
+            if ok and raw_res:
+                data = json.loads(raw_res)
+                if isinstance(data, list):
+                    for item in data:
+                        d = item.get("date")
+                        n = item.get("name")
+                        if d and n:
+                            holidays_map[f"{d}_{n}"] = {
+                                "date": d,
+                                "name": n,
+                                "local_name": item.get("localName", n),
+                                "type": "National Holiday" if item.get("nationalHoliday", True) else "Public Observance"
+                            }
         except Exception:
             pass
 

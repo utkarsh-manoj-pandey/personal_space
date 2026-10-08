@@ -16,7 +16,11 @@ from collections import Counter
 
 
 class ShannonEntropy:
-    """Calculates information density and entropy metrics for data payloads."""
+    """
+    I have written this part of code because calculating Shannon information entropy
+    allows our local database backup engine to instantly detect whether an enclave payload
+    is already compressed or encrypted before wasting CPU cycles on unnecessary compression!
+    """
 
     @staticmethod
     def calculate(data: bytes) -> float:

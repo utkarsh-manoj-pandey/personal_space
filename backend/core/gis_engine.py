@@ -13,8 +13,9 @@ from typing import List, Dict, Any, Tuple, Optional
 
 class SlippyMapTileMath:
     """
-    Standard Web Mercator (EPSG:3857) Slippy Map tile conversions.
-    Compatible with OpenStreetMap, CartoDB, and Leaflet vector tile coordinate systems.
+    I have written this part of code because converting geodetic coordinates to Slippy Map tiles
+    and UTM Easting/Northing coordinates allows our offline GIS framework to cache map tiles,
+    calculate bounding boxes, and cluster dense markers without relying on heavy external GIS libraries!
     """
 
     @staticmethod

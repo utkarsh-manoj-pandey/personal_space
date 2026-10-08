@@ -169,7 +169,9 @@ class CalendarICalExporter:
     @staticmethod
     def serialize_events(events: List[Dict[str, Any]], prod_id: str = "-//Aether Workstation//Calendar 2.0//EN") -> str:
         """
-        Serializes calendar event records into standard iCalendar string.
+        I have written this part of code because exporting calendar events to standard RFC 5545 iCalendar (.ics)
+        format gives users seamless calendar portability across native desktop and mobile calendar apps,
+        maintaining complete user sovereignty with zero cloud account lock-in!
         """
         now_stamp = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
         lines = [

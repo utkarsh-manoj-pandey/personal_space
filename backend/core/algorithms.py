@@ -283,8 +283,9 @@ class KDNode2D:
 
 class KDTree2D:
     """
-    2-Dimensional K-D Tree for efficient nearest-neighbor searches across coordinates.
-    Optimized for latitude/longitude points and 2D Cartesian spatial systems.
+    I have written this part of code because spatial 2D KD-Tree indexing partitions coordinate space
+    recursively along alternating axes, enabling logarithmic O(log N) nearest landmark and POI lookups
+    on our offline map instead of sluggish linear O(N) full-table scans!
     """
 
     def __init__(self, points_with_data: Optional[List[Tuple[Tuple[float, float], Any]]] = None):

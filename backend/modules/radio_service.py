@@ -166,17 +166,26 @@ class RadioService:
         return res[0] if res else None
 
     def test_stream_health(self, stream_url: str) -> Dict[str, Any]:
-        """Performs HTTP HEAD/GET probe to verify stream availability and response latency."""
+        """
+        I have written this part of code because streaming endpoints on the internet can stall or hang.
+        We check URL safety against SSRF attacks and enforce a strict 2.0s timeout so that checking
+        a radio stream never causes the workstation interface to pause or freeze!
+        """
         t0 = time.perf_counter()
+        from ..core.async_network import SafeNetworkGuard
+        is_safe, msg = SafeNetworkGuard.is_safe_url(stream_url)
+        if not is_safe:
+            return {"online": False, "error": msg, "latency_ms": 0.0, "valid_audio_stream": False}
+
         try:
             req = urllib.request.Request(
                 stream_url,
-                headers={"User-Agent": "AetherRadioClient/2.0"}
+                headers={"User-Agent": "AetherRadioClient/2.0", "Range": "bytes=0-1024"}
             )
-            with urllib.request.urlopen(req, timeout=4) as response:
+            with urllib.request.urlopen(req, timeout=2.0) as response:
                 content_type = response.headers.get("Content-Type", "unknown")
                 latency_ms = round((time.perf_counter() - t0) * 1000.0, 1)
-                is_audio = "audio" in content_type or "ogg" in content_type or "mpeg" in content_type
+                is_audio = "audio" in content_type or "ogg" in content_type or "mpeg" in content_type or "aac" in content_type
                 return {
                     "online": True,
                     "status_code": response.status,

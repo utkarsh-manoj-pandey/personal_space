@@ -46,12 +46,19 @@ class CryptoUtils:
 
     @staticmethod
     def constant_time_compare(val1: str, val2: str) -> bool:
-        """Timing-attack resistant string comparison."""
+        """
+        I have written this part of code because standard string comparisons (==) terminate early
+        on the first non-matching byte, creating timing leaks that allow adversaries to recover secrets.
+        hmac.compare_digest executes in constant time regardless of where mismatches occur.
+        """
         return hmac.compare_digest(val1.encode('utf-8'), val2.encode('utf-8'))
 
     @staticmethod
     def generate_secure_token(length_bytes: int = 32) -> str:
-        """Generate cryptographically secure hexadecimal token from OS entropy pool."""
+        """
+        I have written this part of code to sample the OS kernel entropy pool (/dev/urandom or CryptGenRandom)
+        ensuring generated session tokens are cryptographically unpredictable.
+        """
         return secrets.token_hex(length_bytes)
 
     @staticmethod

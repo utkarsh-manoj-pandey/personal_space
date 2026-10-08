@@ -62,7 +62,9 @@ class TextRankSummarizer:
         convergence_threshold: float = 1e-4
     ) -> List[Dict[str, Any]]:
         """
-        Extracts the most salient sentences while preserving document narrative sequence.
+        I have written this part of code because extractive summarization via graph centrality
+        (TextRank) allows the user to extract the most important executive points from long articles
+        and documents completely offline, without paying for API tokens or exposing private data to third parties!
         """
         sentences = SentenceTokenizer.split_sentences(text)
         n = len(sentences)
