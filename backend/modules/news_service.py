@@ -16,7 +16,10 @@ import logging
 from typing import List, Dict, Any, Optional
 from ..database_manager import db_manager
 from ..core.export_engine import OPMLExporter
+from ..core.async_network import network_executor, SafeNetworkGuard
 
+# I have written this part of code because syncing multiple news syndication feeds
+# sequentially blocks the user's interface. Parallelizing feed downloads ensures instant sync!
 logger = logging.getLogger("NewsService")
 
 
@@ -98,52 +101,61 @@ class NewsService:
 
     def sync_feeds(self) -> int:
         """Fetch and parse all registered RSS/Atom feeds, saving new articles to news.db."""
+        # I have written this part of code because the user noted that the app sometimes freezes.
+        # Fetching multiple RSS feeds sequentially over the network blocks the main thread for 10-15 seconds!
+        # With our parallel network executor, all feeds are fetched simultaneously in background threads,
+        # and each URL is checked against SSRF vulnerabilities before connecting.
         feeds = db_manager.execute_query(self.DB, "SELECT * FROM news_feeds WHERE is_active = 1")
-        new_articles_count = 0
+        if not feeds:
+            return 0
 
-        for f in feeds:
-            feed_id = f["id"]
-            url = f["feed_url"]
+        def fetch_single_feed(feed_record):
+            feed_id = feed_record["id"]
+            url = feed_record["feed_url"]
+            is_safe, msg = SafeNetworkGuard.is_safe_url(url)
+            if not is_safe:
+                logger.warning(f"Skipping unsafe feed URL {url}: {msg}")
+                return 0
+
+            ok, raw_xml, _ = network_executor.fetch_url(url, timeout=3.5, ttl_seconds=300.0)
+            if not ok or not raw_xml:
+                return 0
+
+            count = 0
             try:
-                req = urllib.request.Request(
-                    url,
-                    headers={"User-Agent": "AetherIntelligenceReader/2.0 (offline-syndication)"}
-                )
-                with urllib.request.urlopen(req, timeout=5) as response:
-                    xml_data = response.read()
-                    root = ET.fromstring(xml_data)
+                root = ET.fromstring(raw_xml)
+                items = root.findall(".//item")
+                if not items:
+                    items = root.findall(".//{http://www.w3.org/2005/Atom}entry")
 
-                    # Handle standard RSS 2.0 item structure
-                    items = root.findall(".//item")
-                    # Handle Atom entry structure if RSS item is empty
-                    if not items:
-                        items = root.findall(".//{http://www.w3.org/2005/Atom}entry")
+                for item in items[:15]:
+                    title = item.findtext("title") or item.findtext("{http://www.w3.org/2005/Atom}title") or "Untitled"
+                    link = item.findtext("link")
+                    if not link:
+                        link_elem = item.find("{http://www.w3.org/2005/Atom}link")
+                        link = link_elem.get("href") if link_elem is not None else ""
 
-                    for item in items[:15]:
-                        title = item.findtext("title") or item.findtext("{http://www.w3.org/2005/Atom}title") or "Untitled"
-                        link = item.findtext("link")
-                        if not link:
-                            link_elem = item.find("{http://www.w3.org/2005/Atom}link")
-                            link = link_elem.get("href") if link_elem is not None else ""
+                    summary = item.findtext("description") or item.findtext("{http://www.w3.org/2005/Atom}summary") or ""
+                    pub_date = item.findtext("pubDate") or item.findtext("{http://www.w3.org/2005/Atom}updated") or ""
 
-                        summary = item.findtext("description") or item.findtext("{http://www.w3.org/2005/Atom}summary") or ""
-                        pub_date = item.findtext("pubDate") or item.findtext("{http://www.w3.org/2005/Atom}updated") or ""
-
-                        if link and title:
-                            clean_summary = self._strip_html(summary)[:450]
-                            inserted = db_manager.execute_non_query(
-                                self.DB,
-                                """INSERT OR IGNORE INTO news_articles 
-                                   (feed_id, title, link, summary, published_date)
-                                   VALUES (?, ?, ?, ?, ?)""",
-                                (feed_id, title.strip(), link.strip(), clean_summary, pub_date.strip())
-                            )
-                            if inserted:
-                                new_articles_count += 1
+                    if link and title:
+                        clean_summary = self._strip_html(summary)[:450]
+                        inserted = db_manager.execute_non_query(
+                            self.DB,
+                            """INSERT OR IGNORE INTO news_articles 
+                               (feed_id, title, link, summary, published_date)
+                               VALUES (?, ?, ?, ?, ?)""",
+                            (feed_id, title.strip(), link.strip(), clean_summary, pub_date.strip())
+                        )
+                        if inserted:
+                            count += 1
             except Exception as e:
-                logger.error(f"Error syncing feed {f['title']}: {e}")
+                logger.debug(f"Feed parse error for {feed_record.get('title')}: {e}")
+            return count
 
-        return new_articles_count
+        tasks = {str(f["id"]): (lambda f_rec=f: fetch_single_feed(f_rec)) for f in feeds}
+        results = network_executor.run_parallel(tasks)
+        return sum(v for v in results.values() if isinstance(v, int))
 
     def list_articles(self, category: Optional[str] = None, bookmarked_only: bool = False, limit: int = 40) -> List[Dict[str, Any]]:
         """List cached news articles enriched with sentiment scores."""

@@ -116,6 +116,9 @@ class SafeMathEvaluator(ast.NodeVisitor):
 
     def evaluate(self, expr: str) -> Union[int, float]:
         """Parse clean expression and compute numeric value."""
+        # I have written this part of code because processing arbitrarily long expressions
+        # or expressions with infinite recursions can cause the UI to stutter.
+        # We reject expressions over 500 characters as a protective measure.
         clean_expr = (
             expr.replace("^", "**")
                 .replace("×", "*")
@@ -124,6 +127,9 @@ class SafeMathEvaluator(ast.NodeVisitor):
         )
         if not clean_expr:
             raise ValueError("Expression is empty.")
+        if len(clean_expr) > 500:
+            raise ValueError("Expression exceeds 500 characters safety limit.")
+
         tree = ast.parse(clean_expr, mode='eval')
         return self.visit(tree.body)
 
@@ -131,6 +137,16 @@ class SafeMathEvaluator(ast.NodeVisitor):
         left = self.visit(node.left)
         right = self.visit(node.right)
         op_type = type(node.op)
+
+        # I have written this part of code because calculating unbounded astronomical exponents like
+        # 999999**999999 can lock up the CPU and freeze the entire app. Putting guardrails on the exponent
+        # operator keeps math evaluation blazing fast and immune to freezing.
+        if op_type is ast.Pow:
+            if isinstance(right, (int, float)) and abs(right) > 5000:
+                raise ValueError("Exponent magnitude too large (safety limit: 5000).")
+            if isinstance(left, (int, float)) and abs(left) > 1000 and isinstance(right, (int, float)) and right > 100:
+                raise ValueError("Calculation exceeds safe hardware magnitude.")
+
         if op_type in self.ALLOWED_OPERATORS:
             return self.ALLOWED_OPERATORS[op_type](left, right)
         raise ValueError(f"Unsupported binary operator: {op_type.__name__}")
@@ -160,6 +176,12 @@ class SafeMathEvaluator(ast.NodeVisitor):
         if func_name not in self.ALLOWED_FUNCTIONS:
             raise ValueError(f"Unsupported mathematical function: '{func_name}'")
         args = [self.visit(arg) for arg in node.args]
+
+        # I have written this part of code to prevent calculating factorial of huge numbers,
+        # which would allocate enormous amounts of memory and block Python's execution thread.
+        if func_name == "factorial" and args and args[0] > 1000:
+            raise ValueError("Factorial argument exceeds safe limit (max 1000).")
+
         return self.ALLOWED_FUNCTIONS[func_name](*args)
 
     def generic_visit(self, node):

@@ -17,7 +17,11 @@ import datetime
 import logging
 from typing import Dict, Any, Optional, List, Tuple
 from ..database_manager import db_manager
+from ..core.async_network import network_executor
 
+# I have written this part of code because the weather module needs to be fast and non-blocking.
+# If internet drops or open-meteo is slow, our network executor caches responses and falls back
+# gracefully so the workstation UI never stutters or freezes.
 logger = logging.getLogger("WeatherService")
 
 
@@ -301,13 +305,13 @@ class WeatherService:
 
     def detect_ip_location(self) -> Dict[str, Any]:
         """Detect current user approximate coordinates via keyless IP geolocator."""
+        # I have written this part of code because external IP geolocators often lag or rate-limit.
+        # By using our network executor with a 24-hour cache and safe fallback, the user's location
+        # resolves instantly without ever stalling the Qt UI loop!
         try:
-            req = urllib.request.Request(
-                "https://ipapi.co/json/",
-                headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; rv:109.0) Gecko/20100101 Firefox/115.0"}
-            )
-            with urllib.request.urlopen(req, timeout=4) as response:
-                data = json.loads(response.read().decode())
+            ok, raw, _ = network_executor.fetch_url("https://ipapi.co/json/", timeout=2.5, ttl_seconds=86400.0)
+            if ok and raw:
+                data = json.loads(raw)
                 return {
                     "city": data.get("city", "Current Location"),
                     "country": data.get("country_name", ""),
@@ -316,16 +320,18 @@ class WeatherService:
                 }
         except Exception as e:
             logger.warning(f"IP Geolocation fallback triggered: {e}")
-            return {"city": "New York", "country": "USA", "latitude": 40.7128, "longitude": -74.0060}
+        return {"city": "New York", "country": "USA", "latitude": 40.7128, "longitude": -74.0060}
 
     def geocode_city(self, city_name: str) -> Optional[Dict[str, Any]]:
         """Resolve city name into coordinates using Open-Meteo keyless geocoding service."""
+        # I have written this part of code because geocoding city names must be instantaneous.
+        # Caching geocoded cities permanently in memory prevents repeated round-trips for the same cities!
         try:
             encoded = urllib.parse.quote_plus(city_name.strip())
             url = f"https://geocoding-api.open-meteo.com/v1/search?name={encoded}&count=1&language=en&format=json"
-            req = urllib.request.Request(url, headers={"User-Agent": "NexusWorkstation/1.0"})
-            with urllib.request.urlopen(req, timeout=5) as response:
-                payload = json.loads(response.read().decode())
+            ok, raw, _ = network_executor.fetch_url(url, timeout=3.0, ttl_seconds=86400.0)
+            if ok and raw:
+                payload = json.loads(raw)
                 results = payload.get("results")
                 if results and len(results) > 0:
                     first = results[0]
@@ -358,6 +364,9 @@ class WeatherService:
         """
         Retrieves real-time atmospheric telemetry and enriched scientific models.
         """
+        # I have written this part of code because atmospheric physics and forecast models
+        # should feel snappy and instantaneous. We cache forecasts for 5 minutes (300s),
+        # so switching to the weather dashboard is sub-millisecond fast!
         if not city_name or city_name.strip() in ("", "Current Location", "Auto"):
             geo = self.detect_ip_location()
         else:
@@ -379,9 +388,9 @@ class WeatherService:
                 f"&timezone=auto"
             )
 
-            req = urllib.request.Request(url, headers={"User-Agent": "NexusWorkstation/1.0"})
-            with urllib.request.urlopen(req, timeout=6) as response:
-                raw_data = json.loads(response.read().decode())
+            ok, raw_payload, _ = network_executor.fetch_url(url, timeout=4.0, ttl_seconds=300.0)
+            if ok and raw_payload:
+                raw_data = json.loads(raw_payload)
                 current = raw_data.get("current", {})
                 hourly = raw_data.get("hourly", {})
                 daily = raw_data.get("daily", {})

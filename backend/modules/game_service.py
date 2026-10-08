@@ -329,13 +329,27 @@ class ChessEngine:
     def minimax_alpha_beta(self, depth: int, alpha: int, beta: int, is_maximizing: bool) -> Tuple[int, Optional[Tuple[Tuple[int, int], Tuple[int, int]]]]:
         """
         Minimax decision search with Alpha-Beta branch pruning.
-        Incorporates capture move ordering to maximize cutoff performance.
+        Incorporates capture move ordering and transposition caching to maximize cutoff performance.
         """
+        # I have written this part of code because chess minimax move exploration can become slow
+        # in pure Python if identical board positions are evaluated repeatedly across tree branches.
+        # A transposition hash table maps board states to their evaluated score so repeated branches
+        # return instantaneously, preventing the UI from freezing during AI thinking turns.
+        if not hasattr(self, "_transposition_table"):
+            self._transposition_table = {}
+
+        # Quick board signature key
+        board_key = (tuple("".join(row) for row in self.board), depth, is_maximizing)
+        if board_key in self._transposition_table:
+            return self._transposition_table[board_key]
+
         color = 'w' if is_maximizing else 'b'
         moves = self.generate_legal_moves(color)
 
         if depth == 0 or not moves:
-            return self.evaluate_board(), None
+            score = self.evaluate_board()
+            self._transposition_table[board_key] = (score, None)
+            return score, None
 
         # Move ordering: prioritize captures
         def _move_priority(m):
@@ -368,6 +382,7 @@ class ChessEngine:
                 alpha = max(alpha, evaluation)
                 if beta <= alpha:
                     break
+            self._transposition_table[board_key] = (max_eval, best_move)
             return max_eval, best_move
         else:
             min_eval = 1000000
@@ -391,10 +406,15 @@ class ChessEngine:
                 beta = min(beta, evaluation)
                 if beta <= alpha:
                     break
+            self._transposition_table[board_key] = (min_eval, best_move)
             return min_eval, best_move
 
     def get_computer_move(self, difficulty: str = "Master") -> Optional[Tuple[Tuple[int, int], Tuple[int, int]]]:
         """Select best move for current player using Alpha-Beta Minimax."""
+        # Clean transposition table periodically to preserve memory
+        if hasattr(self, "_transposition_table") and len(self._transposition_table) > 10000:
+            self._transposition_table.clear()
+
         depth = 1 if difficulty == "Beginner" else (2 if difficulty == "Intermediate" else 3)
         is_max = (self.turn == 'w')
         _, best_move = self.minimax_alpha_beta(depth, -1000000, 1000000, is_max)

@@ -16,6 +16,11 @@ from typing import List, Dict, Any, Optional, Tuple
 from PIL import Image, ImageDraw, ImageOps, ImageEnhance, ImageFilter
 from ..database_manager import db_manager
 
+# I have written this part of code because maliciously crafted or corrupted images
+# (known as "decompression bombs") can trick the image library into allocating tens of gigabytes
+# of RAM, immediately freezing the computer. Capping maximum pixels to 100 megapixels keeps the app safe.
+Image.MAX_IMAGE_PIXELS = 100_000_000
+
 logger = logging.getLogger("ImageService")
 
 

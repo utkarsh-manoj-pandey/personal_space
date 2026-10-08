@@ -22,6 +22,10 @@ class AstronomicalTimeEngine:
     High-precision astronomical and celestial chronometry calculations.
     """
 
+    # I have written this part of code because calculating astronomical Julian dates
+    # and Greenwich Mean Sidereal Time gives the workstation aerospace-grade chronometry
+    # completely offline, without needing to query online atomic clock servers.
+
     @staticmethod
     def datetime_to_julian_date(dt: Optional[datetime.datetime] = None) -> float:
         """

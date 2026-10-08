@@ -96,18 +96,37 @@
     @keyframes fade-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
     .animate-fade-in { animation: fade-in 0.25s ease-out; }
 
-    /* ── Global Interactive Transitions ── */
+    /* ── Global Interactive Transitions & Tactile Micro-Interactions ── */
     button, a, input, select, textarea { transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1); }
+    button:active { transform: scale(0.975); }
     input:focus, select:focus, textarea:focus {
       outline: none;
       box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.40);
       border-color: #6366f1 !important;
     }
 
+    /* ── Interactive Card & Glass Elevation Hover Enhancements ── */
+    .glass-panel {
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .glass-elevated:hover {
+      border-color: rgba(255, 255, 255, 0.14);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+    }
+
     /* ── Leaflet Dark Theme Override ── */
     .leaflet-container { background: #09090b !important; }
     .leaflet-bar a { background: #18181b !important; color: #a1a1aa !important; border-color: rgba(255,255,255,0.08) !important; }
     .leaflet-bar a:hover { background: #27272a !important; color: #fff !important; }
+    .leaflet-popup-content-wrapper {
+      background: rgba(18, 20, 26, 0.95) !important;
+      color: #f4f4f5 !important;
+      backdrop-filter: blur(16px) !important;
+      border: 1px solid rgba(255, 255, 255, 0.12) !important;
+      border-radius: 10px !important;
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6) !important;
+    }
+    .leaflet-popup-tip { background: rgba(18, 20, 26, 0.95) !important; }
 
     /* ── Nav Item Polish ── */
     .nav-item { transition: all 0.2s ease; }
@@ -3317,7 +3336,12 @@
       }
       if (tabId === 'calendar') loadCalendar();
       if (tabId === 'notepad') loadNotesList();
-      if (tabId === 'music') loadMusicLibrary();
+      if (tabId === 'music') {
+        loadMusicLibrary();
+        if (!visAnimationFrame && typeof startVisualizerCanvas === 'function') {
+          startVisualizerCanvas();
+        }
+      }
       if (tabId === 'video') loadVideoPlaylist();
       if (tabId === 'documents') loadDocumentView();
       if (tabId === 'radio') loadRadioStations();
@@ -5553,10 +5577,12 @@
       const timeData = new Uint8Array(bufferLength);
 
       function renderFrame() {
-        visAnimationFrame = requestAnimationFrame(renderFrame);
-
         // Performance guard: halt expensive draws when music tab is not active
-        if (currentActiveView !== 'music') return;
+        if (currentActiveView !== 'music') {
+          visAnimationFrame = null;
+          return;
+        }
+        visAnimationFrame = requestAnimationFrame(renderFrame);
 
         // Resize canvas to client width/height dynamically
         if (canvas.width !== canvas.clientWidth || canvas.height !== canvas.clientHeight) {

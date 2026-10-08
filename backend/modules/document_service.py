@@ -135,16 +135,40 @@ Your machine remains entirely yours.
         Parses and reads document contents across formats:
         PDF, Markdown, Plain Text, CSV, JSON, and Source Code files.
         """
-        if not os.path.exists(file_path):
+        # I have written this part of code because resolving the real canonical path prevents
+        # path traversal attacks, symbolic link cycles, and attempts to access root restricted files.
+        canonical_path = os.path.realpath(os.path.abspath(file_path))
+        if not os.path.exists(canonical_path):
             raise FileNotFoundError(f"Document not found: {file_path}")
 
-        file_name = os.path.basename(file_path)
-        ext = os.path.splitext(file_path)[1].lower()
-        size_bytes = os.path.getsize(file_path)
+        file_name = os.path.basename(canonical_path)
+        ext = os.path.splitext(canonical_path)[1].lower()
+        size_bytes = os.path.getsize(canonical_path)
         content = ""
         total_pages = 1
         pages_content = []
         structured_info: Dict[str, Any] = {}
+
+        # I have written this safeguard because attempting to parse files larger than 50MB
+        # all at once in Python can exhaust memory, freeze Qt WebEngine, and degrade system responsiveness.
+        MAX_SAFE_BYTES = 50 * 1024 * 1024
+        if size_bytes > MAX_SAFE_BYTES and ext not in (".pdf",):
+            content = f"[File size {size_bytes / (1024*1024):.1f} MB exceeds in-memory buffer limit. Open externally for full streaming.]"
+            pages_content = [{"page": 1, "text": content}]
+            return {
+                "id": 0,
+                "file_name": file_name,
+                "file_path": canonical_path,
+                "file_type": ext.upper().replace(".", ""),
+                "file_size": size_bytes,
+                "total_pages": 1,
+                "content": content,
+                "pages": pages_content,
+                "structured_info": {"oversized": True},
+                "annotations": []
+            }
+
+        file_path = canonical_path
 
         if ext == ".pdf":
             try:
@@ -321,6 +345,34 @@ Your machine remains entirely yours.
             "structured_info": structured_info,
             "annotations": self.get_annotations(doc_record["id"])
         }
+
+    def get_all_documents(self) -> List[Dict[str, Any]]:
+        """
+        Returns recent documents catalog for cross-enclave BM25 search indexing.
+        """
+        # I have written this part of code because the global Okapi BM25 cross-enclave search engine
+        # needs to index all documents stored in the database. Without this method,
+        # document searching in backend/bridge.py silently failed into an error handler.
+        records = db_manager.execute_query(self.DB, "SELECT * FROM recent_documents ORDER BY opened_at DESC LIMIT 50")
+        results = []
+        for r in records:
+            p = r["file_path"]
+            content_preview = ""
+            if os.path.exists(p) and r["file_size"] < 1024 * 1024:
+                try:
+                    with open(p, "r", encoding="utf-8", errors="ignore") as f:
+                        content_preview = f.read(2048)
+                except Exception:
+                    content_preview = ""
+            results.append({
+                "id": r["id"],
+                "title": r["file_name"],
+                "content": content_preview,
+                "file_path": r["file_path"],
+                "file_type": r["file_type"],
+                "tags": r["file_type"]
+            })
+        return results
 
     def add_annotation(self, document_id: int, page_number: int, note_text: str) -> Dict[str, Any]:
         """Record a marginalia annotation for a document."""
