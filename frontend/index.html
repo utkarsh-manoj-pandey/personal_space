@@ -4584,10 +4584,11 @@
 
       // 100% Free Public High-Resolution Map Tiles (Zero API Key Required)
       if (layerType === 'dark') {
-        // ESRI World Dark Gray Canvas
-        currentMapTileLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
-          attribution: '&copy; Esri &copy; OpenStreetMap contributors',
-          maxZoom: 16
+        // CartoDB Dark Matter Tiles (High-Contrast Cyber-Tactical Basemap)
+        currentMapTileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+          subdomains: 'abcd',
+          maxZoom: 19
         }).addTo(leafletMapInstance);
       } else if (layerType === 'sat') {
         // ESRI World Imagery HD (Photorealistic Satellite)
@@ -4813,11 +4814,19 @@
 
         if (routeGeoJsonLayer) leafletMapInstance.removeLayer(routeGeoJsonLayer);
 
-        routeGeoJsonLayer = L.geoJSON(routeRes.geometry, {
-          style: { color: activeColor, weight: 5, opacity: 0.9 }
-        }).addTo(leafletMapInstance);
+        const routeData = routeRes.geojson || routeRes.geometry;
+        if (routeData) {
+          routeGeoJsonLayer = L.geoJSON(routeData, {
+            style: { color: activeColor, weight: 5, opacity: 0.9 }
+          }).addTo(leafletMapInstance);
 
-        leafletMapInstance.fitBounds(routeGeoJsonLayer.getBounds(), { padding: [50, 50] });
+          try {
+            const bounds = routeGeoJsonLayer.getBounds();
+            if (bounds && bounds.isValid()) {
+              leafletMapInstance.fitBounds(bounds, { padding: [50, 50] });
+            }
+          } catch(e) {}
+        }
 
         const stepsList = document.getElementById('route-steps-list');
         if (stepsList && routeRes.steps) {
@@ -4870,13 +4879,14 @@
       if (!data) return;
 
       document.getElementById('weather-city-name').textContent = `${data.city}, ${data.country}`;
-      document.getElementById('weather-condition-text').textContent = `${data.condition} • Pressure ${data.pressure} hPa`;
+      const pressVal = data.pressure !== undefined ? data.pressure : (data.pressure_hpa !== undefined ? data.pressure_hpa : 1013);
+      document.getElementById('weather-condition-text').textContent = `${data.condition} • Pressure ${Math.round(pressVal)} hPa`;
       document.getElementById('weather-temp').textContent = data.temperature;
       document.getElementById('weather-feels').textContent = `Feels like ${data.feels_like}°C`;
       document.getElementById('weather-humidity').textContent = data.humidity;
       document.getElementById('weather-wind').textContent = data.wind_speed;
       document.getElementById('weather-wind-dir').textContent = `Heading ${data.wind_direction}°`;
-      document.getElementById('weather-pressure').textContent = Math.round(data.pressure);
+      document.getElementById('weather-pressure').textContent = Math.round(pressVal);
 
       // Hourly Trajectory Strip
       const hourlyStrip = document.getElementById('weather-hourly-strip');
@@ -4892,14 +4902,17 @@
       // Daily Outlook Cards
       const dailyCards = document.getElementById('weather-daily-cards');
       if (dailyCards && data.daily) {
-        dailyCards.innerHTML = data.daily.map(d => `
+        dailyCards.innerHTML = data.daily.map(d => {
+          const maxT = d.max_temp !== undefined ? d.max_temp : (d.temp_max !== undefined ? d.temp_max : '--');
+          const minT = d.min_temp !== undefined ? d.min_temp : (d.temp_min !== undefined ? d.temp_min : '--');
+          return `
           <div class="glass-elevated p-3 rounded border border-panel-border text-center font-mono text-xs">
             <div class="text-slate-400 text-[10px] font-bold">${d.date.slice(5)}</div>
-            <div class="text-white font-bold text-sm my-1">${d.max_temp}°</div>
-            <div class="text-slate-400 text-[11px]">${d.min_temp}°</div>
+            <div class="text-white font-bold text-sm my-1">${maxT}°</div>
+            <div class="text-slate-400 text-[11px]">${minT}°</div>
             <div class="text-indigo-300 text-[10px] mt-2 truncate font-medium">${d.condition}</div>
           </div>
-        `).join('');
+        `;}).join('');
       }
     }
 

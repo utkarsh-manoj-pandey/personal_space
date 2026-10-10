@@ -173,6 +173,21 @@ class ConcurrentNetworkExecutor:
             return False, None, str(e)
 
     @classmethod
+    def fetch_json(cls, url: str, headers: Optional[Dict[str, str]] = None, timeout: float = 3.5, ttl_seconds: float = 300.0) -> Optional[Any]:
+        """
+        Fetches and decodes JSON from a URL with caching and error handling.
+        """
+        import json
+        success, content, _ = cls.fetch_url(url, headers=headers, timeout=timeout, ttl_seconds=ttl_seconds)
+        if success and content:
+            try:
+                return json.loads(content)
+            except Exception as e:
+                logger.debug(f"JSON decode failed for {url}: {e}")
+                return None
+        return None
+
+    @classmethod
     def run_parallel(cls, tasks: Dict[str, Callable[[], Any]]) -> Dict[str, Any]:
         """
         I have written this part of code to execute a dictionary of callable tasks in parallel.

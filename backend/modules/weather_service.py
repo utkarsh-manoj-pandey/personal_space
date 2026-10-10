@@ -479,6 +479,8 @@ class WeatherService:
                         "day_name": d_obj.strftime("%a"),
                         "temp_max": round(d_maxs[idx], 1) if idx < len(d_maxs) else temp_val,
                         "temp_min": round(d_mins[idx], 1) if idx < len(d_mins) else temp_val,
+                        "max_temp": round(d_maxs[idx], 1) if idx < len(d_maxs) else temp_val,
+                        "min_temp": round(d_mins[idx], 1) if idx < len(d_mins) else temp_val,
                         "condition": self.WMO_CODES.get(d_codes[idx] if idx < len(d_codes) else 0, "Clear"),
                         "uv_max": d_uvs[idx] if idx < len(d_uvs) else 0
                     })
@@ -493,6 +495,7 @@ class WeatherService:
                     "humidity": humidity_val,
                     "wind_speed": wind_speed_val,
                     "wind_direction": current.get("wind_direction_10m", 0),
+                    "pressure": pressure_val,
                     "pressure_hpa": pressure_val,
                     "condition": condition_label,
                     "condition_code": w_code,
@@ -547,6 +550,7 @@ class WeatherService:
                 "feels_like": 21.0,
                 "humidity": 45.0,
                 "wind_speed": 12.0,
+                "pressure": 1013.2,
                 "pressure_hpa": 1013.2,
                 "condition": "Mainly Clear",
                 "condition_code": 1,

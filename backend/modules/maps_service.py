@@ -359,7 +359,8 @@ class MapsService:
                     "initial_bearing_degrees": bearing,
                     "steps_count": len(steps),
                     "steps": steps,
-                    "geojson": geojson
+                    "geojson": geojson,
+                    "geometry": geojson
                 }
         except Exception as e:
             logger.error(f"Routing error for {profile}: {e}")
@@ -382,6 +383,10 @@ class MapsService:
             "steps_count": len(fallback_steps),
             "steps": fallback_steps,
             "geojson": {
+                "type": "LineString",
+                "coordinates": [[start_lon, start_lat], [end_lon, end_lat]]
+            },
+            "geometry": {
                 "type": "LineString",
                 "coordinates": [[start_lon, start_lat], [end_lon, end_lat]]
             }

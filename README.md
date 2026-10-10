@@ -13,68 +13,148 @@ The user interface executes inside a sandboxed QtWebEngine environment loaded vi
 
 ---
 
-## Visual Showcase
+## Visual Showcase: All Subsystems & Modules
 
-### Situational Reconnaissance & 3D Orbital Earth
-WebGL Three.js wireframe globe featuring a 1,200-particle starfield, live Keplerian orbital tracking of the International Space Station (ISS), real-time USGS seismic feeds, global cyber threat telemetry vectors, and subsea fiber cable status indicators.
+Aether's interface is structured across 4 core operational domains comprising 19 dedicated modules. Below is the complete visual walkthrough of every subsystem, captured directly from the live workstation environment.
 
-![Situational Reconnaissance & Palantir Command Deck](docs/screenshots/01_world_monitor.png)
+### Domain 1: Core Command & Geospatial Intelligence
 
----
+#### 00. Executive Command Workspace & Operational Cockpit
+Unified situational overview synthesizing real-time hardware telemetry (CPU, RAM utilization), pending priority agendas, calendar appointments, recent document access, global telemetry pulse (Keplerian ISS tracking & USGS seismic alert status), and pinned executive directives.
 
-### Command Planner & Kanban Engine
-Tri-mode operational planner featuring a 4-Stage Kanban workflow (Backlog, In Progress, Review & Audit, Completed), 24-hour daily timeline scheduler, and an Eisenhower Priority Matrix (Urgent vs Important).
-
-![Command Planner and Kanban Workflow](docs/screenshots/05_task_planner.png)
+![Executive Command Workspace Dashboard](docs/screenshots/00_home_dashboard.png)
 
 ---
 
-### Pure Python Minimax Chess Engine
-Deterministic chess solver built without third-party engines. Features depth-configured Minimax search with Alpha-Beta pruning, dynamic legal move indicator reticles, live capture ledgers, and turn telemetry.
+#### 01. Situational Reconnaissance & 3D Orbital Earth
+WebGL Three.js wireframe globe featuring a 1,200-particle dynamic starfield, live Keplerian orbital tracking of the International Space Station (ISS: 27,580 km/h with live coordinates), real-time USGS seismic earthquake telemetry feeds with Richter magnitude badges, global cyber threat telemetry vectors, and subsea fiber cable corridor throughput indicators.
 
-![Pure Python Chess Engine with Legal Move Reticles](docs/screenshots/04_chess_game_engine.png)
-
----
-
-### Markdown Studio & Real-Time Split Preview
-Multi-mode note-taking studio with live side-by-side markdown rendering, formatting toolbar, document search, tag taxonomy, and real-time word, character, and estimated reading time telemetry.
-
-![Notepad and Markdown Studio](docs/screenshots/03_notepad_markdown.png)
+![Situational Reconnaissance & 3D Orbital Earth](docs/screenshots/01_world_monitor.png)
 
 ---
 
-### Safe AST Mathematical & Programmer Engine
-Secure calculation engine using Python Abstract Syntax Tree (AST) node visitation to evaluate expressions without unsafe `eval()` calls. Features synchronized 32-bit registers for Hexadecimal, Decimal, Octal, and Binary conversions alongside a complete audit ledger tape.
+#### 02. Maps & Turn-by-Turn Navigation Engine
+High-contrast CartoDB Dark Matter geospatial canvas integrated with Leaflet.js, keyless Nominatim geocoding engine, custom waypoints with WGS-84 ellipsoidal Vincenty geodesy calculations, and Open Source Routing Machine (OSRM) turn-by-turn driving, walking, and cycling navigation with maneuver guidance, travel durations, and distance metrics.
 
-![Safe AST and Programmer Base Engine](docs/screenshots/06_tactical_calculator.png)
-
----
-
-### Scientific Meteorology Suite
-Keyless scientific forecast models powered by Open-Meteo, featuring automatic IP-based geocoding, multi-city strategic presets, 24-hour hourly temperature trajectories, and 7-day outlook telemetry.
-
-![Scientific Weather Systems](docs/screenshots/07_weather_systems.png)
+![Maps and Turn-by-Turn Navigation](docs/screenshots/02_maps_navigation.png)
 
 ---
 
-### Maps & Turn-by-Turn Navigation Engine
-Interactive OpenStreetMap vector rendering with CartoDB Dark Matter tiles, keyless Nominatim geocoding address search, and Open Source Routing Machine (OSRM) turn-by-turn routing with distance and travel time.
+#### 03. Scientific Meteorology Suite
+Keyless atmospheric physics and forecasting powered by Open-Meteo, featuring automatic IP-based geocoding, multi-city strategic presets (New York, London, Tokyo, Zurich, Singapore, Mumbai, etc.), real-time thermodynamic metrics (surface temperature, dew point, relative humidity, wind heading, barometric pressure), 24-hour hourly temperature trajectories, and 7-day outlook telemetry cards.
 
-![OpenStreetMap and OSRM Navigation](docs/screenshots/02_maps_navigation.png)
-
----
-
-### Music Player & Procedural Soundscapes
-Dual-harmonic binaural ambient synthesizer built with Python's standard `wave` and `math` libraries, paired with a dual-mode Web Audio API visualizer (Multi-band Spectrum Bars and Oscilloscope Waveform).
-
-![Procedural Audio Synthesizer and Visualizer](docs/screenshots/09_music_soundscapes.png)
+![Scientific Weather Systems](docs/screenshots/03_weather_systems.png)
 
 ---
 
-### Personal Calendar & Schedule Ledger
-Full-featured calendar management system supporting event categories, recurring cadences (daily, weekly, monthly), priority indicators, event ledger search, and RFC 5545 iCalendar (`.ics`) export.
+#### 04. Geopolitical & Tech News Intelligence
+Curated multi-source RSS/Atom intelligence aggregator parsing geopolitical developments, cybersecurity incident disclosures, and engineering research. Features distraction-free in-app modal reader, bookmark persistence, category filtering (Geopolitics, Cybersecurity, Technology, Engineering), and direct external link dispatching.
 
-![Personal Calendar and Schedule Ledger](docs/screenshots/08_personal_calendar.png)
+![News Intelligence and RSS Aggregator](docs/screenshots/04_news_intelligence.png)
+
+---
+
+### Domain 2: Productivity & Operations Suite
+
+#### 05. Command Planner & 4-Stage Kanban Engine
+Tri-mode operational planner featuring an agile 4-Stage Kanban workflow (Backlog, In Progress, Review & Audit, Completed) with draggable card states, priority tier tagging (Critical, High, Medium, Low), Pomodoro sprint trackers, a 24-hour daily timeline scheduler, and an Eisenhower Priority Matrix (Urgent vs Important).
+
+![Command Planner and 4-Stage Kanban Engine](docs/screenshots/05_task_planner.png)
+
+---
+
+#### 06. Personal Calendar & Schedule Ledger
+Temporal scheduling suite featuring a monthly visual calendar matrix, categorized event ledger, priority indicators, automated national holidays and festivals integration, and full bidirectional RFC 5545 iCalendar (`.ics`) export and import capabilities.
+
+![Personal Calendar and Schedule Ledger](docs/screenshots/06_personal_calendar.png)
+
+---
+
+#### 07. Markdown Studio & Real-Time Split Preview
+Offline technical note repository with side-by-side synchronized split markdown preview, tag taxonomies, document pinning, full-text inverted search indexing, and real-time document telemetry computing live word count, character count, and estimated reading time.
+
+![Markdown Studio and Split Preview](docs/screenshots/07_notepad_markdown.png)
+
+---
+
+#### 08. Tactical Contact Directory & Secure Vault
+Encrypted personal address book and rolodex featuring relationship categorization (VIP, Professional, Personal), contact communications ledger (interaction logs, meeting records, call notes), full-text search, and automated RFC 2426 vCard 3.0 export for cross-platform synchronization.
+
+![Tactical Contact Directory and Vault](docs/screenshots/08_contact_directory.png)
+
+---
+
+#### 09. Universal Document & Source Code Viewer
+Multi-format offline document inspection studio with local PDF text extraction via `pypdf`, source code viewer with line enumeration, Markdown renderer, paginated browsing, and persistent SQLite-backed marginalia annotations.
+
+![Universal Document and Code Viewer](docs/screenshots/09_document_viewer.png)
+
+---
+
+### Domain 3: Media & Studio Engine
+
+#### 10. Music Player & Procedural Soundscapes
+Sovereign audio workstation featuring a dual-harmonic binaural ambient soundscape synthesizer (Alpha 10Hz focus, Theta 6Hz meditation, Gamma 40Hz hyperfocus) engineered with Python's standard `wave` and `math` libraries, paired with a dual-mode Web Audio API visualizer (multi-band spectrum analyzer with peak hold decay and CRT phosphor oscilloscope).
+
+![Procedural Audio Synthesizer and Spectrum Visualizer](docs/screenshots/10_music_soundscapes.png)
+
+---
+
+#### 11. Tactical Cinema Video Player
+Hardware-accelerated local cinema player supporting MP4, WebM, and MKV containers with frame-accurate timestamp bookmarking, WebVTT interactive chapter track generation, variable playback rate scaling (0.25x to 2.0x), and persistent playback resumption telemetry.
+
+![Tactical Cinema Video Player](docs/screenshots/11_video_player.png)
+
+---
+
+#### 12. Global Internet Radio Streaming Matrix
+Curated international live streaming directory spanning worldwide news, synthwave, classical, jazz, ambient, and lo-fi broadcasts (SomaFM, Nightwave Plaza, BBC World Service, Radio Swiss Jazz, FIP Paris) with bitrates, codec specs, country filters, and custom station URL registration.
+
+![Cyber-Deck Internet Radio Streaming Matrix](docs/screenshots/12_internet_radio.png)
+
+---
+
+#### 13. Image Catalog & Processing Lab
+High-resolution image repository and manipulation laboratory providing EXIF metadata extraction via `Pillow`, non-destructive CSS hardware filter adjustments (brightness, contrast, saturation, sharpness), 90-degree lossless rotations, horizontal/vertical flipping, and persistent catalog registration.
+
+![Image Catalog and Studio Lab](docs/screenshots/13_image_catalog.png)
+
+---
+
+#### 14. Safe AST Mathematical & Programmer Engine
+Secure calculation engine utilizing Python Abstract Syntax Tree (`ast.NodeVisitor`) parsing to evaluate complex mathematical expressions without unsafe `eval()` execution. Features synchronized 32-bit registers for Hexadecimal, Decimal, Octal, and Binary conversions alongside a complete audit ledger tape.
+
+![Safe AST and Programmer Base Engine](docs/screenshots/14_tactical_calculator.png)
+
+---
+
+#### 15. Global Strategic World Clocks & Precision Timers
+Synchronized global chronometer matrix monitoring key strategic financial and operational timezones (UTC, New York, London, Zurich, Dubai, Singapore, Tokyo, Sydney, San Francisco), paired with a millisecond-precision lap stopwatch and Pomodoro sprint focus timer.
+
+![Global Strategic World Clocks and Timers](docs/screenshots/15_world_clocks.png)
+
+---
+
+### Domain 4: System & Security Framework
+
+#### 16. Tor-Style Privacy Web Browser
+Hardened sovereign web intelligence navigator featuring anti-tracking headers, WebRTC IP leak prevention, User-Agent signature rotation, zero-tracking search engine dispatch (DuckDuckGo, Brave, Startpage, SearXNG, Qwant), and encrypted bookmark storage.
+
+![Tor-Style Privacy Web Browser](docs/screenshots/16_privacy_browser.png)
+
+---
+
+#### 17. Pure Python Minimax Chess Engine & Game Suite
+Zero-dependency algorithmic chess engine written entirely in pure Python, featuring configurable depth Minimax search with Alpha-Beta pruning, dynamic legal move indicator reticles, live capture ledgers, and turn telemetry—alongside Connect 4 gravity solver, Minesweeper, and 2048 puzzle games.
+
+![Pure Python Minimax Chess and Game Suite](docs/screenshots/17_chess_game_engine.png)
+
+---
+
+#### 18. Workspace Settings & Database Vault Management
+Central command administration console monitoring health, page allocations, row counts, and WAL integrity across all 17 isolated SQLite databases, featuring one-click atomic hot snapshot backups, database VACUUM optimization, integrity verification, UI scaling, and privacy shield toggles.
+
+![Workspace Settings and Database Vault Management](docs/screenshots/18_workspace_settings.png)
 
 ---
 
@@ -144,9 +224,11 @@ personal_space/
 ├── README.md                   # System documentation and visual showcase
 ├── .gitignore                  # Git exclusions for cache and runtime files
 ├── docs/                       # Project documentation and visual assets
-│   └── screenshots/            # High-resolution application captures
+│   └── screenshots/            # High-resolution application captures (00 to 18)
 ├── scripts/                    # Automation and pipeline scripts
-│   └── capture_screenshots.py  # Automated UI screenshot capture pipeline
+│   ├── capture_screenshots.py  # Automated UI screenshot capture pipeline
+│   ├── database_tool.py        # SQLite enclave administration & maintenance tool
+│   └── benchmark_suite.py      # Computational stress test & benchmark suite
 ├── data/                       # 17 Isolated Subsystem SQLite Databases & Media
 │   ├── calendar.db
 │   ├── browser.db
@@ -171,11 +253,19 @@ personal_space/
 ├── backend/
 │   ├── database_manager.py     # SQLite manager for the 17 isolated databases
 │   ├── bridge.py               # QWebChannel RPC bridge exposing Python slots
-│   └── modules/                # Subsystem business logic engines
+│   ├── core/                   # Pure Python sovereign algorithmic foundations
+│   └── modules/                # Subsystem business logic engines (17 modules)
 ├── frontend/
 │   └── index.html              # Unified cyber-tactical interface
-└── tests/
-    └── test_subsystems.py      # Automated test suite for all 17 subsystems
+└── tests/                      # Deterministic automated test suite (73 passing tests)
+    ├── test_advanced_mathematics.py
+    ├── test_bridge_api.py
+    ├── test_core_engines.py
+    ├── test_cryptography_and_vault.py
+    ├── test_export_and_validation.py
+    ├── test_search_nlp_compression.py
+    ├── test_subsystems.py
+    └── test_subsystems_enhanced.py
 ```
 
 ---
@@ -257,7 +347,7 @@ python3 scripts/database_tool.py optimize
 python3 scripts/database_tool.py backup --target ./data/backups
 
 # Query or export enclave tables to JSON or CSV
-python3 scripts/database_tool.py query --db notes.db --sql "SELECT * FROM notes"
+python3 scripts/database_tool.py query --db notepad.db --sql "SELECT * FROM notes"
 python3 scripts/database_tool.py export --db calendar.db --table calendar_events --format json
 ```
 
@@ -313,7 +403,7 @@ To update your workstation, commit your work, and synchronize changes with GitHu
 
 ---
 
-## 8. Security & Privacy Guarantees
+## 10. Security & Privacy Guarantees
 
 - **Zero Cloud Leakage**: No telemetry, analytics, or behavioral cookies are embedded.
 - **Local AST Evaluation**: The calculator avoids unsafe `eval()` calls by using Python's `ast.NodeVisitor` with an explicit whitelist of mathematical operations.
